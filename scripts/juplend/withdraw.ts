@@ -1,4 +1,5 @@
 import {
+  AccountMeta,
   PublicKey,
   Transaction,
   sendAndConfirmTransaction,
@@ -88,9 +89,6 @@ export async function withdrawJuplend(
   const bankData = await program.account.bank.fetch(config.BANK);
   const mint = bankData.mint;
   const juplendLending = bankData.integrationAcc1;
-  const juplendFTokenVault = bankData.integrationAcc2;
-  const withdrawIntermediaryAta = bankData.integrationAcc3;
-  const group = bankData.group;
 
   // Detect token program
   let tokenProgram = TOKEN_PROGRAM_ID;
@@ -129,6 +127,12 @@ export async function withdrawJuplend(
     lendingInfo.data.slice(163, 195),
   );
 
+  const oracleMeta: AccountMeta[] = config.NEW_REMAINING.flat().map(
+    (pubkey) => {
+      return { pubkey, isSigner: false, isWritable: false };
+    },
+  );
+
   const destinationTokenAccount = getAssociatedTokenAddressSync(
     mint,
     payerKey,
@@ -138,16 +142,16 @@ export async function withdrawJuplend(
 
   const transaction = new Transaction();
 
-  // Create destination ATA idempotently
-  transaction.add(
-    createAssociatedTokenAccountIdempotentInstruction(
-      payerKey,
-      destinationTokenAccount,
-      payerKey,
-      mint,
-      tokenProgram,
-    ),
-  );
+  // // Create destination ATA idempotently
+  // transaction.add(
+  //   createAssociatedTokenAccountIdempotentInstruction(
+  //     payerKey,
+  //     destinationTokenAccount,
+  //     payerKey,
+  //     mint,
+  //     tokenProgram,
+  //   ),
+  // );
 
   const withdrawIx = await program.methods
     .juplendWithdraw(config.AMOUNT, config.WITHDRAW_ALL ? true : null)
@@ -169,6 +173,7 @@ export async function withdrawJuplend(
     .accountsPartial({
       fTokenMint,
     })
+    .remainingAccounts(oracleMeta)
     .instruction();
 
   transaction.add(withdrawIx);
@@ -181,10 +186,9 @@ export async function withdrawJuplend(
   console.log("Simulating juplendWithdraw...");
   const simulation = await connection.simulateTransaction(transaction);
 
-  console.log("\nProgram Logs:");
-  simulation.value.logs?.forEach((log) => console.log("  " + log));
-
   if (simulation.value.err) {
+    console.log("\nProgram Logs:");
+    simulation.value.logs?.forEach((log) => console.log("  " + log));
     console.log("\nSimulation failed:");
     console.log(JSON.stringify(simulation.value.err, null, 2));
     process.exit(1);

@@ -265,6 +265,7 @@ export interface KaminoWithdrawAccounts {
   destinationTokenAccount: PublicKey;
   lendingMarket: PublicKey;
   reserve: PublicKey;
+  reserveLiquidityMint: PublicKey;
 
   obligationFarmUserState?: PublicKey | null;
   reserveFarmState?: PublicKey | null;

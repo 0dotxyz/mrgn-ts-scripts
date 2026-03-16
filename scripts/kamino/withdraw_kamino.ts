@@ -165,6 +165,7 @@ export async function withdrawKamino(
       {
         marginfiAccount: config.ACCOUNT,
         bank: config.BANK,
+        reserveLiquidityMint: config.BANK_MINT,
         destinationTokenAccount: ata,
         lendingMarket: config.KAMINO_MARKET,
         reserve: config.KAMINO_RESERVE,
