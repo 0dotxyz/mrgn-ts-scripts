@@ -37,6 +37,8 @@ type Config = {
   /** Oracle address the Kamino Reserve uses. Typically read from reserve.config.tokenInfo.scope */
   RESERVE_ORACLE: PublicKey;
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
+
+  RESERVE?: PublicKey; // If omitted, read from the bank.integrationAcc1
 };
 
 const config: Config = {
@@ -50,6 +52,8 @@ const config: Config = {
   FEE_PAYER: new PublicKey("FbfXs6D1BGUqyz6ya5AfVi3eoyfhin6hfM9d7yt1WK3L"),
 
   RESERVE_ORACLE: new PublicKey("3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH"),
+
+  // RESERVE: new PublicKey("6vKCRnEzrxRS1NybsMVEyNE3ztFAxCz6WusiiGft1PbA"),
 };
 
 async function main() {
@@ -73,9 +77,16 @@ export async function initKaminoObligation(
   const program = user.program;
   const connection = user.connection;
 
-  const bank = await program.account.bank.fetch(config.BANK);
-  const mint = bank.mint;
-  const reserve = bank.integrationAcc1;
+  const reserve = config.RESERVE ?? (await program.account.bank.fetch(config.BANK)).integrationAcc1;
+
+  const reserveAcc = await user.kaminoProgram.account.reserve.fetch(reserve);
+  const mint = reserveAcc.liquidity.mintPubkey;
+  const lendingMarket = reserveAcc.lendingMarket;
+  let reserveFarmState = reserveAcc.farmCollateral;
+
+  console.log(
+    "init obligation for bank: " + config.BANK + " (mint: " + mint + ")",
+  );
 
   console.log("Detecting token program for mint...");
   let tokenProgram = TOKEN_PROGRAM_ID;
@@ -97,9 +108,6 @@ export async function initKaminoObligation(
     config.BANK,
   );
 
-  const reserveAcc = await user.kaminoProgram.account.reserve.fetch(reserve);
-  const reserveFarmState = reserveAcc.farmCollateral;
-  const lendingMarket = reserveAcc.lendingMarket;
 
   const [baseObligation] = deriveBaseObligation(
     liquidityVaultAuthority,
@@ -111,11 +119,18 @@ export async function initKaminoObligation(
     true,
     tokenProgram,
   );
-  const [userState] = deriveUserState(
+
+  let [userState] = deriveUserState(
     FARMS_PROGRAM_ID,
     reserveFarmState,
     baseObligation,
   );
+
+  if (reserveFarmState.toString() == PublicKey.default.toString())
+  {
+    reserveFarmState = undefined;
+    userState = undefined;
+  }
 
   let initObligationTx = new Transaction().add(
     ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
@@ -126,7 +141,7 @@ export async function initKaminoObligation(
         bank: config.BANK,
         signerTokenAccount: ata,
         lendingMarket,
-        reserve: bank.integrationAcc1,
+        reserve,
         scopePrices: config.RESERVE_ORACLE,
         reserveFarmState,
         obligationFarmUserState: userState,
@@ -159,6 +174,14 @@ export async function initKaminoObligation(
     const base58Transaction = bs58.encode(serializedTransaction);
     console.log("bank key: " + config.BANK);
     console.log("Base58-encoded transaction:", base58Transaction);
+    console.log("ALL accounts:");
+    for (let ix of initObligationTx.instructions)
+    {
+      for (let account of ix.keys)
+      {
+        console.log(account.pubkey.toString());
+      }
+    }
   }
 
   return baseObligation;

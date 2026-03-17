@@ -76,7 +76,7 @@ export type Marginfi = {
     {
       "name": "configureBankRateLimits",
       "docs": [
-        "(admin only) Configure bank-level rate limits for withdraw/borrow.",
+        "(admin or delegate_limit_admin) Configure bank-level rate limits for withdraw/borrow.",
         "Rate limits track net outflow in native tokens. Deposits offset withdraws.",
         "Set to 0 to disable. Hourly and daily windows are independent."
       ],
@@ -99,10 +99,7 @@ export type Marginfi = {
         },
         {
           "name": "admin",
-          "signer": true,
-          "relations": [
-            "group"
-          ]
+          "signer": true
         },
         {
           "name": "bank",
@@ -127,7 +124,7 @@ export type Marginfi = {
     {
       "name": "configureDeleverageWithdrawalLimit",
       "docs": [
-        "(group admin only) Set the daily withdrawal limit for deleverages per group."
+        "(admin or delegate_limit_admin) Set the daily withdrawal limit for deleverages per group."
       ],
       "discriminator": [
         28,
@@ -146,10 +143,7 @@ export type Marginfi = {
         },
         {
           "name": "admin",
-          "signer": true,
-          "relations": [
-            "marginfiGroup"
-          ]
+          "signer": true
         }
       ],
       "args": [
@@ -162,7 +156,7 @@ export type Marginfi = {
     {
       "name": "configureGroupRateLimits",
       "docs": [
-        "(admin only) Configure group-level rate limits for withdraw/borrow.",
+        "(admin or delegate_limit_admin) Configure group-level rate limits for withdraw/borrow.",
         "Rate limits track aggregate net outflow in USD.",
         "Example: $10M = 10_000_000. Set to 0 to disable."
       ],
@@ -183,10 +177,7 @@ export type Marginfi = {
         },
         {
           "name": "admin",
-          "signer": true,
-          "relations": [
-            "marginfiGroup"
-          ]
+          "signer": true
         }
       ],
       "args": [
@@ -223,7 +214,6 @@ export type Marginfi = {
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfiAccount",
             "bank"
@@ -939,7 +929,6 @@ export type Marginfi = {
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfiAccount",
             "bank"
@@ -1218,7 +1207,7 @@ export type Marginfi = {
           "name": "programFeeFixed",
           "type": {
             "defined": {
-              "name": "wrappedI80F48"
+              "name": "wrappedI80f48"
             }
           }
         },
@@ -1226,7 +1215,7 @@ export type Marginfi = {
           "name": "programFeeRate",
           "type": {
             "defined": {
-              "name": "wrappedI80F48"
+              "name": "wrappedI80f48"
             }
           }
         },
@@ -1234,7 +1223,7 @@ export type Marginfi = {
           "name": "liquidationMaxFee",
           "type": {
             "defined": {
-              "name": "wrappedI80F48"
+              "name": "wrappedI80f48"
             }
           }
         },
@@ -1242,7 +1231,7 @@ export type Marginfi = {
           "name": "orderExecutionMaxFee",
           "type": {
             "defined": {
-              "name": "wrappedI80F48"
+              "name": "wrappedI80f48"
             }
           }
         }
@@ -1550,7 +1539,7 @@ export type Marginfi = {
           "name": "programFeeFixed",
           "type": {
             "defined": {
-              "name": "wrappedI80F48"
+              "name": "wrappedI80f48"
             }
           }
         },
@@ -1558,7 +1547,7 @@ export type Marginfi = {
           "name": "programFeeRate",
           "type": {
             "defined": {
-              "name": "wrappedI80F48"
+              "name": "wrappedI80f48"
             }
           }
         },
@@ -1566,7 +1555,7 @@ export type Marginfi = {
           "name": "liquidationMaxFee",
           "type": {
             "defined": {
-              "name": "wrappedI80F48"
+              "name": "wrappedI80f48"
             }
           }
         },
@@ -1574,7 +1563,7 @@ export type Marginfi = {
           "name": "orderExecutionMaxFee",
           "type": {
             "defined": {
-              "name": "wrappedI80F48"
+              "name": "wrappedI80f48"
             }
           }
         }
@@ -2048,7 +2037,6 @@ export type Marginfi = {
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfiAccount",
             "bank"
@@ -2253,7 +2241,6 @@ export type Marginfi = {
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfiAccount",
             "bank"
@@ -2869,7 +2856,6 @@ export type Marginfi = {
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfiAccount",
             "bank"
@@ -2997,12 +2983,15 @@ export type Marginfi = {
           ]
         },
         {
-          "name": "reserveLiquidityMint",
+          "name": "mint",
           "docs": [
             "The liquidity token mint (e.g., USDC)",
             "Needs serde to get the mint decimals for transfer checked"
           ],
-          "writable": true
+          "writable": true,
+          "relations": [
+            "bank"
+          ]
         },
         {
           "name": "reserveLiquiditySupply",
@@ -3102,7 +3091,6 @@ export type Marginfi = {
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfiAccount",
             "bank"
@@ -3262,7 +3250,6 @@ export type Marginfi = {
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfiAccount",
             "bank"
@@ -3553,7 +3540,6 @@ export type Marginfi = {
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfiAccount",
             "bank"
@@ -3665,7 +3651,6 @@ export type Marginfi = {
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfiAccount",
             "bank"
@@ -7043,7 +7028,6 @@ export type Marginfi = {
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "bank"
           ]
@@ -7245,7 +7229,7 @@ export type Marginfi = {
           "name": "price",
           "type": {
             "defined": {
-              "name": "wrappedI80F48"
+              "name": "wrappedI80f48"
             }
           }
         }
@@ -7952,7 +7936,7 @@ export type Marginfi = {
               },
               {
                 "kind": "arg",
-                "path": "thirdPartyId.unwrapOr(0)"
+                "path": "third_party_id.unwrap_or(0)"
               }
             ]
           }
@@ -8396,6 +8380,12 @@ export type Marginfi = {
           }
         },
         {
+          "name": "newFlowAdmin",
+          "type": {
+            "option": "pubkey"
+          }
+        },
+        {
           "name": "newEmissionsAdmin",
           "type": {
             "option": "pubkey"
@@ -8418,7 +8408,7 @@ export type Marginfi = {
           "type": {
             "option": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           }
@@ -8428,7 +8418,7 @@ export type Marginfi = {
           "type": {
             "option": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           }
@@ -8798,7 +8788,6 @@ export type Marginfi = {
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfiAccount",
             "bank"
@@ -9191,7 +9180,6 @@ export type Marginfi = {
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfiAccount",
             "bank"
@@ -9585,7 +9573,7 @@ export type Marginfi = {
               },
               {
                 "kind": "arg",
-                "path": "thirdPartyId.unwrapOr(0)"
+                "path": "third_party_id.unwrap_or(0)"
               }
             ]
           }
@@ -9628,6 +9616,113 @@ export type Marginfi = {
           "type": {
             "option": "u16"
           }
+        }
+      ]
+    },
+    {
+      "name": "updateDeleverageWithdrawals",
+      "docs": [
+        "(delegate_flow_admin only) Update the deleverage daily withdraw outflow with",
+        "aggregated data. The delegate flow admin aggregates",
+        "`DeleverageWithdrawFlowEvent` events off-chain and calls this instruction at intervals."
+      ],
+      "discriminator": [
+        56,
+        3,
+        181,
+        118,
+        27,
+        247,
+        207,
+        227
+      ],
+      "accounts": [
+        {
+          "name": "marginfiGroup",
+          "writable": true
+        },
+        {
+          "name": "delegateFlowAdmin",
+          "signer": true,
+          "relations": [
+            "marginfiGroup"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "outflowUsd",
+          "type": "u32"
+        },
+        {
+          "name": "updateSeq",
+          "type": "u64"
+        },
+        {
+          "name": "eventStartSlot",
+          "type": "u64"
+        },
+        {
+          "name": "eventEndSlot",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "updateGroupRateLimiter",
+      "docs": [
+        "(delegate_flow_admin only) Update the group rate limiter with aggregated",
+        "inflow/outflow. The delegate flow admin aggregates",
+        "`RateLimitFlowEvent` events off-chain, converts to USD, and calls this instruction at",
+        "intervals to update group rate limiter state."
+      ],
+      "discriminator": [
+        23,
+        78,
+        60,
+        139,
+        187,
+        44,
+        129,
+        37
+      ],
+      "accounts": [
+        {
+          "name": "marginfiGroup",
+          "writable": true
+        },
+        {
+          "name": "delegateFlowAdmin",
+          "signer": true,
+          "relations": [
+            "marginfiGroup"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "outflowUsd",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "inflowUsd",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "updateSeq",
+          "type": "u64"
+        },
+        {
+          "name": "eventStartSlot",
+          "type": "u64"
+        },
+        {
+          "name": "eventEndSlot",
+          "type": "u64"
         }
       ]
     },
@@ -9891,6 +9986,19 @@ export type Marginfi = {
         198,
         12,
         30
+      ]
+    },
+    {
+      "name": "deleverageWithdrawFlowEvent",
+      "discriminator": [
+        109,
+        90,
+        139,
+        200,
+        10,
+        204,
+        84,
+        176
       ]
     },
     {
@@ -10206,6 +10314,19 @@ export type Marginfi = {
       ]
     },
     {
+      "name": "rateLimitFlowEvent",
+      "discriminator": [
+        229,
+        5,
+        73,
+        200,
+        0,
+        107,
+        105,
+        109
+      ]
+    },
+    {
       "name": "setKeeperCloseFlagsEvent",
       "discriminator": [
         193,
@@ -10433,7 +10554,7 @@ export type Marginfi = {
     {
       "code": 6042,
       "name": "unauthorized",
-      "msg": "Unauthorized"
+      "msg": "unauthorized"
     },
     {
       "code": 6043,
@@ -10488,12 +10609,12 @@ export type Marginfi = {
     {
       "code": 6053,
       "name": "vacated2",
-      "msg": "Vacated2"
+      "msg": "vacated2"
     },
     {
       "code": 6054,
       "name": "vacated3",
-      "msg": "Vacated3"
+      "msg": "vacated3"
     },
     {
       "code": 6055,
@@ -10819,6 +10940,66 @@ export type Marginfi = {
       "code": 6119,
       "name": "invalidRateLimitPrice",
       "msg": "Invalid rate limit price: pass oracle or pre-crank cache"
+    },
+    {
+      "code": 6120,
+      "name": "groupRateLimiterUpdateEmpty",
+      "msg": "Group rate limiter admin update must include inflow and/or outflow"
+    },
+    {
+      "code": 6121,
+      "name": "groupRateLimiterUpdateInvalidSlotRange",
+      "msg": "Group rate limiter admin update slot range is invalid"
+    },
+    {
+      "code": 6122,
+      "name": "groupRateLimiterUpdateFutureSlot",
+      "msg": "Group rate limiter admin update cannot reference future slots"
+    },
+    {
+      "code": 6123,
+      "name": "groupRateLimiterUpdateStale",
+      "msg": "Group rate limiter admin update is too stale"
+    },
+    {
+      "code": 6124,
+      "name": "groupRateLimiterUpdateOutOfOrderSlot",
+      "msg": "Group rate limiter admin update slot progression is out of order"
+    },
+    {
+      "code": 6125,
+      "name": "groupRateLimiterUpdateOutOfOrderSeq",
+      "msg": "Group rate limiter admin update sequence is out of order"
+    },
+    {
+      "code": 6126,
+      "name": "deleverageWithdrawalUpdateEmpty",
+      "msg": "Deleverage withdrawal admin update must include outflow"
+    },
+    {
+      "code": 6127,
+      "name": "deleverageWithdrawalUpdateInvalidSlotRange",
+      "msg": "Deleverage withdrawal admin update slot range is invalid"
+    },
+    {
+      "code": 6128,
+      "name": "deleverageWithdrawalUpdateFutureSlot",
+      "msg": "Deleverage withdrawal admin update cannot reference future slots"
+    },
+    {
+      "code": 6129,
+      "name": "deleverageWithdrawalUpdateStale",
+      "msg": "Deleverage withdrawal admin update is too stale"
+    },
+    {
+      "code": 6130,
+      "name": "deleverageWithdrawalUpdateOutOfOrderSlot",
+      "msg": "Deleverage withdrawal admin update slot progression is out of order"
+    },
+    {
+      "code": 6131,
+      "name": "deleverageWithdrawalUpdateOutOfOrderSeq",
+      "msg": "Deleverage withdrawal admin update sequence is out of order"
     },
     {
       "code": 6200,
@@ -11263,7 +11444,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11275,7 +11456,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11286,7 +11467,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11361,7 +11542,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11375,7 +11556,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11437,7 +11618,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11478,7 +11659,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11490,7 +11671,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11505,7 +11686,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11557,7 +11738,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11575,7 +11756,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11693,7 +11874,7 @@ export type Marginfi = {
             "type": {
               "array": [
                 "u8",
-                8
+                16
               ]
             }
           },
@@ -11769,7 +11950,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11784,7 +11965,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11807,7 +11988,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11842,7 +12023,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11853,7 +12034,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11864,7 +12045,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11875,7 +12056,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           }
@@ -11898,7 +12079,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11910,7 +12091,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11922,7 +12103,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -11934,7 +12115,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -12100,7 +12281,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -12128,7 +12309,7 @@ export type Marginfi = {
             "name": "assetWeightInit",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -12136,7 +12317,7 @@ export type Marginfi = {
             "name": "assetWeightMaint",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -12144,7 +12325,7 @@ export type Marginfi = {
             "name": "liabilityWeightInit",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -12152,7 +12333,7 @@ export type Marginfi = {
             "name": "liabilityWeightMaint",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -12267,7 +12448,7 @@ export type Marginfi = {
             "type": {
               "option": {
                 "defined": {
-                  "name": "wrappedI80F48"
+                  "name": "wrappedI80f48"
                 }
               }
             }
@@ -12277,7 +12458,7 @@ export type Marginfi = {
             "type": {
               "option": {
                 "defined": {
-                  "name": "wrappedI80F48"
+                  "name": "wrappedI80f48"
                 }
               }
             }
@@ -12287,7 +12468,7 @@ export type Marginfi = {
             "type": {
               "option": {
                 "defined": {
-                  "name": "wrappedI80F48"
+                  "name": "wrappedI80f48"
                 }
               }
             }
@@ -12297,7 +12478,7 @@ export type Marginfi = {
             "type": {
               "option": {
                 "defined": {
-                  "name": "wrappedI80F48"
+                  "name": "wrappedI80f48"
                 }
               }
             }
@@ -12540,16 +12721,6 @@ export type Marginfi = {
                 "name": "rateLimitWindow"
               }
             }
-          },
-          {
-            "name": "untrackedInflow",
-            "docs": [
-              "Native token inflows pending USD conversion for group rate limiter.",
-              "When deposits/repays occur without a valid oracle price, the amount is",
-              "recorded here and later applied to the group rate limiter when a valid",
-              "price becomes available (e.g., during pulse_bank_price_cache or outflow operations)."
-            ],
-            "type": "i64"
           }
         ]
       }
@@ -12579,6 +12750,45 @@ export type Marginfi = {
       }
     },
     {
+      "name": "deleverageWithdrawFlowEvent",
+      "docs": [
+        "Emitted for deleverage-only withdraw outflows.",
+        "The delegate flow admin aggregates these off-chain and",
+        "updates the deleverage daily withdraws via `update_deleverage_withdrawals`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "group",
+            "type": "pubkey"
+          },
+          {
+            "name": "bank",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "outflowUsd",
+            "docs": [
+              "Equity-denominated outflow value in USD, rounded to integer."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "currentTimestamp",
+            "docs": [
+              "Unix timestamp when the flow was recorded"
+            ],
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
       "name": "driftConfigCompact",
       "docs": [
         "Used to configure Drift banks. A simplified version of `BankConfigCompact` which omits most",
@@ -12595,7 +12805,7 @@ export type Marginfi = {
             "name": "assetWeightInit",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -12603,7 +12813,7 @@ export type Marginfi = {
             "name": "assetWeightMaint",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -12760,7 +12970,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -12771,7 +12981,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           }
@@ -12874,7 +13084,7 @@ export type Marginfi = {
             "name": "shares",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           }
@@ -12932,7 +13142,7 @@ export type Marginfi = {
             "name": "orderStartHealth",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           }
@@ -13007,7 +13217,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13019,7 +13229,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13031,7 +13241,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13076,7 +13286,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13117,7 +13327,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13128,7 +13338,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13220,7 +13430,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13234,7 +13444,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13249,7 +13459,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13264,7 +13474,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13279,7 +13489,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13294,7 +13504,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13451,7 +13661,7 @@ export type Marginfi = {
             "name": "optimalUtilizationRate",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13459,7 +13669,7 @@ export type Marginfi = {
             "name": "plateauInterestRate",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13467,7 +13677,7 @@ export type Marginfi = {
             "name": "maxInterestRate",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13478,7 +13688,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13489,7 +13699,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13500,7 +13710,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13511,7 +13721,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13519,7 +13729,7 @@ export type Marginfi = {
             "name": "protocolOriginationFee",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13618,7 +13828,7 @@ export type Marginfi = {
             "name": "insuranceFeeFixedApr",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13626,7 +13836,7 @@ export type Marginfi = {
             "name": "insuranceIrFee",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13634,7 +13844,7 @@ export type Marginfi = {
             "name": "protocolFixedFeeApr",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13642,7 +13852,7 @@ export type Marginfi = {
             "name": "protocolIrFee",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13650,7 +13860,7 @@ export type Marginfi = {
             "name": "protocolOriginationFee",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13703,7 +13913,7 @@ export type Marginfi = {
             "type": {
               "option": {
                 "defined": {
-                  "name": "wrappedI80F48"
+                  "name": "wrappedI80f48"
                 }
               }
             }
@@ -13713,7 +13923,7 @@ export type Marginfi = {
             "type": {
               "option": {
                 "defined": {
-                  "name": "wrappedI80F48"
+                  "name": "wrappedI80f48"
                 }
               }
             }
@@ -13723,7 +13933,7 @@ export type Marginfi = {
             "type": {
               "option": {
                 "defined": {
-                  "name": "wrappedI80F48"
+                  "name": "wrappedI80f48"
                 }
               }
             }
@@ -13733,7 +13943,7 @@ export type Marginfi = {
             "type": {
               "option": {
                 "defined": {
-                  "name": "wrappedI80F48"
+                  "name": "wrappedI80f48"
                 }
               }
             }
@@ -13743,7 +13953,7 @@ export type Marginfi = {
             "type": {
               "option": {
                 "defined": {
-                  "name": "wrappedI80F48"
+                  "name": "wrappedI80f48"
                 }
               }
             }
@@ -13813,7 +14023,7 @@ export type Marginfi = {
             "name": "assetWeightInit",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13821,7 +14031,7 @@ export type Marginfi = {
             "name": "assetWeightMaint",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13899,7 +14109,7 @@ export type Marginfi = {
             "name": "assetWeightInit",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -13907,7 +14117,7 @@ export type Marginfi = {
             "name": "assetWeightMaint",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -14572,7 +14782,7 @@ export type Marginfi = {
             "name": "price",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           }
@@ -14622,7 +14832,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -14636,7 +14846,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -14651,7 +14861,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -14666,7 +14876,7 @@ export type Marginfi = {
             ],
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -15095,7 +15305,7 @@ export type Marginfi = {
             "name": "stopLoss",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -15103,7 +15313,7 @@ export type Marginfi = {
             "name": "takeProfit",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -15205,7 +15415,7 @@ export type Marginfi = {
             "name": "emodeAdmin",
             "docs": [
               "This admin can configure collateral ratios above (but not below) the collateral ratio of",
-              "certain banks , e.g. allow SOL to count as 90% collateral when borrowing an LST instead of",
+              "certain banks, e.g. allow SOL to count as 90% collateral when borrowing an LST instead of",
               "the default rate."
             ],
             "type": "pubkey"
@@ -15314,6 +15524,46 @@ export type Marginfi = {
             }
           },
           {
+            "name": "rateLimiterLastAdminUpdateSlot",
+            "docs": [
+              "Last slot covered by an admin group rate limiter aggregation update."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "rateLimiterLastAdminUpdateSeq",
+            "docs": [
+              "Monotonic sequence number for admin group rate limiter updates.",
+              "This is used to enforce strict ordering and prevent duplicate/replayed batches",
+              "when slot ranges overlap or multiple updates happen in the same slot."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "deleverageWithdrawLastAdminUpdateSlot",
+            "docs": [
+              "Last slot covered by an admin deleverage withdraw-limit aggregation update."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "deleverageWithdrawLastAdminUpdateSeq",
+            "docs": [
+              "Monotonic sequence number for admin deleverage withdraw-limit updates."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "delegateFlowAdmin",
+            "docs": [
+              "Can modify flow-control status for the group, i.e. update the withdraw caches with flow",
+              "information from banks. Typically this is a hot wallet that lives in e.g. some cron job. If",
+              "compromised, flow control can be effectively disabled until the admin is restored, which",
+              "does not itself compromise any funds, and is merely annoying."
+            ],
+            "type": "pubkey"
+          },
+          {
             "name": "padding0",
             "type": {
               "array": [
@@ -15323,7 +15573,7 @@ export type Marginfi = {
                     2
                   ]
                 },
-                6
+                2
               ]
             }
           },
@@ -15520,7 +15770,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "paddingPart5A",
+            "name": "paddingPart5a",
             "type": {
               "array": [
                 "u8",
@@ -15529,7 +15779,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "paddingPart5C",
+            "name": "paddingPart5c",
             "type": {
               "array": [
                 "u8",
@@ -16372,7 +16622,7 @@ export type Marginfi = {
             "name": "stopLoss",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -16380,7 +16630,7 @@ export type Marginfi = {
             "name": "takeProfit",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -16498,7 +16748,7 @@ export type Marginfi = {
                 "name": "threshold",
                 "type": {
                   "defined": {
-                    "name": "wrappedI80F48"
+                    "name": "wrappedI80f48"
                   }
                 }
               },
@@ -16515,7 +16765,7 @@ export type Marginfi = {
                 "name": "threshold",
                 "type": {
                   "defined": {
-                    "name": "wrappedI80F48"
+                    "name": "wrappedI80f48"
                   }
                 }
               },
@@ -16532,7 +16782,7 @@ export type Marginfi = {
                 "name": "stopLoss",
                 "type": {
                   "defined": {
-                    "name": "wrappedI80F48"
+                    "name": "wrappedI80f48"
                   }
                 }
               },
@@ -16540,7 +16790,7 @@ export type Marginfi = {
                 "name": "takeProfit",
                 "type": {
                   "defined": {
-                    "name": "wrappedI80F48"
+                    "name": "wrappedI80f48"
                   }
                 }
               },
@@ -16689,6 +16939,56 @@ export type Marginfi = {
       }
     },
     {
+      "name": "rateLimitFlowEvent",
+      "docs": [
+        "Emitted when a bank-level inflow or outflow is recorded.",
+        "The delegate flow admin aggregates these off-chain and",
+        "updates the group rate limiter via `update_group_rate_limiter`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "group",
+            "type": "pubkey"
+          },
+          {
+            "name": "bank",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "flowDirection",
+            "docs": [
+              "0 = outflow (withdraw/borrow), 1 = inflow (deposit/repay)"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "nativeAmount",
+            "docs": [
+              "Amount in native tokens"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "mintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "currentTimestamp",
+            "docs": [
+              "Unix timestamp when the flow was recorded"
+            ],
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
       "name": "rateLimitWindow",
       "docs": [
         "A sliding window rate limiter that tracks net outflow over a time window.",
@@ -16830,7 +17130,7 @@ export type Marginfi = {
             "name": "assetWeightInit",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -16838,7 +17138,7 @@ export type Marginfi = {
             "name": "assetWeightMaint",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -17222,7 +17522,7 @@ export type Marginfi = {
             "name": "assetWeightInit",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -17230,7 +17530,7 @@ export type Marginfi = {
             "name": "assetWeightMaint",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -17310,7 +17610,7 @@ export type Marginfi = {
             "name": "assetWeightInit",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -17318,7 +17618,7 @@ export type Marginfi = {
             "name": "assetWeightMaint",
             "type": {
               "defined": {
-                "name": "wrappedI80F48"
+                "name": "wrappedI80f48"
               }
             }
           },
@@ -17366,7 +17666,7 @@ export type Marginfi = {
             "type": {
               "option": {
                 "defined": {
-                  "name": "wrappedI80F48"
+                  "name": "wrappedI80f48"
                 }
               }
             }
@@ -17376,7 +17676,7 @@ export type Marginfi = {
             "type": {
               "option": {
                 "defined": {
-                  "name": "wrappedI80F48"
+                  "name": "wrappedI80f48"
                 }
               }
             }
@@ -17482,7 +17782,7 @@ export type Marginfi = {
       }
     },
     {
-      "name": "wrappedI80F48",
+      "name": "wrappedI80f48",
       "serialization": "bytemuck",
       "repr": {
         "kind": "c",
@@ -17505,3 +17805,4 @@ export type Marginfi = {
     }
   ]
 };
+

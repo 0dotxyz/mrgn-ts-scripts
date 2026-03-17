@@ -70,7 +70,7 @@
     {
       "name": "configure_bank_rate_limits",
       "docs": [
-        "(admin only) Configure bank-level rate limits for withdraw/borrow.",
+        "(admin or delegate_limit_admin) Configure bank-level rate limits for withdraw/borrow.",
         "Rate limits track net outflow in native tokens. Deposits offset withdraws.",
         "Set to 0 to disable. Hourly and daily windows are independent."
       ],
@@ -93,10 +93,7 @@
         },
         {
           "name": "admin",
-          "signer": true,
-          "relations": [
-            "group"
-          ]
+          "signer": true
         },
         {
           "name": "bank",
@@ -121,7 +118,7 @@
     {
       "name": "configure_deleverage_withdrawal_limit",
       "docs": [
-        "(group admin only) Set the daily withdrawal limit for deleverages per group."
+        "(admin or delegate_limit_admin) Set the daily withdrawal limit for deleverages per group."
       ],
       "discriminator": [
         28,
@@ -140,10 +137,7 @@
         },
         {
           "name": "admin",
-          "signer": true,
-          "relations": [
-            "marginfi_group"
-          ]
+          "signer": true
         }
       ],
       "args": [
@@ -156,7 +150,7 @@
     {
       "name": "configure_group_rate_limits",
       "docs": [
-        "(admin only) Configure group-level rate limits for withdraw/borrow.",
+        "(admin or delegate_limit_admin) Configure group-level rate limits for withdraw/borrow.",
         "Rate limits track aggregate net outflow in USD.",
         "Example: $10M = 10_000_000. Set to 0 to disable."
       ],
@@ -177,10 +171,7 @@
         },
         {
           "name": "admin",
-          "signer": true,
-          "relations": [
-            "marginfi_group"
-          ]
+          "signer": true
         }
       ],
       "args": [
@@ -217,7 +208,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfi_account",
             "bank"
@@ -933,7 +923,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfi_account",
             "bank"
@@ -2042,7 +2031,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfi_account",
             "bank"
@@ -2247,7 +2235,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfi_account",
             "bank"
@@ -2863,7 +2850,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfi_account",
             "bank"
@@ -2991,12 +2977,15 @@
           ]
         },
         {
-          "name": "reserve_liquidity_mint",
+          "name": "mint",
           "docs": [
             "The liquidity token mint (e.g., USDC)",
             "Needs serde to get the mint decimals for transfer checked"
           ],
-          "writable": true
+          "writable": true,
+          "relations": [
+            "bank"
+          ]
         },
         {
           "name": "reserve_liquidity_supply",
@@ -3096,7 +3085,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfi_account",
             "bank"
@@ -3256,7 +3244,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfi_account",
             "bank"
@@ -3547,7 +3534,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfi_account",
             "bank"
@@ -3659,7 +3645,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfi_account",
             "bank"
@@ -7037,7 +7022,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "bank"
           ]
@@ -8390,6 +8374,12 @@
           }
         },
         {
+          "name": "new_flow_admin",
+          "type": {
+            "option": "pubkey"
+          }
+        },
+        {
           "name": "new_emissions_admin",
           "type": {
             "option": "pubkey"
@@ -8792,7 +8782,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfi_account",
             "bank"
@@ -9185,7 +9174,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": [
             "marginfi_account",
             "bank"
@@ -9626,6 +9614,113 @@
       ]
     },
     {
+      "name": "update_deleverage_withdrawals",
+      "docs": [
+        "(delegate_flow_admin only) Update the deleverage daily withdraw outflow with",
+        "aggregated data. The delegate flow admin aggregates",
+        "`DeleverageWithdrawFlowEvent` events off-chain and calls this instruction at intervals."
+      ],
+      "discriminator": [
+        56,
+        3,
+        181,
+        118,
+        27,
+        247,
+        207,
+        227
+      ],
+      "accounts": [
+        {
+          "name": "marginfi_group",
+          "writable": true
+        },
+        {
+          "name": "delegate_flow_admin",
+          "signer": true,
+          "relations": [
+            "marginfi_group"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "outflow_usd",
+          "type": "u32"
+        },
+        {
+          "name": "update_seq",
+          "type": "u64"
+        },
+        {
+          "name": "event_start_slot",
+          "type": "u64"
+        },
+        {
+          "name": "event_end_slot",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_group_rate_limiter",
+      "docs": [
+        "(delegate_flow_admin only) Update the group rate limiter with aggregated",
+        "inflow/outflow. The delegate flow admin aggregates",
+        "`RateLimitFlowEvent` events off-chain, converts to USD, and calls this instruction at",
+        "intervals to update group rate limiter state."
+      ],
+      "discriminator": [
+        23,
+        78,
+        60,
+        139,
+        187,
+        44,
+        129,
+        37
+      ],
+      "accounts": [
+        {
+          "name": "marginfi_group",
+          "writable": true
+        },
+        {
+          "name": "delegate_flow_admin",
+          "signer": true,
+          "relations": [
+            "marginfi_group"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "outflow_usd",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "inflow_usd",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "update_seq",
+          "type": "u64"
+        },
+        {
+          "name": "event_start_slot",
+          "type": "u64"
+        },
+        {
+          "name": "event_end_slot",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "write_bank_metadata",
       "docs": [
         "(metadata admin only) Write ticker/description information for a bank on-chain. Optional, not",
@@ -9885,6 +9980,19 @@
         198,
         12,
         30
+      ]
+    },
+    {
+      "name": "DeleverageWithdrawFlowEvent",
+      "discriminator": [
+        109,
+        90,
+        139,
+        200,
+        10,
+        204,
+        84,
+        176
       ]
     },
     {
@@ -10197,6 +10305,19 @@
         240,
         136,
         253
+      ]
+    },
+    {
+      "name": "RateLimitFlowEvent",
+      "discriminator": [
+        229,
+        5,
+        73,
+        200,
+        0,
+        107,
+        105,
+        109
       ]
     },
     {
@@ -10813,6 +10934,66 @@
       "code": 6119,
       "name": "InvalidRateLimitPrice",
       "msg": "Invalid rate limit price: pass oracle or pre-crank cache"
+    },
+    {
+      "code": 6120,
+      "name": "GroupRateLimiterUpdateEmpty",
+      "msg": "Group rate limiter admin update must include inflow and/or outflow"
+    },
+    {
+      "code": 6121,
+      "name": "GroupRateLimiterUpdateInvalidSlotRange",
+      "msg": "Group rate limiter admin update slot range is invalid"
+    },
+    {
+      "code": 6122,
+      "name": "GroupRateLimiterUpdateFutureSlot",
+      "msg": "Group rate limiter admin update cannot reference future slots"
+    },
+    {
+      "code": 6123,
+      "name": "GroupRateLimiterUpdateStale",
+      "msg": "Group rate limiter admin update is too stale"
+    },
+    {
+      "code": 6124,
+      "name": "GroupRateLimiterUpdateOutOfOrderSlot",
+      "msg": "Group rate limiter admin update slot progression is out of order"
+    },
+    {
+      "code": 6125,
+      "name": "GroupRateLimiterUpdateOutOfOrderSeq",
+      "msg": "Group rate limiter admin update sequence is out of order"
+    },
+    {
+      "code": 6126,
+      "name": "DeleverageWithdrawalUpdateEmpty",
+      "msg": "Deleverage withdrawal admin update must include outflow"
+    },
+    {
+      "code": 6127,
+      "name": "DeleverageWithdrawalUpdateInvalidSlotRange",
+      "msg": "Deleverage withdrawal admin update slot range is invalid"
+    },
+    {
+      "code": 6128,
+      "name": "DeleverageWithdrawalUpdateFutureSlot",
+      "msg": "Deleverage withdrawal admin update cannot reference future slots"
+    },
+    {
+      "code": 6129,
+      "name": "DeleverageWithdrawalUpdateStale",
+      "msg": "Deleverage withdrawal admin update is too stale"
+    },
+    {
+      "code": 6130,
+      "name": "DeleverageWithdrawalUpdateOutOfOrderSlot",
+      "msg": "Deleverage withdrawal admin update slot progression is out of order"
+    },
+    {
+      "code": 6131,
+      "name": "DeleverageWithdrawalUpdateOutOfOrderSeq",
+      "msg": "Deleverage withdrawal admin update sequence is out of order"
     },
     {
       "code": 6200,
@@ -11687,7 +11868,7 @@
             "type": {
               "array": [
                 "u8",
-                8
+                16
               ]
             }
           },
@@ -12534,16 +12715,6 @@
                 "name": "RateLimitWindow"
               }
             }
-          },
-          {
-            "name": "untracked_inflow",
-            "docs": [
-              "Native token inflows pending USD conversion for group rate limiter.",
-              "When deposits/repays occur without a valid oracle price, the amount is",
-              "recorded here and later applied to the group rate limiter when a valid",
-              "price becomes available (e.g., during pulse_bank_price_cache or outflow operations)."
-            ],
-            "type": "i64"
           }
         ]
       }
@@ -12568,6 +12739,45 @@
           {
             "name": "deleveragee_liability_repaid",
             "type": "f64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DeleverageWithdrawFlowEvent",
+      "docs": [
+        "Emitted for deleverage-only withdraw outflows.",
+        "The delegate flow admin aggregates these off-chain and",
+        "updates the deleverage daily withdraws via `update_deleverage_withdrawals`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "group",
+            "type": "pubkey"
+          },
+          {
+            "name": "bank",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "outflow_usd",
+            "docs": [
+              "Equity-denominated outflow value in USD, rounded to integer."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "current_timestamp",
+            "docs": [
+              "Unix timestamp when the flow was recorded"
+            ],
+            "type": "i64"
           }
         ]
       }
@@ -15199,7 +15409,7 @@
             "name": "emode_admin",
             "docs": [
               "This admin can configure collateral ratios above (but not below) the collateral ratio of",
-              "certain banks , e.g. allow SOL to count as 90% collateral when borrowing an LST instead of",
+              "certain banks, e.g. allow SOL to count as 90% collateral when borrowing an LST instead of",
               "the default rate."
             ],
             "type": "pubkey"
@@ -15308,6 +15518,46 @@
             }
           },
           {
+            "name": "rate_limiter_last_admin_update_slot",
+            "docs": [
+              "Last slot covered by an admin group rate limiter aggregation update."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "rate_limiter_last_admin_update_seq",
+            "docs": [
+              "Monotonic sequence number for admin group rate limiter updates.",
+              "This is used to enforce strict ordering and prevent duplicate/replayed batches",
+              "when slot ranges overlap or multiple updates happen in the same slot."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "deleverage_withdraw_last_admin_update_slot",
+            "docs": [
+              "Last slot covered by an admin deleverage withdraw-limit aggregation update."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "deleverage_withdraw_last_admin_update_seq",
+            "docs": [
+              "Monotonic sequence number for admin deleverage withdraw-limit updates."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "delegate_flow_admin",
+            "docs": [
+              "Can modify flow-control status for the group, i.e. update the withdraw caches with flow",
+              "information from banks. Typically this is a hot wallet that lives in e.g. some cron job. If",
+              "compromised, flow control can be effectively disabled until the admin is restored, which",
+              "does not itself compromise any funds, and is merely annoying."
+            ],
+            "type": "pubkey"
+          },
+          {
             "name": "_padding_0",
             "type": {
               "array": [
@@ -15317,7 +15567,7 @@
                     2
                   ]
                 },
-                6
+                2
               ]
             }
           },
@@ -16676,6 +16926,56 @@
             "name": "last_cache_update",
             "docs": [
               "Timestamp when this cache was last updated"
+            ],
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RateLimitFlowEvent",
+      "docs": [
+        "Emitted when a bank-level inflow or outflow is recorded.",
+        "The delegate flow admin aggregates these off-chain and",
+        "updates the group rate limiter via `update_group_rate_limiter`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "group",
+            "type": "pubkey"
+          },
+          {
+            "name": "bank",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "flow_direction",
+            "docs": [
+              "0 = outflow (withdraw/borrow), 1 = inflow (deposit/repay)"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "native_amount",
+            "docs": [
+              "Amount in native tokens"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "mint_decimals",
+            "type": "u8"
+          },
+          {
+            "name": "current_timestamp",
+            "docs": [
+              "Unix timestamp when the flow was recorded"
             ],
             "type": "i64"
           }
