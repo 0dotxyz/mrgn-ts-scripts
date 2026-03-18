@@ -22,8 +22,8 @@ export type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  CLONE_FROM: new PublicKey("4PtX5fLM5JwujjHmSyzbh5XLasKx9kiPxPfygi57jAov"),
-  CLONE_TO: new PublicKey("9ThXmfwhNzc6qbkRLuSGHwKS7mxjn6QcuRD644Pjn4F"),
+  CLONE_FROM: new PublicKey("8iKgNvkQH9bBXyMbV5vor25gQRFM3tfyA7si68eKrLoa"),
+  CLONE_TO: new PublicKey("4ecRL7M2fdmWjZd81PTZ9Sqg1e47ZpiwhkeDbsBJtqax"),
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
