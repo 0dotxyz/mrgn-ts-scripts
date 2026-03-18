@@ -72,7 +72,6 @@ export async function addBankFromConfig(
     MAINNET_PROGRAM_ID,
     undefined,
     new PublicKey(MAINNET_MULTISIG),
-    "current"
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toBase58());
 

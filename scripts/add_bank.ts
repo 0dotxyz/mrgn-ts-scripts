@@ -104,15 +104,13 @@ export async function addBank(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ): Promise<PublicKey> {
   console.log("adding bank to group: " + config.GROUP_KEY);
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
-    config.MULTISIG_PAYER,
-    version,
+    config.MULTISIG_PAYER
   );
   const program = user.program;
   const connection = user.connection;

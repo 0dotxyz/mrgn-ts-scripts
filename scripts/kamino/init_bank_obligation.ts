@@ -64,14 +64,12 @@ export async function initKaminoObligation(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ): Promise<PublicKey> {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
   const program = user.program;

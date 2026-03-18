@@ -34,14 +34,12 @@ async function main() {
 export async function pulseHealth(
   config: Config,
   walletPath: string,
-  version?: "current",
 ) {
   const user = commonSetup(
     true,
     config.PROGRAM_ID,
     walletPath,
     undefined,
-    version,
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
   const program = user.program;

@@ -63,7 +63,6 @@ async function main() {
     config.PROGRAM_ID,
     "/keys/staging-deploy.json",
     config.MULTISIG_PAYER,
-    "current",
   );
   const program = user.program;
   const connection = user.connection;

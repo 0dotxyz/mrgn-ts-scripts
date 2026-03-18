@@ -34,14 +34,12 @@ export async function initAccount(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ): Promise<PublicKey> {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG,
-    version,
   );
   const program = user.program;
   const connection = user.connection;

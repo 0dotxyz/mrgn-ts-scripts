@@ -75,7 +75,6 @@ export async function addKaminoBank(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ): Promise<PublicKey> {
   console.log("adding bank to group: " + config.GROUP_KEY);
   const user = commonSetup(
@@ -83,7 +82,6 @@ export async function addKaminoBank(
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   const program = user.program;
   const connection = user.connection;

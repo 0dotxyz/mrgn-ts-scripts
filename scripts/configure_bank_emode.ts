@@ -138,7 +138,6 @@ async function main() {
     config.PROGRAM_ID,
     "/.keys/emode-burner.json",
     config.MULTISIG,
-    "current",
   );
   const program = user.program;
   const connection = user.connection;

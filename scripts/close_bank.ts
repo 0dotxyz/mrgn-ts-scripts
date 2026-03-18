@@ -23,7 +23,6 @@ export async function closeBank(sendTx: boolean, config: Config, walletPath: str
     config.PROGRAM_ID,
     walletPath,
     undefined,
-    version
   );
   const program = user.program;
   const connection = user.connection;

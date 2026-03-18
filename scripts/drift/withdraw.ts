@@ -80,14 +80,12 @@ export async function withdrawDrift(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ) {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
 

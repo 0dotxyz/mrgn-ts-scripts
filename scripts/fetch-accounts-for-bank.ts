@@ -48,7 +48,6 @@ async function main() {
     config.PROGRAM_ID,
     "/.config/stage/id.json",
     undefined,
-    "current",
   );
   const program = user.program;
 

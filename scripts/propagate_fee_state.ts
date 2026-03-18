@@ -34,7 +34,6 @@ async function main() {
     config.PROGRAM_ID,
     "/keys/staging-deploy.json",
     undefined,
-    "current",
   );
   const program = user.program;
 

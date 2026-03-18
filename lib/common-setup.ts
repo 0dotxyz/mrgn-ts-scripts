@@ -26,42 +26,13 @@ export type User<IDL extends Idl> = {
   connection: Connection;
 };
 
-/**
- * Supported IDL versions.
- */
-type Versions = {
-  current: MarginfiCurrent;
-};
-
-// Map each version to its corresponding JSON IDL object.
-const idlJsonMap: Record<keyof Versions, Idl> = {
-  current: marginfiIdlCurrent as Idl,
-};
-
-/**
- * @overload
- * commonSetup(sendTx, programId, walletPath?, multisig?, version?: 'current'): User<MarginfiCurrent>
- */
-/**
- * @overload
- * commonSetup(sendTx, programId, walletPath?, multisig?, version: '1.3'): User<MarginfiV1_3>
- */
 export function commonSetup(
   sendTx: boolean,
   programId: string,
   walletPath?: string,
   multisig?: PublicKey,
-  version?: "current"
-): User<MarginfiCurrent>;
-export function commonSetup(
-  sendTx: boolean,
-  programId: string,
-  walletPath?: string,
-  multisig?: PublicKey,
-  version: keyof Versions = "current"
-):
-  | User<MarginfiCurrent> {
-  const selectedJsonIdl = idlJsonMap[version];
+): User<MarginfiCurrent> {
+  const selectedJsonIdl = marginfiIdlCurrent;
   selectedJsonIdl.address = programId;
 
   loadEnvFile(".env.api");
@@ -88,7 +59,7 @@ export function commonSetup(
   }
 
   // Instantiate the program with the selected IDL
- {
+  {
     return {
       program: new Program<MarginfiCurrent>(selectedJsonIdl as any, provider),
       kaminoProgram: undefined,
@@ -102,22 +73,19 @@ export function commonSetup(
 
 export function registerKaminoProgram<IDL extends Idl>(
   user: User<IDL>,
-  kaminoProgramId: string
+  kaminoProgramId: string,
 ): void {
   const kaminoIdl = { ...(KaminoLendingIdl as Idl), address: kaminoProgramId };
   user.kaminoProgram = new Program<KaminoLending>(
     kaminoIdl as any,
-    user.provider
+    user.provider,
   );
 }
 
 export function registerDriftProgram<IDL extends Idl>(
   user: User<IDL>,
-  driftProgramId: string
+  driftProgramId: string,
 ): void {
   const driftIdl = { ...(DriftIdl as Idl), address: driftProgramId };
-  user.driftProgram = new Program<Drift>(
-    driftIdl as any,
-    user.provider
-  );
+  user.driftProgram = new Program<Drift>(driftIdl as any, user.provider);
 }

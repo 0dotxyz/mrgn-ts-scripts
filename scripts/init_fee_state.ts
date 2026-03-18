@@ -50,7 +50,6 @@ async function initGlobalFeeState() {
     config.PROGRAM_ID,
     "/keys/zerotrade_admin.json",
     config.MULTISIG_PAYER,
-    "current",
   );
   const program = user.program;
   const connection = user.connection;

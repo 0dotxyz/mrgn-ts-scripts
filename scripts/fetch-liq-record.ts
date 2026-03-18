@@ -21,7 +21,6 @@ async function main() {
     config.PROGRAM_ID,
     "/.config/solana/id.json",
     undefined,
-    "current",
   );
   const program = user.program;
 

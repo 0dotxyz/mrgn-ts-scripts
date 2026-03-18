@@ -92,7 +92,6 @@ export async function addDriftBank(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ): Promise<PublicKey> {
   // Setup connection and program
   const user = commonSetup(
@@ -100,7 +99,6 @@ export async function addDriftBank(
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   const connection = user.connection;
   const wallet = user.wallet;

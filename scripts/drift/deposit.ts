@@ -48,14 +48,12 @@ export async function depositDrift(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ) {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   const connection = user.connection;
   const wallet = user.wallet;
