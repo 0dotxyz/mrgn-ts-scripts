@@ -144,10 +144,9 @@ export async function depositJuplend(
   console.log("Simulating juplendDeposit...");
   const simulation = await connection.simulateTransaction(transaction);
 
-  console.log("\nProgram Logs:");
-  simulation.value.logs?.forEach((log) => console.log("  " + log));
-
   if (simulation.value.err) {
+    console.log("\nProgram Logs:");
+    simulation.value.logs?.forEach((log) => console.log("  " + log));
     console.log("\nSimulation failed:");
     console.log(JSON.stringify(simulation.value.err, null, 2));
     process.exit(1);

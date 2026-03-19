@@ -20,9 +20,7 @@ import {
   deriveJuplendCpiAccounts,
   findJuplendLendingAdminPda,
 } from "./lib/utils";
-import {
-  deriveLiquidityVaultAuthority,
-} from "../common/pdas";
+import { deriveLiquidityVaultAuthority } from "../common/pdas";
 import { commonSetup } from "../../lib/common-setup";
 import { bs58 } from "@switchboard-xyz/common";
 
@@ -206,10 +204,9 @@ export async function initJuplendPosition(
   console.log("Simulating juplendInitPosition...");
   const simulation = await connection.simulateTransaction(transaction);
 
-  console.log("\nProgram Logs:");
-  simulation.value.logs?.forEach((log) => console.log("  " + log));
-
   if (simulation.value.err) {
+    console.log("\nProgram Logs:");
+    simulation.value.logs?.forEach((log) => console.log("  " + log));
     console.log("\nSimulation failed:");
     console.log(JSON.stringify(simulation.value.err, null, 2));
     process.exit(1);
