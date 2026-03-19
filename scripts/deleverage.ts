@@ -495,6 +495,7 @@ export async function deleverage(
             bank: config.BANK,
             destinationTokenAccount: ata,
             lendingMarket: reserve.lendingMarket,
+            reserve: bank.integrationAcc1,
             reserveLiquidityMint: bank.mint,
             reserveFarmState: reserve.farmCollateral,
             obligationFarmUserState: userState,

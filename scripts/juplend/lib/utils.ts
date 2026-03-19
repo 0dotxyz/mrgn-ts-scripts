@@ -1,11 +1,12 @@
-import { PublicKey } from "@solana/web3.js";
-import { BN } from "@coral-xyz/anchor";
+import { PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { BN, Program } from "@coral-xyz/anchor";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 import { bigNumberToWrappedI80F48, WrappedI80F48 } from "@mrgnlabs/mrgn-common";
+import { Lending } from "../../../idl/juplend_earn";
 
 // --- Program IDs ---
 
@@ -202,3 +203,24 @@ export function deriveJuplendCpiAccounts(
     rewardsRateModel,
   };
 }
+
+/**
+ * Build native JupLend `updateRate()`.
+ *
+ * Use before any risk check so Jup lending state is fresh in the same tx.
+ */
+export const makeJuplendNativeUpdateRateIx = async (
+  program: Program<Lending>,
+  lending: PublicKey,
+): Promise<TransactionInstruction> => {
+  const lendingAcc = await program.account.lending.fetch(lending);
+
+  return program.methods
+    .updateRate()
+    .accounts({
+      lending,
+      supplyTokenReservesLiquidity: lendingAcc.tokenReservesLiquidity,
+      rewardsRateModel: lendingAcc.rewardsRateModel,
+    })
+    .instruction();
+};

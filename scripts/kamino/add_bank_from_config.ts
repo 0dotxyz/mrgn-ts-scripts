@@ -217,7 +217,7 @@ export async function addBankFromConfig(
       group,
       feePayer: multisig,
       bankMint: mint,
-      kaminoReserve,
+      integrationAcc1: kaminoReserve,
       kaminoMarket,
       oracle,
       tokenProgram,

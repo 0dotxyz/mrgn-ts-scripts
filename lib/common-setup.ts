@@ -8,6 +8,9 @@ import KaminoLendingIdl from "../idl/kamino_lending.json";
 import { Drift } from "../idl/drift";
 import DriftIdl from "../idl/drift.json";
 
+import { Lending } from "../idl/juplend_earn";
+import JuplendIdl from "../idl/juplend_earn.json";
+
 import { Marginfi as MarginfiCurrent } from "../idl/marginfi";
 import marginfiIdlCurrent from "../idl/marginfi.json";
 
@@ -21,6 +24,7 @@ export type User<IDL extends Idl> = {
   program: Program<IDL>;
   kaminoProgram: Program<KaminoLending>;
   driftProgram: Program<Drift>;
+  juplendProgram: Program<Lending>;
   wallet: ReadOnlyWallet | Wallet;
   provider: AnchorProvider;
   connection: Connection;
@@ -64,6 +68,7 @@ export function commonSetup(
       program: new Program<MarginfiCurrent>(selectedJsonIdl as any, provider),
       kaminoProgram: undefined,
       driftProgram: undefined,
+      juplendProgram: undefined,
       wallet,
       provider,
       connection,
@@ -88,4 +93,12 @@ export function registerDriftProgram<IDL extends Idl>(
 ): void {
   const driftIdl = { ...(DriftIdl as Idl), address: driftProgramId };
   user.driftProgram = new Program<Drift>(driftIdl as any, user.provider);
+}
+
+export function registerJuplendProgram<IDL extends Idl>(
+  user: User<IDL>,
+  juplendProgramId: string,
+): void {
+  const juplendIdl = { ...(JuplendIdl as Idl), address: juplendProgramId };
+  user.juplendProgram = new Program<Lending>(juplendIdl as any, user.provider);
 }
