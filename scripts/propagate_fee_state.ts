@@ -32,7 +32,7 @@ async function main() {
   const user = commonSetup(
     true,
     config.PROGRAM_ID,
-    "/keys/staging-deploy.json",
+    "/.keys/staging-deploy.json",
     undefined,
     "current",
   );

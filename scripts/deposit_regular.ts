@@ -66,12 +66,24 @@ const examples: Record<string, Config> = {
     // ],
     MULTISIG: undefined,
   },
+  depositSolStaging: {
+    PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+    ACCOUNT: new PublicKey("HCazdjwxaNufR7b1JyhBRiASXMYkFcUtccoKhVJtheah"),
+    BANK: new PublicKey("Gm8Kg1Jt6KuQt5a8ZqArTcp8hA4dH5wjktspqZexgkBi"),
+    MINT: new PublicKey("So11111111111111111111111111111111111111112"),
+    AMOUNT: new BN(0.001 * 10 ** 9), // 29'675 UXD (** 6 decimals)
+    // REMAINING: [
+    //   new PublicKey("BeNBJrAh1tZg5sqgt8D6AWKJLD5KkBrfZvtcgd7EuiAR"), // uxd bank
+    //   new PublicKey("CoEDGeYda7Mi6c1BAsHE2LL6zEVcitX43wPABSLgQfpB"), // uxd oracle
+    // ],
+    MULTISIG: undefined,
+  },
 };
 
-const config = examples.depositBonkKamino;
+const config = examples.depositSolStaging;
 
 async function main() {
-  await depositRegular(sendTx, config, "/.config/stage/id.json");
+  await depositRegular(sendTx, config, "/.config/solana/id.json");
 }
 
 export async function depositRegular(

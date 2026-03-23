@@ -18,16 +18,16 @@ type Config = {
 };
 
 const config: Config = {
-  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  GROUP: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  AUTHORITY: new PublicKey("CS3NzMknNWtjo2pq5dqp67hQYQ8wdLPt5m67oa5mBZUX"),
+  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  GROUP: new PublicKey("Diu1q9gniR1qR4Daaej3rcHd6949HMmxLGsnQ94Z3rLz"),
+  AUTHORITY: new PublicKey("FDr3iLdfyyzMmge9rN5sqQ38PgbrXY94VDW726EUN2kK"),
 
   // Not required if sending without multisig.
   //MULTISIG: new PublicKey("ToM1VY97cMeAiyN3MUFKKLuPdG8CaNiqhoDDGJ3a9cg"),
 };
 
 async function main() {
-  await initAccount(sendTx, config, "/.config/stage/id.json");
+  await initAccount(sendTx, config, "/.config/solana/id.json");
 }
 
 export async function initAccount(
