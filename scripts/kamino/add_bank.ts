@@ -45,11 +45,11 @@ const config: Config = {
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
-  // PYUSD
-  ORACLE: new PublicKey("9zXQxpYH3kYhtoybmZfUNNCRVuud7fY9jswTg1hLyT8k"),
+  // USDG
+  ORACLE: new PublicKey("6JkZmXGgWnzsyTQaqRARzP64iFYnpMNT4siiuUDUaB8s"),
   ORACLE_TYPE: { kaminoPythPush: {} },
-  BANK_MINT: new PublicKey("2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"),
-  KAMINO_RESERVE: new PublicKey("92qeAka3ZzCGPfJriDXrE7tiNqfATVCAM6ZjjctR3TrS"),
+  BANK_MINT: new PublicKey("2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH"),
+  KAMINO_RESERVE: new PublicKey("HokDw9LaDf9qNzJf4F21RjHU3K4pRBkGQENvWnRGyRbn"),
   KAMINO_MARKET: new PublicKey("6WEGfej9B9wjxRs6t4BYpb9iCXd8CpTpJ8fVSNzHCC5y"), // maple
 
   SEED: 33,
@@ -76,12 +76,12 @@ export async function addKaminoBank(
   const connection = user.connection;
 
   const bankConfig: KaminoConfigCompact = {
-    assetWeightInit: bigNumberToWrappedI80F48(0.85),
-    assetWeightMaint: bigNumberToWrappedI80F48(0.9),
-    depositLimit: new BN(10_000_000 * 10 ** 6),
+    assetWeightInit: bigNumberToWrappedI80F48(0.8),
+    assetWeightMaint: bigNumberToWrappedI80F48(0.85),
+    depositLimit: new BN(2_500_000 * 10 ** 6),
     operationalState: { operational: {} },
     riskTier: { collateral: {} },
-    totalAssetValueInitLimit: new BN(10_000_000),
+    totalAssetValueInitLimit: new BN(2_500_000),
     oracleMaxAge: 300,
     oracleMaxConfidence: 0,
     oracle: config.ORACLE,
