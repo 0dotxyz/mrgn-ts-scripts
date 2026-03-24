@@ -27,7 +27,7 @@ type Config = {
   GROUP_KEY: PublicKey;
   /** For Pyth, This is the feed, and is owned by rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ */
   ORACLE: PublicKey;
-  /** { kaminoPythPush: {} } or  { kaminoSwitchboardPull: {} } */
+  /** { kaminoPythPush: {} } (6) or  { kaminoSwitchboardPull: {} } (7) */
   ORACLE_TYPE: OracleSetupRawWithKamino;
   /** Group admin (generally the MS on mainnet) */
   ADMIN: PublicKey;
@@ -45,11 +45,11 @@ const config: Config = {
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
-  // USDG
-  ORACLE: new PublicKey("6JkZmXGgWnzsyTQaqRARzP64iFYnpMNT4siiuUDUaB8s"),
-  ORACLE_TYPE: { kaminoPythPush: {} },
-  BANK_MINT: new PublicKey("2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH"),
-  KAMINO_RESERVE: new PublicKey("HokDw9LaDf9qNzJf4F21RjHU3K4pRBkGQENvWnRGyRbn"),
+  // syrupUSDC
+  ORACLE: new PublicKey("7AjwutSAhQkaTqSsMrnWPNrvX97vcAz5FfcCmLfpYaPz"),
+  ORACLE_TYPE: { kaminoSwitchboardPull: {} },
+  BANK_MINT: new PublicKey("AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj"),
+  KAMINO_RESERVE: new PublicKey("AwCyCPZYJSZ93xcVKNK7jR8e1BHzJXq1D4bReNuh9woY"),
   KAMINO_MARKET: new PublicKey("6WEGfej9B9wjxRs6t4BYpb9iCXd8CpTpJ8fVSNzHCC5y"), // maple
 
   SEED: 33,
@@ -76,12 +76,12 @@ export async function addKaminoBank(
   const connection = user.connection;
 
   const bankConfig: KaminoConfigCompact = {
-    assetWeightInit: bigNumberToWrappedI80F48(0.8),
-    assetWeightMaint: bigNumberToWrappedI80F48(0.85),
-    depositLimit: new BN(2_500_000 * 10 ** 6),
+    assetWeightInit: bigNumberToWrappedI80F48(0.5),
+    assetWeightMaint: bigNumberToWrappedI80F48(0.6),
+    depositLimit: new BN(1_500_000 * 10 ** 6),
     operationalState: { operational: {} },
     riskTier: { collateral: {} },
-    totalAssetValueInitLimit: new BN(2_500_000),
+    totalAssetValueInitLimit: new BN(1_500_000),
     oracleMaxAge: 300,
     oracleMaxConfidence: 0,
     oracle: config.ORACLE,

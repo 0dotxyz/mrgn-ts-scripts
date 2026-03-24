@@ -45,11 +45,11 @@ const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
 
-  BANK: new PublicKey("B5nEYndavwuzEX1pQZUYcvfuhk1fMGgqrBrJkkEAe7iT"), // USDG Maple
+  BANK: new PublicKey("5wEJdDtCAVwPASNM2QfXAmLUnP8DCLy7D2piSgZxQ9xb"), // syrupUSDC Maple
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
   RESERVE_ORACLE: new PublicKey("3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH"),
-  RESERVE: new PublicKey("HokDw9LaDf9qNzJf4F21RjHU3K4pRBkGQENvWnRGyRbn"),
+  RESERVE: new PublicKey("AwCyCPZYJSZ93xcVKNK7jR8e1BHzJXq1D4bReNuh9woY"),
 
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
