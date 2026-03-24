@@ -52,11 +52,11 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE: new PublicKey("Hb3u8TcuBWv2SNhUhqNyPwh6RHqTVBFrwpATcvGtsBQN"),
+  ORACLE: new PublicKey("FxdT3KvBU4Ect6BqcJPvRRzKXDjk9PVc3ybb874k7M5j"),
   ORACLE_TYPE: ORACLE_TYPE_SWB,
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  BANK_MINT: new PublicKey("CorvuSSoLxPKLoXWXSfn8pFSMhCRHhe7Uwqe874cmwvg"),
-  SEED: 0,
+  BANK_MINT: new PublicKey("USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB"),
+  SEED: 1,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
@@ -68,29 +68,30 @@ const rate: InterestRateConfig1_7 = {
   protocolOriginationFee: bigNumberToWrappedI80F48(0),
 
   zeroUtilRate: 0,
-  hundredUtilRate: aprToU32(0.56),
+  hundredUtilRate: aprToU32(0.55),
   points: [
-    { util: utilToU32(0.8), rate: aprToU32(0.1) },
-    { util: 0, rate: 0 },
+    { util: utilToU32(0.5), rate: aprToU32(0.03) },
+    { util: utilToU32(0.85), rate: aprToU32(0.1) },
+    { util: utilToU32(0.95), rate: aprToU32(0.2) },
     { util: 0, rate: 0 },
     { util: 0, rate: 0 },
     { util: 0, rate: 0 },
   ],
-  curveType: 1,
+  curveType: 1
 };
 
 const bankConfig: BankConfig = {
-  assetWeightInit: bigNumberToWrappedI80F48(0.65),
-  assetWeightMaint: bigNumberToWrappedI80F48(0.8),
-  liabilityWeightInit: bigNumberToWrappedI80F48(1.3),
-  liabilityWeightMaint: bigNumberToWrappedI80F48(1.2),
-  depositLimit: new BN(20000 * 10 ** 9),
+  assetWeightInit: bigNumberToWrappedI80F48(0.85),
+  assetWeightMaint: bigNumberToWrappedI80F48(0.9),
+  liabilityWeightInit: bigNumberToWrappedI80F48(1.1),
+  liabilityWeightMaint: bigNumberToWrappedI80F48(1.05),
+  depositLimit: new BN(5_000_000 * 10 ** 6),
   interestRateConfig: rate,
   operationalState: { operational: {} },
-  borrowLimit: new BN(2500 * 10 ** 9),
+  borrowLimit: new BN(5_000_000 * 10 ** 6),
   riskTier: { collateral: {} },
-  totalAssetValueInitLimit: new BN(5000000),
-  oracleMaxAge: 30,
+  totalAssetValueInitLimit: new BN(5_000_000),
+  oracleMaxAge: 70,
   assetTag: 0,
   oracleMaxConfidence: 0,
   configFlags: 0,
