@@ -22,7 +22,7 @@ import { deriveLiquidityVaultAuthority } from "../common/pdas";
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
-const sendTx = true;
+const sendTx = false;
 
 type Config = {
   PROGRAM_ID: string;
@@ -45,15 +45,13 @@ const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
 
-  // BANK: new PublicKey("44WmBHm3bKvrwy1jnf9EkgX8hBT61Dz7Z9yfLCSmdEyy"), // USDS
-  // BANK: new PublicKey("8u7NuUBxckF2ouC3XKFkuxurinBYQTQiTcXVyqqoyRgM"), // USDC
-  BANK: new PublicKey("8y23ks4ZdoKf6G4aiamXSXWerkEbo4U9Zdi2WmqbqSJY"), // USD1
-  ADMIN: new PublicKey("CS3NzMknNWtjo2pq5dqp67hQYQ8wdLPt5m67oa5mBZUX"),
-  FEE_PAYER: new PublicKey("FbfXs6D1BGUqyz6ya5AfVi3eoyfhin6hfM9d7yt1WK3L"),
+  BANK: new PublicKey("EwURhaBfL9ahMqPHrJYpjaNsbXBWmwDxyLNXeudncF8N"), // USDC Maple
+  ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
   RESERVE_ORACLE: new PublicKey("3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH"),
+  RESERVE: new PublicKey("Atj6UREVWa7WxbF2EMKNyfmYUY1U1txughe2gjhcPDCo"),
 
-  // RESERVE: new PublicKey("6vKCRnEzrxRS1NybsMVEyNE3ztFAxCz6WusiiGft1PbA"),
+  MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
 async function main() {
@@ -82,10 +80,6 @@ export async function initKaminoObligation(
   const lendingMarket = reserveAcc.lendingMarket;
   let reserveFarmState = reserveAcc.farmCollateral;
 
-  console.log(
-    "init obligation for bank: " + config.BANK + " (mint: " + mint + ")",
-  );
-
   console.log("Detecting token program for mint...");
   let tokenProgram = TOKEN_PROGRAM_ID;
   try {
@@ -106,16 +100,16 @@ export async function initKaminoObligation(
     config.BANK,
   );
 
-
-  const [baseObligation] = deriveBaseObligation(
-    liquidityVaultAuthority,
-    lendingMarket,
-  );
   const ata = getAssociatedTokenAddressSync(
     mint,
     user.wallet.publicKey,
     true,
     tokenProgram,
+  );
+
+  const [baseObligation] = deriveBaseObligation(
+    liquidityVaultAuthority,
+    lendingMarket,
   );
 
   let [userState] = deriveUserState(
@@ -131,7 +125,7 @@ export async function initKaminoObligation(
   }
 
   let initObligationTx = new Transaction().add(
-    ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
+    // ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
     await makeInitObligationIx(
       program,
       {
@@ -144,6 +138,10 @@ export async function initKaminoObligation(
         reserveFarmState,
         obligationFarmUserState: userState,
         liquidityTokenProgram: tokenProgram,
+        mint,
+        reserveLiquiditySupply: reserveAcc.liquidity.supplyVault,
+        reserveCollateralMint: reserveAcc.collateral.mintPubkey,
+        reserveDestinationDepositCollateral: reserveAcc.collateral.supplyVault,
       },
       new BN(100),
     ),

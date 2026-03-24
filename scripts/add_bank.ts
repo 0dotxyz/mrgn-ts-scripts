@@ -192,6 +192,14 @@ export async function addBank(
     const base58Transaction = bs58.encode(serializedTransaction);
     console.log("bank key: " + bankKey);
     console.log("Base58-encoded transaction:", base58Transaction);
+    console.log("ALL accounts:");
+    for (let ix of tx.instructions)
+    {
+      for (let account of ix.keys)
+      {
+        console.log(account.pubkey.toString());
+      }
+    }
   }
 
   return bankKey;

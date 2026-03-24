@@ -43,25 +43,14 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE_TYPE: { kaminoSwitchboardPull: {} },
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  // USDS
-  // ORACLE: new PublicKey("DyYBBWEi9xZvgNAeMDCiFnmC1U9gqgVsJDXkL5WETpoX"), // usds
-  // BANK_MINT: new PublicKey("USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA"), // usds
-  // KAMINO_RESERVE: new PublicKey("BiSRKTadXSiyTSpiqw9nJge33N32AXewUPY7skFJwMvA"), // usds
-  // KAMINO_MARKET: new PublicKey("6WEGfej9B9wjxRs6t4BYpb9iCXd8CpTpJ8fVSNzHCC5y"), // maple
 
   // USDC
-  // ORACLE: new PublicKey("Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"), // usdc
-  // BANK_MINT: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), // usdc
-  // KAMINO_RESERVE: new PublicKey("D6q6wuQSrifJKZYpR1M8R4YawnLDtDsMmWM1NbBmgJ59"), // usdc
-  // KAMINO_MARKET: new PublicKey("7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF"), // main
-
-  // USD1
-  ORACLE: new PublicKey("FxdT3KvBU4Ect6BqcJPvRRzKXDjk9PVc3ybb874k7M5j"),
-  BANK_MINT: new PublicKey("USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB"),
-  KAMINO_RESERVE: new PublicKey("FkxHU3rkkGQveuRQfRQwUpjciaGKZKn8U7z5BhU5xT1M"),
-  KAMINO_MARKET: new PublicKey("6WEGfej9B9wjxRs6t4BYpb9iCXd8CpTpJ8fVSNzHCC5y"),
+  ORACLE: new PublicKey("Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"), // usdc
+  ORACLE_TYPE: { kaminoPythPush: {} },
+  BANK_MINT: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), // usdc
+  KAMINO_RESERVE: new PublicKey("Atj6UREVWa7WxbF2EMKNyfmYUY1U1txughe2gjhcPDCo"), // usdc
+  KAMINO_MARKET: new PublicKey("6WEGfej9B9wjxRs6t4BYpb9iCXd8CpTpJ8fVSNzHCC5y"), // maple
 
   SEED: 44,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
@@ -87,13 +76,13 @@ export async function addKaminoBank(
   const connection = user.connection;
 
   const bankConfig: KaminoConfigCompact = {
-    assetWeightInit: bigNumberToWrappedI80F48(0.85),
-    assetWeightMaint: bigNumberToWrappedI80F48(0.9),
-    depositLimit: new BN(2500000 * 10 ** 6),
+    assetWeightInit: bigNumberToWrappedI80F48(0.95),
+    assetWeightMaint: bigNumberToWrappedI80F48(0.95),
+    depositLimit: new BN(10_000_000 * 10 ** 6),
     operationalState: { operational: {} },
     riskTier: { collateral: {} },
-    totalAssetValueInitLimit: new BN(2500000),
-    oracleMaxAge: 70,
+    totalAssetValueInitLimit: new BN(10_000_000),
+    oracleMaxAge: 300,
     oracleMaxConfidence: 0,
     oracle: config.ORACLE,
     oracleSetup: config.ORACLE_TYPE,
