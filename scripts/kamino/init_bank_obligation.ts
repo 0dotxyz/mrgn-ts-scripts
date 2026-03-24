@@ -45,11 +45,11 @@ const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
 
-  BANK: new PublicKey("EwURhaBfL9ahMqPHrJYpjaNsbXBWmwDxyLNXeudncF8N"), // USDC Maple
+  BANK: new PublicKey("9LiRrrzgnu84wL6ftqGGDBZfjGmYSNCnExmL4gKf9mzr"), // PYUSD Maple
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
   RESERVE_ORACLE: new PublicKey("3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH"),
-  RESERVE: new PublicKey("Atj6UREVWa7WxbF2EMKNyfmYUY1U1txughe2gjhcPDCo"),
+  RESERVE: new PublicKey("92qeAka3ZzCGPfJriDXrE7tiNqfATVCAM6ZjjctR3TrS"),
 
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
@@ -120,8 +120,8 @@ export async function initKaminoObligation(
 
   if (reserveFarmState.toString() == PublicKey.default.toString())
   {
-    reserveFarmState = undefined;
-    userState = undefined;
+    reserveFarmState = null;
+    userState = null;
   }
 
   let initObligationTx = new Transaction().add(

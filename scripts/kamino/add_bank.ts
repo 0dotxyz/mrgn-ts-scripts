@@ -7,7 +7,6 @@ import {
 import { BN } from "@coral-xyz/anchor";
 import {
   bigNumberToWrappedI80F48,
-  getMint,
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
@@ -16,6 +15,7 @@ import { KaminoConfigCompact, OracleSetupRawWithKamino } from "./kamino-types";
 import { commonSetup } from "../../lib/common-setup";
 import { makeAddKaminoBankIx } from "./ixes-common";
 import { deriveBankWithSeed } from "../common/pdas";
+import { getMint } from "@solana/spl-token";
 
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
@@ -45,14 +45,14 @@ const config: Config = {
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
-  // USDC
-  ORACLE: new PublicKey("Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"), // usdc
+  // PYUSD
+  ORACLE: new PublicKey("9zXQxpYH3kYhtoybmZfUNNCRVuud7fY9jswTg1hLyT8k"),
   ORACLE_TYPE: { kaminoPythPush: {} },
-  BANK_MINT: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), // usdc
-  KAMINO_RESERVE: new PublicKey("Atj6UREVWa7WxbF2EMKNyfmYUY1U1txughe2gjhcPDCo"), // usdc
+  BANK_MINT: new PublicKey("2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"),
+  KAMINO_RESERVE: new PublicKey("92qeAka3ZzCGPfJriDXrE7tiNqfATVCAM6ZjjctR3TrS"),
   KAMINO_MARKET: new PublicKey("6WEGfej9B9wjxRs6t4BYpb9iCXd8CpTpJ8fVSNzHCC5y"), // maple
 
-  SEED: 44,
+  SEED: 33,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
@@ -76,8 +76,8 @@ export async function addKaminoBank(
   const connection = user.connection;
 
   const bankConfig: KaminoConfigCompact = {
-    assetWeightInit: bigNumberToWrappedI80F48(0.95),
-    assetWeightMaint: bigNumberToWrappedI80F48(0.95),
+    assetWeightInit: bigNumberToWrappedI80F48(0.85),
+    assetWeightMaint: bigNumberToWrappedI80F48(0.9),
     depositLimit: new BN(10_000_000 * 10 ** 6),
     operationalState: { operational: {} },
     riskTier: { collateral: {} },
