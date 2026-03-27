@@ -15,7 +15,7 @@ import {
   DEFAULT_API_URL,
   loadEnvFile,
   loadKeypairFromFile,
-} from "../scripts/utils";
+} from "../scripts/utils/utils";
 
 type Bank = {
   pubkey: PublicKey;

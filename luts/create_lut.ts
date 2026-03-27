@@ -10,7 +10,7 @@ import {
   DEFAULT_API_URL,
   loadEnvFile,
   loadKeypairFromFile,
-} from "../scripts/utils";
+} from "../scripts/utils/utils";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 /**

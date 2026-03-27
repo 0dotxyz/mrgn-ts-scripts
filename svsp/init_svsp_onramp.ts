@@ -8,7 +8,7 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
-import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile } from "../scripts/utils";
+import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile } from "../scripts/utils/utils";
 import {
   createPoolOnramp,
   deriveOnRampPool,

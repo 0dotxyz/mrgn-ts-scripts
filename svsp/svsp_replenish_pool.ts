@@ -8,7 +8,7 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
-import { loadKeypairFromFile } from "../scripts/utils";
+import { loadKeypairFromFile } from "../scripts/utils/utils";
 import {
   createPoolOnramp,
   deriveOnRampPool,

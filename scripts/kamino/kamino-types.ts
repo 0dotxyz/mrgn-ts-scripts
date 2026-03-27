@@ -1,7 +1,7 @@
 import { OperationalStateRaw, RiskTierRaw } from "@mrgnlabs/marginfi-client-v2";
 import { WrappedI80F48 } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
-import { I80F48_ONE, PYTH_PULL_MIGRATED } from "../utils";
+import { I80F48_ONE, PYTH_PULL_MIGRATED } from "../utils/utils";
 import { BN } from "@coral-xyz/anchor";
 
 export const KLEND_PROGRAM_ID = new PublicKey(
