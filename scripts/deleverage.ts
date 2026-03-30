@@ -112,14 +112,12 @@ export async function deleverage(
   fetchedBanks?: FetchedBanks,
   fetchedReserves?: FetchedReserves,
   fetchedSpotMarkets?: FetchedSpotMarkets,
-  version?: "current",
 ) {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     undefined,
-    version,
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
   registerDriftProgram(user, DRIFT_PROGRAM_ID.toString());
@@ -497,6 +495,7 @@ export async function deleverage(
             bank: config.BANK,
             destinationTokenAccount: ata,
             lendingMarket: reserve.lendingMarket,
+            reserve: bank.integrationAcc1,
             reserveLiquidityMint: bank.mint,
             reserveFarmState: reserve.farmCollateral,
             obligationFarmUserState: userState,

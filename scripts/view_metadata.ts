@@ -44,7 +44,7 @@ async function main() {
   const envConfig = configs[env];
   const programId = new PublicKey(envConfig.PROGRAM_ID);
 
-  const user = commonSetup(false, envConfig.PROGRAM_ID, undefined, programId, "current");
+  const user = commonSetup(false, envConfig.PROGRAM_ID, undefined, programId);
 
   const bankPubkey = new PublicKey(argv.bank);
   const [metadataPda] = deriveBankMetadataPda(programId, bankPubkey);

@@ -120,7 +120,6 @@ export async function configBank(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ) {
   if (config.BANKS.length === 0) {
     throw new Error("Config.BANKS is empty - nothing to do.");
@@ -131,7 +130,6 @@ export async function configBank(
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
 
   const program = user.program;

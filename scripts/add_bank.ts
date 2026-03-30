@@ -64,7 +64,7 @@ const rate: InterestRateConfig1_7 = {
   insuranceFeeFixedApr: bigNumberToWrappedI80F48(0),
   insuranceIrFee: bigNumberToWrappedI80F48(0),
   protocolFixedFeeApr: bigNumberToWrappedI80F48(0.00001),
-  protocolIrFee: bigNumberToWrappedI80F48(0.06),
+  protocolIrFee: bigNumberToWrappedI80F48(0.05),
   protocolOriginationFee: bigNumberToWrappedI80F48(0),
 
   zeroUtilRate: 0,
@@ -77,7 +77,7 @@ const rate: InterestRateConfig1_7 = {
     { util: 0, rate: 0 },
     { util: 0, rate: 0 },
   ],
-  curveType: 1,
+  curveType: 1
 };
 
 const bankConfig: BankConfig = {
@@ -88,10 +88,10 @@ const bankConfig: BankConfig = {
   depositLimit: new BN(3_000_000 * 10 ** 6),
   interestRateConfig: rate,
   operationalState: { operational: {} },
-  borrowLimit: new BN(3_000_000 * 10 ** 6),
+  borrowLimit: new BN(5_000_000 * 10 ** 6),
   riskTier: { collateral: {} },
-  totalAssetValueInitLimit: new BN(3_000_000),
-  oracleMaxAge: 300,
+  totalAssetValueInitLimit: new BN(5_000_000),
+  oracleMaxAge: 70,
   assetTag: 0,
   oracleMaxConfidence: 0,
   configFlags: 0,
@@ -105,15 +105,13 @@ export async function addBank(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ): Promise<PublicKey> {
   console.log("adding bank to group: " + config.GROUP_KEY);
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
-    config.MULTISIG_PAYER,
-    version,
+    config.MULTISIG_PAYER
   );
   const program = user.program;
   const connection = user.connection;
@@ -194,6 +192,14 @@ export async function addBank(
     const base58Transaction = bs58.encode(serializedTransaction);
     console.log("bank key: " + bankKey);
     console.log("Base58-encoded transaction:", base58Transaction);
+    console.log("ALL accounts:");
+    for (let ix of tx.instructions)
+    {
+      for (let account of ix.keys)
+      {
+        console.log(account.pubkey.toString());
+      }
+    }
   }
 
   return bankKey;

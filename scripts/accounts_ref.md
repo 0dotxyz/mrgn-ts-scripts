@@ -74,6 +74,14 @@
 - Drift PYUSD - 7orqowokyyXEX8yRLSkPCocjpEFXktCdsvUAt3XD4XsW
 - Drift USDS - 8kVdNTKro2eaFvM1JTfo5d3WFbf98Xz9SNxWbgZadgvK
 
+## JUPLEND INTEGRATION BANKS (Staging Mainnet Clone)
+
+- WSOL (juplend) - EC1T1SWsT81MdrGWdrwesDs1vApJNtjDXibcBX4GFsEH
+- USDC (juplend) - 2mPDpFXRDXguzz29rhSsnAUd23ZU5MzqYXyU5dvLLx9q
+- USDT (juplend) - C8xW2QAizzCaxAacAEHxnQUa3rXnRdTHXuTRNwHjTi8e
+- USDG (juplend) - ErdhJmhLRxwTG2uJVw5f22j7aTDtMkVefZ3iPWN6Knkq
+- USDS (juplend) - GBFxM5tS6q32pk5NhWjMwyrfzNEzFFmXVf3L9995RNt8
+
 ## KAMINO INTEGRATION BANKS (Staging Alt)
 
 - EURC (kamino) - 4TAjQVpmwKX3Zp2pRHa14W5eoPHyXk7jYbhzfZtBiHym

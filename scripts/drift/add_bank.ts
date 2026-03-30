@@ -45,11 +45,11 @@ type Config = {
   /** 9 (DriftPythPush) or 10 (DriftSwitchboardPull) */
   ORACLE_SETUP: { driftPythPull: {} } | { driftSwitchboardPull: {} };
   DRIFT_ORACLE: PublicKey;
+  SEED: BN;
   /** Group admin (generally the MS on mainnet) */
   ADMIN?: PublicKey; // If omitted, defaults to wallet.pubkey
   /** Pays flat sol fee to init and rent (generally the MS on mainnet) */
   FEE_PAYER?: PublicKey; // If omitted, defaults to ADMIN
-  SEED: BN;
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
 
   // Optional Bank Config fields
@@ -78,7 +78,7 @@ async function main() {
 
   console.log("=== Add Drift Bank ===\n");
   console.log("Config:", configFile);
-  console.log("Bank mint:", config.BANK_MINT);
+  console.log("Bank mint:", config.BANK_MINT.toString());
   console.log("Drift market index:", config.DRIFT_MARKET_INDEX);
   console.log();
   config.ADMIN = new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw");
@@ -92,7 +92,6 @@ export async function addDriftBank(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ): Promise<PublicKey> {
   // Setup connection and program
   const user = commonSetup(
@@ -100,7 +99,6 @@ export async function addDriftBank(
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   const connection = user.connection;
   const wallet = user.wallet;
@@ -132,8 +130,8 @@ export async function addDriftBank(
   // Build drift bank config
   const driftConfig: DriftConfigCompact = {
     oracle: config.ORACLE,
-    assetWeightInit: bigNumberToWrappedI80F48(0.75), // 75%
-    assetWeightMaint: bigNumberToWrappedI80F48(0.85), // 85%
+    assetWeightInit: bigNumberToWrappedI80F48(0.55),
+    assetWeightMaint: bigNumberToWrappedI80F48(0.65),
     depositLimit: new BN(config.DEPOSIT_LIMIT ?? 10_000_000_000),
     oracleSetup: config.ORACLE_SETUP,
     operationalState: {
@@ -255,7 +253,6 @@ export async function addDriftBank(
 
   const transaction = new Transaction().add(addBankIx, initUserIx);
 
-  // Simulate
   transaction.feePayer = feePayer;
   const { blockhash } = await connection.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;

@@ -73,7 +73,6 @@ async function main() {
     configCommon.PROGRAM_ID,
     "./keys/zerotrade_admin.json",
     configCommon.MULTISIG,
-    "current",
   );
   const program = user.program;
   const connection = user.connection;

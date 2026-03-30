@@ -1,0 +1,25 @@
+{
+  "programId": "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  "group": "Diu1q9gniR1qR4Daaej3rcHd6949HMmxLGsnQ94Z3rLz",
+  "bankMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  "juplendLending": "2vVYHYM8VYnvZqQWpTJSj8o8DBf1wM8pVs3bsTgYZiqJ",
+  "fTokenMint": "9BEcn9aPEmhSPbPQeFGjidRiEKki46fVQDyPpSQXPA2D",
+  "oracle": "ujzWjo2bG8XPY8Qnjw7tGK97uYF7VrkmiyBZh4oeHra",
+  "oracleSetup": "juplendSwitchboardPull",
+  "seed": 600,
+  "assetWeightInit": "0.9",
+  "assetWeightMaint": "0.95",
+  "depositLimit": "50000000000000",
+  "totalAssetValueInitLimit": "50000000",
+  "riskTier": "collateral",
+  "oracleMaxAge": 180,
+  "configFlags": 1,
+  "ticker": "USDC | USD Coin",
+  "description": "USD Coin | Stablecoin | USDC | JupLend",
+  "comments": {
+    "asset": "USD Coin",
+    "tokenProgram": "SPL Token",
+    "decimals": 6,
+    "bankAddress": "2mPDpFXRDXguzz29rhSsnAUd23ZU5MzqYXyU5dvLLx9q"
+  }
+}

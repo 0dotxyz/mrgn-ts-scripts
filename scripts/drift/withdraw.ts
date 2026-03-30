@@ -1,7 +1,5 @@
 import {
   PublicKey,
-  Transaction,
-  sendAndConfirmTransaction,
   AccountMeta,
   TransactionInstruction,
   ComputeBudgetProgram,
@@ -82,14 +80,12 @@ export async function withdrawDrift(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ) {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
 
@@ -112,7 +108,7 @@ export async function withdrawDrift(
   }
 
   console.log("=== Drift Withdraw ===\n");
-  console.log("Bank mint:", mint);
+  console.log("Bank:", config.BANK.toString());
   console.log("Amount:", config.AMOUNT, "base units");
   console.log("Withdraw all:", config.WITHDRAW_ALL);
   console.log();

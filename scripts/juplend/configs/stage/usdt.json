@@ -1,0 +1,25 @@
+{
+  "programId": "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  "group": "Diu1q9gniR1qR4Daaej3rcHd6949HMmxLGsnQ94Z3rLz",
+  "bankMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+  "juplendLending": "F7tLdeF2YZZex9MR8HgGggyFiz7UU2UgUube2tmfwNPE",
+  "fTokenMint": "Cmn4v2wipYV41dkakDvCgFJpxhtaaKt11NyWV8pjSE8A",
+  "oracle": "FDf95uC3U4qFgTZbMDEBCziydC7k2Ex3Yqd7B1fhU5D1",
+  "oracleSetup": "juplendSwitchboardPull",
+  "seed": 600,
+  "assetWeightInit": "0.9",
+  "assetWeightMaint": "0.95",
+  "depositLimit": "50000000000000",
+  "totalAssetValueInitLimit": "50000000",
+  "riskTier": "collateral",
+  "oracleMaxAge": 180,
+  "configFlags": 1,
+  "ticker": "USDT | Tether USD",
+  "description": "Tether USD | Stablecoin | USDT | JupLend",
+  "comments": {
+    "asset": "Tether USD",
+    "tokenProgram": "SPL Token",
+    "decimals": 6,
+    "bankAddress": "C8xW2QAizzCaxAacAEHxnQUa3rXnRdTHXuTRNwHjTi8e"
+  }
+}

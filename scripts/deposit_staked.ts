@@ -45,7 +45,6 @@ async function main() {
     config.PROGRAM_ID,
     "/keys/phantom-wallet.json",
     config.MULTISIG,
-    "current",
   );
   const program = user.program;
   const connection = user.connection;

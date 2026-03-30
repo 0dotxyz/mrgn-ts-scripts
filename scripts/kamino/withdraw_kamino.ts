@@ -80,14 +80,12 @@ export async function withdrawKamino(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current"
 ) {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
   const program = user.program;
@@ -110,14 +108,13 @@ export async function withdrawKamino(
     }
   );
 
-  const [lendingVaultAuthority] = deriveLiquidityVaultAuthority(
+  const [liquidityVaultAuthority] = deriveLiquidityVaultAuthority(
     program.programId,
     config.BANK
   );
   const [baseObligation] = deriveBaseObligation(
-    lendingVaultAuthority,
+    liquidityVaultAuthority,
     config.KAMINO_MARKET,
-    KLEND_PROGRAM_ID
   );
 
   const ata = getAssociatedTokenAddressSync(
@@ -166,6 +163,7 @@ export async function withdrawKamino(
       {
         marginfiAccount: config.ACCOUNT,
         bank: config.BANK,
+        reserveLiquidityMint: config.BANK_MINT,
         destinationTokenAccount: ata,
         lendingMarket: config.KAMINO_MARKET,
         reserve: config.KAMINO_RESERVE,

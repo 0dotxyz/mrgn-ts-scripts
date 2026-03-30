@@ -53,13 +53,12 @@ async function main() {
   await depositKamino(sendTx, config, "/.config/stage/id.json");
 }
 
-export async function depositKamino(sendTx: boolean, config: Config, walletPath: string, version?: "current") {
+export async function depositKamino(sendTx: boolean, config: Config, walletPath: string) {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
   const program = user.program;
@@ -69,14 +68,13 @@ export async function depositKamino(sendTx: boolean, config: Config, walletPath:
   const mint = bank.mint;
   const reserve = bank.integrationAcc1;
 
-  const [lendingVaultAuthority] = deriveLiquidityVaultAuthority(
+  const [liquidityVaultAuthority] = deriveLiquidityVaultAuthority(
     program.programId,
     config.BANK
   );
   const [baseObligation] = deriveBaseObligation(
-    lendingVaultAuthority,
+    liquidityVaultAuthority,
     config.KAMINO_MARKET,
-    KLEND_PROGRAM_ID
   );
 
   const ata = getAssociatedTokenAddressSync(

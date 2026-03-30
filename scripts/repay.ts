@@ -10,6 +10,7 @@ import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
 import { commonSetup } from "../lib/common-setup";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import { BankAndOracles, composeRemainingAccounts } from "../lib/utils";
 
 const sendTx = true;
 
@@ -23,6 +24,7 @@ type Config = {
   REPAY_ALL: boolean;
   ADD_COMPUTE_UNITS: boolean;
 
+  NEW_REMAINING: BankAndOracles;
   // Optional, omit if not using MS.
   MULTISIG?: PublicKey;
 };
@@ -35,6 +37,10 @@ const config: Config = {
   AMOUNT: new BN(10 * 10 ** 6),
   REPAY_ALL: true,
   ADD_COMPUTE_UNITS: false,
+  NEW_REMAINING: [
+    // new PublicKey("CVjHEnJWKELsbFt37znC2nq4KNrwTf7w42fcfySEifNu"),
+    // new PublicKey("DBE3N8uNjhKPRHfANdwGvCZghWXyLPdqdSbEW2XFwBiX"),
+  ],
 };
 
 async function main() {
@@ -45,14 +51,12 @@ export async function repay(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ) {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG,
-    version,
   );
   const program = user.program;
   const connection = user.connection;
@@ -61,7 +65,11 @@ export async function repay(
   const tokenProgram = mintAccInfo.owner;
   let isT22 = tokenProgram.toString() == TOKEN_2022_PROGRAM_ID.toString();
 
-  let meta: AccountMeta[] = [];
+  const meta: AccountMeta[] = config.NEW_REMAINING.flat().map(
+    (pubkey) => {
+      return { pubkey, isSigner: false, isWritable: false };
+    }
+  );
 
   if (isT22) {
     const m: AccountMeta = {

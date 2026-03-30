@@ -59,14 +59,12 @@ export async function harvestDriftRewards(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ) {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   registerDriftProgram(user, DRIFT_PROGRAM_ID.toString());
   const connection = user.connection;
@@ -77,7 +75,7 @@ export async function harvestDriftRewards(
   const mint = bank.mint;
 
   console.log("=== Drift Harvest Rewards ===\n");
-  console.log("Bank mint:", mint);
+  console.log("Bank:", config.BANK.toString());
   console.log();
 
   const [driftState] = deriveDriftStatePDA();

@@ -250,7 +250,7 @@ async function main() {
     return;
   }
 
-  await writeBankMetadata(sendTx, config, walletPath, undefined, delay);
+  await writeBankMetadata(sendTx, config, walletPath, delay);
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -259,7 +259,6 @@ export async function writeBankMetadata(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
   delay: number = 2000,
 ) {
   if (config.BANKS.length === 0) {
@@ -271,7 +270,6 @@ export async function writeBankMetadata(
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   const program = user.program;
   const connection = user.connection;

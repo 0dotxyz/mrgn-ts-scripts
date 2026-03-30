@@ -40,7 +40,6 @@ async function printBankInfo(bankKey: PublicKey) {
     config.PROGRAM_ID,
     "/.config/solana/id.json",
     undefined,
-    "current",
   );
 
   const program = user.program;

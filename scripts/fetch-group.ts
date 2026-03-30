@@ -21,7 +21,6 @@ async function main() {
     config.PROGRAM_ID,
     "/.keys/staging-admin.json",
     undefined,
-    "current",
   );
   const program = user.program;
 

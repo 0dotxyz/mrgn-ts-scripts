@@ -1,0 +1,74 @@
+{
+  "defaults": {
+    "seed": 600,
+    "riskTier": "collateral",
+    "configFlags": 1
+  },
+  "banks": [
+    {
+      "symbol": "WSOL",
+      "mint": "So11111111111111111111111111111111111111112",
+      "fullName": "Wrapped SOL",
+      "category": "Native",
+      "tokenProgram": "SPL Token",
+      "decimals": 9,
+      "assetWeightInit": "0.75",
+      "assetWeightMaint": "0.85",
+      "depositLimit": "150000000000000",
+      "totalAssetValueInitLimit": "20000000",
+      "oracleMaxAge": 70
+    },
+    {
+      "symbol": "USDC",
+      "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "fullName": "USD Coin",
+      "category": "Stablecoin",
+      "tokenProgram": "SPL Token",
+      "decimals": 6,
+      "assetWeightInit": "0.9",
+      "assetWeightMaint": "0.95",
+      "depositLimit": "50000000000000",
+      "totalAssetValueInitLimit": "50000000",
+      "oracleMaxAge": 180
+    },
+    {
+      "symbol": "USDT",
+      "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "fullName": "Tether USD",
+      "category": "Stablecoin",
+      "tokenProgram": "SPL Token",
+      "decimals": 6,
+      "assetWeightInit": "0.9",
+      "assetWeightMaint": "0.95",
+      "depositLimit": "50000000000000",
+      "totalAssetValueInitLimit": "50000000",
+      "oracleMaxAge": 180
+    },
+    {
+      "symbol": "USDG",
+      "mint": "2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH",
+      "fullName": "Global Dollar",
+      "category": "Stablecoin",
+      "tokenProgram": "Token-2022",
+      "decimals": 6,
+      "assetWeightInit": "0.9",
+      "assetWeightMaint": "0.95",
+      "depositLimit": "10000000000000",
+      "totalAssetValueInitLimit": "10000000",
+      "oracleMaxAge": 300
+    },
+    {
+      "symbol": "USDS",
+      "mint": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+      "fullName": "USDS",
+      "category": "Stablecoin",
+      "tokenProgram": "SPL Token",
+      "decimals": 6,
+      "assetWeightInit": "0.9",
+      "assetWeightMaint": "0.95",
+      "depositLimit": "10000000000000",
+      "totalAssetValueInitLimit": "10000000",
+      "oracleMaxAge": 180
+    }
+  ]
+}
