@@ -36,20 +36,61 @@ type Config = {
   /** 15 (JuplendPythPull) or 16 (JuplendSwitchboardPull) */
   ORACLE_SETUP: { juplendPythPull: {} } | { juplendSwitchboardPull: {} };
   SEED: BN;
-  ADMIN?: PublicKey; // If omitted, defaults to wallet.pubkey
+  ADMIN: PublicKey;
   /** Pays flat sol fee to init and rent (generally the MS on mainnet) */
-  FEE_PAYER?: PublicKey; // If omitted, defaults to ADMIN
-  MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
+  FEE_PAYER: PublicKey;
+  MULTISIG_PAYER: PublicKey;
 
-  // Optional Bank Config fields
-  ASSET_WEIGHT_INIT?: string;
-  ASSET_WEIGHT_MAINT?: string;
-  DEPOSIT_LIMIT?: string;
-  TOTAL_ASSET_VALUE_INIT_LIMIT?: string;
-  RISK_TIER?: string;
-  ORACLE_MAX_AGE?: number;
-  CONFIG_FLAGS?: number;
+  ASSET_WEIGHT_INIT: string;
+  ASSET_WEIGHT_MAINT: string;
+  DEPOSIT_LIMIT: string;
+  TOTAL_ASSET_VALUE_INIT_LIMIT: string;
+  RISK_TIER: "isolated" | "collateral";
+  ORACLE_MAX_AGE: number;
+  CONFIG_FLAGS: number;
 };
+
+function normalizeNumericInput(value: string | number): string {
+  return String(value).replace(/_/g, "").trim();
+}
+
+function numberFromConfig(
+  value: string | number,
+  fieldName: string,
+): number {
+  const normalized = normalizeNumericInput(value);
+  const parsed = Number(normalized);
+  if (Number.isNaN(parsed)) {
+    throw new Error(`Invalid numeric value for ${fieldName}: ${value}`);
+  }
+  return parsed;
+}
+
+function bnFromConfig(
+  value: string | number,
+  fieldName: string,
+): BN {
+  const normalized = normalizeNumericInput(value);
+  try {
+    return new BN(normalized);
+  } catch {
+    throw new Error(`Invalid integer value for ${fieldName}: ${value}`);
+  }
+}
+
+function requireField(
+  json: Record<string, unknown>,
+  fieldName: string,
+): string | number {
+  const value = json[fieldName];
+  if (value === undefined || value === null || value === "") {
+    throw new Error(`Missing required config field: ${fieldName}`);
+  }
+  if (typeof value !== "string" && typeof value !== "number") {
+    throw new Error(`Invalid type for ${fieldName}: expected string or number`);
+  }
+  return value;
+}
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -163,19 +204,20 @@ export async function addJuplendBank(
   const bankConfig: JuplendConfigCompact = {
     oracle: config.ORACLE,
     assetWeightInit: bigNumberToWrappedI80F48(
-      Number(config.ASSET_WEIGHT_INIT ?? "0.8"),
+      numberFromConfig(config.ASSET_WEIGHT_INIT, "assetWeightInit"),
     ),
     assetWeightMaint: bigNumberToWrappedI80F48(
-      Number(config.ASSET_WEIGHT_MAINT ?? "0.9"),
+      numberFromConfig(config.ASSET_WEIGHT_MAINT, "assetWeightMaint"),
     ),
-    depositLimit: new BN(config.DEPOSIT_LIMIT ?? "1000000000000"),
+    depositLimit: bnFromConfig(config.DEPOSIT_LIMIT, "depositLimit"),
     oracleSetup: config.ORACLE_SETUP,
     riskTier,
-    configFlags: config.CONFIG_FLAGS ?? 0,
-    totalAssetValueInitLimit: new BN(
-      config.TOTAL_ASSET_VALUE_INIT_LIMIT ?? "1000000000",
+    configFlags: config.CONFIG_FLAGS,
+    totalAssetValueInitLimit: bnFromConfig(
+      config.TOTAL_ASSET_VALUE_INIT_LIMIT,
+      "totalAssetValueInitLimit",
     ),
-    oracleMaxAge: config.ORACLE_MAX_AGE ?? 70,
+    oracleMaxAge: config.ORACLE_MAX_AGE,
     oracleMaxConfidence: 0,
   };
 
@@ -203,8 +245,8 @@ export async function addJuplendBank(
     ASSOCIATED_TOKEN_PROGRAM_ID,
   );
 
-  const admin = config.ADMIN ?? wallet.publicKey;
-  const feePayer = config.FEE_PAYER ?? admin;
+  const admin = config.ADMIN;
+  const feePayer = config.FEE_PAYER;
 
   // Remaining accounts for oracle validation
   const oracleMeta: AccountMeta = {
@@ -285,45 +327,64 @@ if (require.main === module) {
 
 export function parseConfig(
   rawConfig: string,
-  env?: Record<string, string>,
+  _env?: Record<string, string>,
 ): Config {
   const json = JSON.parse(rawConfig);
 
-  // Environment provides defaults; bank config can override
-  const programId = json.programId ?? env?.programId;
-  const group = json.group ?? env?.group;
-  const admin = json.admin ?? env?.admin;
-  const feePayer = json.feePayer ?? env?.feePayer;
-  const multisigPayer = json.multisigPayer ?? env?.multisigPayer;
+  const programId = requireField(json, "programId");
+  const group = requireField(json, "group");
+  const bankMint = requireField(json, "bankMint");
+  const juplendLending = requireField(json, "juplendLending");
+  const fTokenMint = requireField(json, "fTokenMint");
+  const oracle = requireField(json, "oracle");
+  const seed = requireField(json, "seed");
+  const assetWeightInit = requireField(json, "assetWeightInit");
+  const assetWeightMaint = requireField(json, "assetWeightMaint");
+  const depositLimit = requireField(json, "depositLimit");
+  const totalAssetValueInitLimit = requireField(json, "totalAssetValueInitLimit");
+  const riskTierRaw = requireField(json, "riskTier");
+  const oracleMaxAge = requireField(json, "oracleMaxAge");
+  const configFlags = requireField(json, "configFlags");
+  const admin = requireField(json, "admin");
+  const feePayer = requireField(json, "feePayer");
+  const multisigPayer = requireField(json, "multisigPayer");
+  const oracleSetup = requireField(json, "oracleSetup");
 
   let ORACLE_SETUP: Config["ORACLE_SETUP"];
-  if (
-    json.oracleSetup === "juplendSwitchboardPull" ||
-    json.oracleSetup === "switchboardPull"
-  ) {
+  if (oracleSetup === "juplendSwitchboardPull" || oracleSetup === "switchboardPull") {
     ORACLE_SETUP = { juplendSwitchboardPull: {} };
-  } else {
+  } else if (oracleSetup === "juplendPythPull" || oracleSetup === "pythPull") {
     ORACLE_SETUP = { juplendPythPull: {} };
+  } else {
+    throw new Error(
+      `Invalid oracleSetup: ${oracleSetup}. Expected juplendSwitchboardPull/switchboardPull or juplendPythPull/pythPull`,
+    );
+  }
+
+  if (riskTierRaw !== "isolated" && riskTierRaw !== "collateral") {
+    throw new Error(
+      `Invalid riskTier: ${riskTierRaw}. Expected "isolated" or "collateral"`,
+    );
   }
 
   return {
-    PROGRAM_ID: programId,
-    GROUP_KEY: new PublicKey(group),
-    BANK_MINT: new PublicKey(json.bankMint),
-    JUPLEND_LENDING: new PublicKey(json.juplendLending),
-    F_TOKEN_MINT: new PublicKey(json.fTokenMint),
-    ORACLE: new PublicKey(json.oracle),
+    PROGRAM_ID: String(programId),
+    GROUP_KEY: new PublicKey(String(group)),
+    BANK_MINT: new PublicKey(String(bankMint)),
+    JUPLEND_LENDING: new PublicKey(String(juplendLending)),
+    F_TOKEN_MINT: new PublicKey(String(fTokenMint)),
+    ORACLE: new PublicKey(String(oracle)),
     ORACLE_SETUP,
-    SEED: new BN(json.seed),
-    ASSET_WEIGHT_INIT: json.assetWeightInit,
-    ASSET_WEIGHT_MAINT: json.assetWeightMaint,
-    DEPOSIT_LIMIT: json.depositLimit,
-    TOTAL_ASSET_VALUE_INIT_LIMIT: json.totalAssetValueInitLimit,
-    RISK_TIER: json.riskTier,
-    ORACLE_MAX_AGE: json.oracleMaxAge,
-    CONFIG_FLAGS: json.configFlags,
-    ADMIN: admin ? new PublicKey(admin) : undefined,
-    FEE_PAYER: feePayer ? new PublicKey(feePayer) : undefined,
-    MULTISIG_PAYER: multisigPayer ? new PublicKey(multisigPayer) : undefined,
+    SEED: bnFromConfig(seed, "seed"),
+    ASSET_WEIGHT_INIT: String(assetWeightInit),
+    ASSET_WEIGHT_MAINT: String(assetWeightMaint),
+    DEPOSIT_LIMIT: String(depositLimit),
+    TOTAL_ASSET_VALUE_INIT_LIMIT: String(totalAssetValueInitLimit),
+    RISK_TIER: riskTierRaw,
+    ORACLE_MAX_AGE: numberFromConfig(oracleMaxAge, "oracleMaxAge"),
+    CONFIG_FLAGS: numberFromConfig(configFlags, "configFlags"),
+    ADMIN: new PublicKey(String(admin)),
+    FEE_PAYER: new PublicKey(String(feePayer)),
+    MULTISIG_PAYER: new PublicKey(String(multisigPayer)),
   };
 }

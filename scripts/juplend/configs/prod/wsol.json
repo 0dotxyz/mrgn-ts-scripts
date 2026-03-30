@@ -6,11 +6,11 @@
   "fTokenMint": "2uQsyo1fXXQkDtcpXnLofWy88PxcvnfH2L8FPSE62FVU",
   "oracle": "4Hmd6PdjVA9auCoScE12iaBogfwS4ZXQ6VZoBeqanwWW",
   "oracleSetup": "juplendSwitchboardPull",
-  "seed": 600,
+  "seed": 0,
   "assetWeightInit": "0.75",
   "assetWeightMaint": "0.85",
-  "depositLimit": "150000000000000",
-  "totalAssetValueInitLimit": "20000000",
+  "depositLimit": "200_000_000_000_000",
+  "totalAssetValueInitLimit": "20_000_000",
   "riskTier": "collateral",
   "oracleMaxAge": 70,
   "configFlags": 1,
@@ -23,6 +23,6 @@
     "asset": "Wrapped SOL",
     "tokenProgram": "SPL Token",
     "decimals": 9,
-    "bankAddress": "6KdoFcm9WgdWJ9aDHJhXKqDTyxQjJiYh3GCjDVyzJjuV"
+    "bankAddress": "C8dVyvfQo7vUXyQwweEQPW3WpGcYsB7c6Gz4gGbEF1LP"
   }
 }

@@ -4,10 +4,10 @@
   "bankSeed": 600,
   "assets": [
     {
-      "symbol": "WSOL",
-      "lending": "BeAqbxfrcXmzEYT2Ra62oW2MqkuFDHaCtps47Mzg6Zj3",
-      "fTokenMint": "2uQsyo1fXXQkDtcpXnLofWy88PxcvnfH2L8FPSE62FVU",
-      "mint": "So11111111111111111111111111111111111111112"
+      "symbol": "EURC",
+      "lending": "3vejrc7HzHszWjn5YpntjiQEtJNB4Yd1Fff2cs9Hh7JZ",
+      "fTokenMint": "GcV9tEj62VncGithz4o4N9x6HWXARxuRgEAYk9zahNA8",
+      "mint": "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr"
     },
     {
       "symbol": "USDC",
@@ -16,16 +16,16 @@
       "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
     },
     {
+      "symbol": "WSOL",
+      "lending": "BeAqbxfrcXmzEYT2Ra62oW2MqkuFDHaCtps47Mzg6Zj3",
+      "fTokenMint": "2uQsyo1fXXQkDtcpXnLofWy88PxcvnfH2L8FPSE62FVU",
+      "mint": "So11111111111111111111111111111111111111112"
+    },
+    {
       "symbol": "USDT",
       "lending": "F7tLdeF2YZZex9MR8HgGggyFiz7UU2UgUube2tmfwNPE",
       "fTokenMint": "Cmn4v2wipYV41dkakDvCgFJpxhtaaKt11NyWV8pjSE8A",
       "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
-    },
-    {
-      "symbol": "EURC",
-      "lending": "3vejrc7HzHszWjn5YpntjiQEtJNB4Yd1Fff2cs9Hh7JZ",
-      "fTokenMint": "GcV9tEj62VncGithz4o4N9x6HWXARxuRgEAYk9zahNA8",
-      "mint": "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr"
     },
     {
       "symbol": "USDG",

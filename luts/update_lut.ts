@@ -26,10 +26,10 @@ type Config = {
 };
 
 const config: Config = {
-  LUT: new PublicKey("7mTGsbaXnNpdcP2jdStswRx8rdH8cVCdj2xKKENDsJHH"),
+  LUT: new PublicKey("CQ8omkUwDtsszuJLo9grtXCeEyDU4QqBLRv9AjRDaUZ3"),
   KEYS: [
-    new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-    new PublicKey("SysvarRent111111111111111111111111111111111"),
+    new PublicKey("2uQsyo1fXXQkDtcpXnLofWy88PxcvnfH2L8FPSE62FVU"),
+    new PublicKey("C8dVyvfQo7vUXyQwweEQPW3WpGcYsB7c6Gz4gGbEF1LP"),
     // new PublicKey("5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm"),
     // new PublicKey("CuG9VXiEps4tMdZPzm7x4TJDEtCQNRLBFuyk5GmX4BWg"),
     // new PublicKey("2qnzecL2r35LM51S9EZVrPcdvCSqsg8r2QWcJJqyDuH3"),
@@ -42,7 +42,7 @@ const config: Config = {
 };
 
 async function main() {
-  await updateLut(sendTx, config, "/.config/stage/id.json");
+  await updateLut(sendTx, config, "/.keys/BURNED_phantom-wallet.json",);
 }
 
 export async function updateLut(
