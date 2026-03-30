@@ -52,11 +52,11 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE: new PublicKey("FxdT3KvBU4Ect6BqcJPvRRzKXDjk9PVc3ybb874k7M5j"),
+  ORACLE: new PublicKey("DnNKEemtzfCg6wrCR1X5iiPyecKNTxozQW2dRQiY6GNu"),
   ORACLE_TYPE: ORACLE_TYPE_SWB,
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  BANK_MINT: new PublicKey("USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB"),
-  SEED: 1,
+  BANK_MINT: new PublicKey("JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD"),
+  SEED: 0,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
@@ -68,12 +68,12 @@ const rate: InterestRateConfig1_7 = {
   protocolOriginationFee: bigNumberToWrappedI80F48(0),
 
   zeroUtilRate: 0,
-  hundredUtilRate: aprToU32(0.55),
+  hundredUtilRate: aprToU32(0.25),
   points: [
     { util: utilToU32(0.5), rate: aprToU32(0.03) },
-    { util: utilToU32(0.85), rate: aprToU32(0.1) },
-    { util: utilToU32(0.95), rate: aprToU32(0.2) },
-    { util: 0, rate: 0 },
+    { util: utilToU32(0.85), rate: aprToU32(0.06) },
+    { util: utilToU32(0.95), rate: aprToU32(0.10) },
+    { util: utilToU32(0.99), rate: aprToU32(0.15) },
     { util: 0, rate: 0 },
     { util: 0, rate: 0 },
   ],
@@ -81,11 +81,11 @@ const rate: InterestRateConfig1_7 = {
 };
 
 const bankConfig: BankConfig = {
-  assetWeightInit: bigNumberToWrappedI80F48(0.85),
-  assetWeightMaint: bigNumberToWrappedI80F48(0.9),
+  assetWeightInit: bigNumberToWrappedI80F48(0.90),
+  assetWeightMaint: bigNumberToWrappedI80F48(0.95),
   liabilityWeightInit: bigNumberToWrappedI80F48(1.1),
   liabilityWeightMaint: bigNumberToWrappedI80F48(1.05),
-  depositLimit: new BN(5_000_000 * 10 ** 6),
+  depositLimit: new BN(3_000_000 * 10 ** 6),
   interestRateConfig: rate,
   operationalState: { operational: {} },
   borrowLimit: new BN(5_000_000 * 10 ** 6),
@@ -98,7 +98,7 @@ const bankConfig: BankConfig = {
 };
 
 async function main() {
-  await addBank(sendTx, config, "/keys/staging-deploy.json");
+  await addBank(sendTx, config, "/.keys/staging-deploy.json");
 }
 
 export async function addBank(

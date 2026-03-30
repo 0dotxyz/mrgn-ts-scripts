@@ -42,11 +42,12 @@
 
 - BONK (copy of DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM) -
   4VruFgvunJcU1C23tAXWQbfuXT4P97vDm9fXzTvMrFLG
-- USDC (copy of 2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB) - GM98Qmzdoc7PSD64t7bG5Gqt4XEcZV9RKGcgsFCxTY4e
-- SOL (copy of CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh) - 9rhsPZVrya9aqdFRUi9RoSNZTqsmYuU1fdPWLreS4fNo
+- USDC (copy of 2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB) - 4JgDTBCnaXBd5M14Z6nJHhzEVL5iLjyyCrGC1Zfz3Qma
+- SOL (copy of CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh) - Gm8Kg1Jt6KuQt5a8ZqArTcp8hA4dH5wjktspqZexgkBi
 - PyUSD (copy of 8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu) - GeGesgruPoU5BpfDismYiZGYLiF2Mi194QpS76aSspbi
 - ORCA (copy of 3Hd1VzDCd8xEzcqj6CHqqjeKdzKQPMczGnkSbpaubf3W) - 43UdT1HipqqC5DQoGKbKMzsCFQs6oUm12PFS1TYWZfJS
 - COOL (copy of 8g5qG6PVygcVSXV1cJnjXaD1yhrDwcWAMQCY2wR9VuAf) - b87yGEB4998pV82LHruftbtbVSCaQABRfGbbaJhbs4S
+- JitoSol (copy of Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8) - EB4oAbWugdXbVjwiXkA357tW25Zfy7SuAt2k6SnWXXk8
 
 ## STAGING BANKS
 
