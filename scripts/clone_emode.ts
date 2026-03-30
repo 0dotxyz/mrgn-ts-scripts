@@ -23,7 +23,7 @@ const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
   CLONE_FROM: new PublicKey("4uawSqEM2jDPKkQRtnoSTmBjFJ51Ehu79EvGfu3R45o7"),
-  CLONE_TO: new PublicKey("C8dVyvfQo7vUXyQwweEQPW3WpGcYsB7c6Gz4gGbEF1LP"),
+  CLONE_TO: new PublicKey("4cSk2pyxFkPdc5Kp5Yk1HYLjTbNoYzwtz2MCKUogjqeg"),
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
