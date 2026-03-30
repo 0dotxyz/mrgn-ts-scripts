@@ -205,19 +205,25 @@ and are only present when set in `environments.json`.
 All scripts take a **config file** as the first argument. The bank PDA is
 derived from `programId`, `group`, `bankMint`, and `seed` in the config.
 
-All scripts have a `sendTx` flag at the top. When `false` (default), they
-output an unsigned base58-encoded transaction for multisig signing. When
-`true`, they sign and broadcast directly.
+By default, scripts output an unsigned base58-encoded transaction for
+multisig signing. Pass `--send` to sign and broadcast directly. Pass
+`--wallet=<path>` to override the default wallet (`/keys/staging-deploy.json`).
 
 ### 1. Create bank
 
 ```bash
-npx tsx scripts/juplend/add_bank.ts <env> <config-file>
+npx tsx scripts/juplend/add_bank.ts <env> <config-file> [--send] [--wallet=<path>]
 ```
 
 ```bash
+# Multisig mode (default, outputs base58)
 npx tsx scripts/juplend/add_bank.ts stage configs/stage/wsol.json
-npx tsx scripts/juplend/add_bank.ts prod configs/prod/wsol.json
+
+# Send directly
+npx tsx scripts/juplend/add_bank.ts stage configs/stage/wsol.json --send
+
+# Custom wallet
+npx tsx scripts/juplend/add_bank.ts prod configs/prod/wsol.json --send --wallet=/keys/prod-deploy.json
 ```
 
 The `<env>` argument loads environment defaults (programId, group, admin,
@@ -244,18 +250,22 @@ from the config file.
 ### 3. Init position (seed deposit)
 
 ```bash
-npx tsx scripts/juplend/init_position.ts <config-file> [amount]
+npx tsx scripts/juplend/init_position.ts <config-file> [amount] [--send] [--wallet=<path>]
 ```
 
 ```bash
+# Multisig mode (default)
 npx tsx scripts/juplend/init_position.ts configs/stage/wsol.json 10000
+
+# Send directly
+npx tsx scripts/juplend/init_position.ts configs/stage/wsol.json 10000 --send
 ```
 
 Amount is in base units (lamports for SOL, smallest unit for SPL tokens).
 Defaults to 100 if omitted. Derives the bank PDA from config fields
 (`programId`, `group`, `bankMint`, `seed`). Reads `feePayer`/`multisigPayer`
 from the config. Handles WSOL wrapping automatically when the mint is
-native SOL.
+native SOL. No admin required — anyone can init a position.
 
 ### 4. Deposit
 
@@ -299,9 +309,9 @@ Bank must have zero deposits.
 
 | Script | Args | Description |
 |--------|------|-------------|
-| `add_bank.ts` | `<env> <config>` | Create a new bank |
+| `add_bank.ts` | `<env> <config> [--send] [--wallet=]` | Create a new bank |
 | `bank_metadata.ts` | `<config>` | Write ticker/description metadata |
-| `init_position.ts` | `<config> [amount]` | Seed deposit to activate bank |
+| `init_position.ts` | `<config> [amount] [--send] [--wallet=]` | Seed deposit to activate bank |
 | `deposit.ts` | `<config> <account> <amount>` | Deposit into bank |
 | `withdraw.ts` | `<config> <account> <amount> [--all]` | Withdraw from bank |
 | `close_bank.ts` | `<config>` | Close empty bank |
@@ -312,4 +322,5 @@ All `<config>` paths are relative to `scripts/juplend/`
 ## Environment
 
 Scripts load RPC from `.env.api` (`API_URL` key). Falls back to public
-mainnet RPC. Wallet path is set per-script (default: `/keys/staging-deploy.json`).
+mainnet RPC. Default wallet: `/keys/staging-deploy.json` (override with
+`--wallet=<path>`).

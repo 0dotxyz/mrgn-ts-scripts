@@ -24,10 +24,7 @@ import { commonSetup } from "../../lib/common-setup";
 import { bs58 } from "@switchboard-xyz/common";
 import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
 
-/**
- * If true, send the tx. If false, output the unsigned b58 tx to console.
- */
-const sendTx = false;
+const DEFAULT_WALLET_PATH = "/keys/staging-deploy.json";
 
 type Config = {
   PROGRAM_ID: string;
@@ -54,18 +51,40 @@ type Config = {
   CONFIG_FLAGS?: number;
 };
 
-async function main() {
-  const envName = process.argv[2];
-  const configFile = process.argv[3];
+function parseArgs() {
+  const args = process.argv.slice(2);
+  let sendTx = false;
+  let walletPath = DEFAULT_WALLET_PATH;
+  const positional: string[] = [];
+
+  for (const arg of args) {
+    if (arg === "--send") {
+      sendTx = true;
+    } else if (arg.startsWith("--wallet=")) {
+      walletPath = arg.split("=")[1];
+    } else {
+      positional.push(arg);
+    }
+  }
+
+  const envName = positional[0];
+  const configFile = positional[1];
+
   if (!envName || !configFile) {
     console.error(
-      "Usage: tsx scripts/juplend/add_bank.ts <env> <config-file>",
+      "Usage: tsx scripts/juplend/add_bank.ts <env> <config-file> [--send] [--wallet=<path>]",
     );
     console.error(
-      "Example: tsx scripts/juplend/add_bank.ts stage configs/stage/usdc.json",
+      "Example: tsx scripts/juplend/add_bank.ts stage configs/stage/usdc.json --send",
     );
     process.exit(1);
   }
+
+  return { envName, configFile, sendTx, walletPath };
+}
+
+async function main() {
+  const { envName, configFile, sendTx, walletPath } = parseArgs();
 
   const envPath = join(__dirname, "configs/environments.json");
   const envs = JSON.parse(readFileSync(envPath, "utf8"));
@@ -85,12 +104,13 @@ async function main() {
   console.log("Config:", configFile);
   console.log("Bank mint:", config.BANK_MINT.toString());
   console.log("JupLend Lending:", config.JUPLEND_LENDING.toString());
+  console.log("Send:", sendTx);
   if (config.MULTISIG_PAYER) {
     console.log("Multisig:", config.MULTISIG_PAYER.toString());
   }
   console.log();
 
-  await addJuplendBank(sendTx, config, "/keys/staging-deploy.json");
+  await addJuplendBank(sendTx, config, walletPath);
 }
 
 export async function addJuplendBank(
