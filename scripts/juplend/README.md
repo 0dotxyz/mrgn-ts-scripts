@@ -16,20 +16,28 @@ juplend-assets.json ┼──▶ generate_configs.ts ──▶ configs/<env>/<sy
 oracles.json ───────┘
 ```
 
-**`configs/environments.json`** — environment-specific program and group:
+**`configs/environments.json`** — environment-specific program, group, and
+multisig settings:
 
 ```json
 {
   "stage": {
     "programId": "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-    "group": "FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"
+    "group": "Diu1q9gniR1qR4Daaej3rcHd6949HMmxLGsnQ94Z3rLz"
   },
   "prod": {
     "programId": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-    "group": "<prod-group-address>"
+    "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
+    "admin": "CYXEgwbP...",
+    "feePayer": "CYXEgwbP...",
+    "multisigPayer": "CYXEgwbP..."
   }
 }
 ```
+
+Optional fields `admin`, `feePayer`, and `multisigPayer` are propagated into
+generated bank configs. When `multisigPayer` is set and `sendTx = false`,
+scripts output unsigned base58 transactions for multisig signing.
 
 **`configs/bank-params.json`** — per-asset risk parameters and metadata
 (shared across all environments):
@@ -143,6 +151,9 @@ Each file (e.g. `configs/stage/wsol.json`) contains everything needed by
   "riskTier": "collateral",
   "oracleMaxAge": 70,
   "configFlags": 1,
+  "admin": "CYXEgwbP...",
+  "feePayer": "CYXEgwbP...",
+  "multisigPayer": "CYXEgwbP...",
   "ticker": "WSOL | Wrapped SOL",
   "description": "Wrapped SOL | Native | WSOL | JupLend",
   "comments": {
@@ -153,6 +164,9 @@ Each file (e.g. `configs/stage/wsol.json`) contains everything needed by
   }
 }
 ```
+
+The `admin`, `feePayer`, and `multisigPayer` fields come from the environment
+and are only present when set in `environments.json`.
 
 | Field | Source | Description |
 |-------|--------|-------------|
@@ -171,6 +185,9 @@ Each file (e.g. `configs/stage/wsol.json`) contains everything needed by
 | `riskTier` | bank-params.json | `collateral` or `isolated` |
 | `oracleMaxAge` | bank-params.json | Max oracle staleness (seconds) |
 | `configFlags` | bank-params.json | Bank config flags |
+| `admin` | environments.json | Group admin (optional, for multisig) |
+| `feePayer` | environments.json | Transaction fee payer (optional) |
+| `multisigPayer` | environments.json | Squads multisig address (optional) |
 | `ticker` | generated | `"SYMBOL \| Full Name"` |
 | `description` | generated | `"Full Name \| Category \| Symbol \| JupLend"` |
 | `comments.bankAddress` | derived | Bank PDA (for verification) |
@@ -195,12 +212,17 @@ output an unsigned base58-encoded transaction for multisig signing. When
 ### 1. Create bank
 
 ```bash
-npx tsx scripts/juplend/add_bank.ts <config-file>
+npx tsx scripts/juplend/add_bank.ts <env> <config-file>
 ```
 
 ```bash
-npx tsx scripts/juplend/add_bank.ts configs/stage/wsol.json
+npx tsx scripts/juplend/add_bank.ts stage configs/stage/wsol.json
+npx tsx scripts/juplend/add_bank.ts prod configs/prod/wsol.json
 ```
+
+The `<env>` argument loads environment defaults (programId, group, admin,
+feePayer, multisigPayer) from `environments.json`. Bank config values override
+environment defaults.
 
 Calls `lendingPoolAddBankJuplend` with the full bank config (oracle, risk
 weights, deposit limits, JupLend CPI accounts).
@@ -222,7 +244,7 @@ from the config file.
 ### 3. Init position (seed deposit)
 
 ```bash
-npx tsx scripts/juplend/init_position.ts <config-file> <amount>
+npx tsx scripts/juplend/init_position.ts <config-file> [amount]
 ```
 
 ```bash
@@ -230,7 +252,10 @@ npx tsx scripts/juplend/init_position.ts configs/stage/wsol.json 10000
 ```
 
 Amount is in base units (lamports for SOL, smallest unit for SPL tokens).
-Handles WSOL wrapping automatically when the mint is native SOL.
+Defaults to 100 if omitted. Derives the bank PDA from config fields
+(`programId`, `group`, `bankMint`, `seed`). Reads `feePayer`/`multisigPayer`
+from the config. Handles WSOL wrapping automatically when the mint is
+native SOL.
 
 ### 4. Deposit
 
@@ -274,9 +299,9 @@ Bank must have zero deposits.
 
 | Script | Args | Description |
 |--------|------|-------------|
-| `add_bank.ts` | `<config>` | Create a new bank |
+| `add_bank.ts` | `<env> <config>` | Create a new bank |
 | `bank_metadata.ts` | `<config>` | Write ticker/description metadata |
-| `init_position.ts` | `<config> <amount>` | Seed deposit to activate bank |
+| `init_position.ts` | `<config> [amount]` | Seed deposit to activate bank |
 | `deposit.ts` | `<config> <account> <amount>` | Deposit into bank |
 | `withdraw.ts` | `<config> <account> <amount> [--all]` | Withdraw from bank |
 | `close_bank.ts` | `<config>` | Close empty bank |

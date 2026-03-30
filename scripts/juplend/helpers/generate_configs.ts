@@ -20,6 +20,9 @@ import { deriveBankWithSeed } from "../../common/pdas";
 type Environment = {
   programId: string;
   group: string;
+  admin?: string;
+  feePayer?: string;
+  multisigPayer?: string;
 };
 
 type BankParam = {
@@ -81,9 +84,7 @@ const CONFIGS_DIR = "scripts/juplend/configs";
 const ENVS_PATH = path.join(CONFIGS_DIR, "environments.json");
 const PARAMS_PATH = path.join(CONFIGS_DIR, "bank-params.json");
 const ASSETS_PATH = path.join(CONFIGS_DIR, "juplend-assets.json");
-const ORACLES_PATH = path.join(
-  "scripts/juplend/dumps/artefacts/oracles.json",
-);
+const ORACLES_PATH = path.join(CONFIGS_DIR, "oracles.json");
 
 // ── Main ──
 
@@ -207,7 +208,7 @@ function main() {
       `${bank.fullName} | ${bank.category} `
       + `| ${bank.symbol} | JupLend`;
 
-    const config = {
+    const config: Record<string, unknown> = {
       programId: env.programId,
       group: env.group,
       bankMint: bank.mint,
@@ -224,6 +225,11 @@ function main() {
       riskTier,
       oracleMaxAge: bank.oracleMaxAge,
       configFlags,
+      ...(env.admin && { admin: env.admin }),
+      ...(env.feePayer && { feePayer: env.feePayer }),
+      ...(env.multisigPayer && {
+        multisigPayer: env.multisigPayer,
+      }),
       ticker,
       description,
       comments: {

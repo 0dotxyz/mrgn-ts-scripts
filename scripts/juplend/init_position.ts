@@ -24,7 +24,11 @@ import { deriveLiquidityVaultAuthority } from "../common/pdas";
 import { commonSetup } from "../../lib/common-setup";
 import { bs58 } from "@switchboard-xyz/common";
 
-const sendTx = true;
+import { readFileSync } from "fs";
+import { join } from "path";
+import { deriveBankWithSeed } from "../common/pdas";
+
+const sendTx = false;
 
 type Config = {
   PROGRAM_ID: string;
@@ -37,12 +41,60 @@ type Config = {
   INIT_DEPOSIT_AMOUNT?: BN; // Default: 100
 };
 
-const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  BANK: new PublicKey("Ay8kyX7q2G9Yp3T6Nt8Z3p8xcMeaC19xLQjmGjTX2niq"),
-};
+function parseInitConfig(configFile: string): Config {
+  const configPath = join(__dirname, configFile);
+  const json = JSON.parse(readFileSync(configPath, "utf8"));
+
+  const programId = json.programId;
+  const group = new PublicKey(json.group);
+  const bankMint = new PublicKey(json.bankMint);
+  const seed = new BN(json.seed);
+  const [bank] = deriveBankWithSeed(
+    new PublicKey(programId),
+    group,
+    bankMint,
+    seed,
+  );
+
+  const feePayer = json.feePayer ?? json.multisigPayer;
+  const multisigPayer = json.multisigPayer;
+
+  return {
+    PROGRAM_ID: programId,
+    BANK: bank,
+    FEE_PAYER: feePayer ? new PublicKey(feePayer) : undefined,
+    MULTISIG_PAYER: multisigPayer
+      ? new PublicKey(multisigPayer)
+      : undefined,
+  };
+}
 
 async function main() {
+  const configFile = process.argv[2];
+  const amountArg = process.argv[3];
+  if (!configFile) {
+    console.error(
+      "Usage: tsx scripts/juplend/init_position.ts <config-file> [amount]",
+    );
+    console.error(
+      "Example: tsx scripts/juplend/init_position.ts configs/stage/usdc.json 10000",
+    );
+    process.exit(1);
+  }
+
+  const config = parseInitConfig(configFile);
+  if (amountArg) {
+    config.INIT_DEPOSIT_AMOUNT = new BN(amountArg);
+  }
+
+  console.log("=== Init JupLend Position ===\n");
+  console.log("Bank:", config.BANK.toString());
+  console.log("Amount:", (config.INIT_DEPOSIT_AMOUNT ?? new BN(100)).toString());
+  if (config.MULTISIG_PAYER) {
+    console.log("Multisig:", config.MULTISIG_PAYER.toString());
+  }
+  console.log();
+
   await initJuplendPosition(sendTx, config, "/keys/staging-deploy.json");
 }
 
