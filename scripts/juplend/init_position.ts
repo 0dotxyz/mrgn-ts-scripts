@@ -24,7 +24,11 @@ import { deriveLiquidityVaultAuthority } from "../common/pdas";
 import { commonSetup } from "../../lib/common-setup";
 import { bs58 } from "@switchboard-xyz/common";
 
-const sendTx = true;
+import { readFileSync } from "fs";
+import { join } from "path";
+import { deriveBankWithSeed } from "../common/pdas";
+
+const DEFAULT_WALLET_PATH = "/keys/staging-deploy.json";
 
 type Config = {
   PROGRAM_ID: string;
@@ -37,13 +41,84 @@ type Config = {
   INIT_DEPOSIT_AMOUNT?: BN; // Default: 100
 };
 
-const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  BANK: new PublicKey("Ay8kyX7q2G9Yp3T6Nt8Z3p8xcMeaC19xLQjmGjTX2niq"),
-};
+function parseInitConfig(configFile: string): Config {
+  const configPath = join(__dirname, configFile);
+  const json = JSON.parse(readFileSync(configPath, "utf8"));
+
+  const programId = json.programId;
+  const group = new PublicKey(json.group);
+  const bankMint = new PublicKey(json.bankMint);
+  const seed = new BN(json.seed);
+  const [bank] = deriveBankWithSeed(
+    new PublicKey(programId),
+    group,
+    bankMint,
+    seed,
+  );
+
+  const feePayer = json.feePayer ?? json.multisigPayer;
+  const multisigPayer = json.multisigPayer;
+
+  return {
+    PROGRAM_ID: programId,
+    BANK: bank,
+    FEE_PAYER: feePayer ? new PublicKey(feePayer) : undefined,
+    MULTISIG_PAYER: multisigPayer
+      ? new PublicKey(multisigPayer)
+      : undefined,
+  };
+}
+
+function parseArgs() {
+  const args = process.argv.slice(2);
+  let sendTx = false;
+  let walletPath = DEFAULT_WALLET_PATH;
+  const positional: string[] = [];
+
+  for (const arg of args) {
+    if (arg === "--send") {
+      sendTx = true;
+    } else if (arg.startsWith("--wallet=")) {
+      walletPath = arg.split("=")[1];
+    } else {
+      positional.push(arg);
+    }
+  }
+
+  const configFile = positional[0];
+  const amount = positional[1];
+
+  if (!configFile) {
+    console.error(
+      "Usage: tsx scripts/juplend/init_position.ts <config-file> [amount] [--send] [--wallet=<path>]",
+    );
+    console.error(
+      "Example: tsx scripts/juplend/init_position.ts configs/stage/usdc.json 10000 --send",
+    );
+    process.exit(1);
+  }
+
+  return { configFile, amount, sendTx, walletPath };
+}
 
 async function main() {
-  await initJuplendPosition(sendTx, config, "/keys/staging-deploy.json");
+  const { configFile, amount, sendTx, walletPath } = parseArgs();
+
+  const config = parseInitConfig(configFile);
+  if (amount) {
+    config.INIT_DEPOSIT_AMOUNT = new BN(amount);
+  }
+
+  console.log("=== Init JupLend Position ===\n");
+  console.log("Bank:", config.BANK.toString());
+  console.log("Amount:", (config.INIT_DEPOSIT_AMOUNT ?? new BN(100)).toString());
+  console.log("Send:", sendTx);
+  if (config.MULTISIG_PAYER) {
+    console.log("Multisig:", config.MULTISIG_PAYER.toString());
+  }
+  console.log();
+
+  await initJuplendPosition(sendTx, config, walletPath);
 }
 
 export async function initJuplendPosition(

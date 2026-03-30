@@ -24,10 +24,7 @@ import { commonSetup } from "../../lib/common-setup";
 import { bs58 } from "@switchboard-xyz/common";
 import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
 
-/**
- * If true, send the tx. If false, output the unsigned b58 tx to console.
- */
-const sendTx = true;
+const DEFAULT_WALLET_PATH = "/keys/staging-deploy.json";
 
 type Config = {
   PROGRAM_ID: string;
@@ -54,27 +51,66 @@ type Config = {
   CONFIG_FLAGS?: number;
 };
 
-async function main() {
-  const configFile = process.argv[2];
-  if (!configFile) {
-    console.error("Usage: tsx scripts/juplend/add_bank.ts <config-file>");
+function parseArgs() {
+  const args = process.argv.slice(2);
+  let sendTx = false;
+  let walletPath = DEFAULT_WALLET_PATH;
+  const positional: string[] = [];
+
+  for (const arg of args) {
+    if (arg === "--send") {
+      sendTx = true;
+    } else if (arg.startsWith("--wallet=")) {
+      walletPath = arg.split("=")[1];
+    } else {
+      positional.push(arg);
+    }
+  }
+
+  const envName = positional[0];
+  const configFile = positional[1];
+
+  if (!envName || !configFile) {
     console.error(
-      "Example: tsx scripts/juplend/add_bank.ts configs/stage/usdc.json",
+      "Usage: tsx scripts/juplend/add_bank.ts <env> <config-file> [--send] [--wallet=<path>]",
     );
+    console.error(
+      "Example: tsx scripts/juplend/add_bank.ts stage configs/stage/usdc.json --send",
+    );
+    process.exit(1);
+  }
+
+  return { envName, configFile, sendTx, walletPath };
+}
+
+async function main() {
+  const { envName, configFile, sendTx, walletPath } = parseArgs();
+
+  const envPath = join(__dirname, "configs/environments.json");
+  const envs = JSON.parse(readFileSync(envPath, "utf8"));
+  const env = envs[envName];
+  if (!env) {
+    console.error(`Unknown environment: ${envName}`);
+    console.error(`Available: ${Object.keys(envs).join(", ")}`);
     process.exit(1);
   }
 
   const configPath = join(__dirname, configFile);
   const rawConfig = readFileSync(configPath, "utf8");
-  const config = parseConfig(rawConfig);
+  const config = parseConfig(rawConfig, env);
 
   console.log("=== Add JupLend Bank ===\n");
+  console.log("Environment:", envName);
   console.log("Config:", configFile);
   console.log("Bank mint:", config.BANK_MINT.toString());
   console.log("JupLend Lending:", config.JUPLEND_LENDING.toString());
+  console.log("Send:", sendTx);
+  if (config.MULTISIG_PAYER) {
+    console.log("Multisig:", config.MULTISIG_PAYER.toString());
+  }
   console.log();
 
-  await addJuplendBank(sendTx, config, "/keys/staging-deploy.json");
+  await addJuplendBank(sendTx, config, walletPath);
 }
 
 export async function addJuplendBank(
@@ -247,8 +283,18 @@ if (require.main === module) {
   });
 }
 
-export function parseConfig(rawConfig: string): Config {
+export function parseConfig(
+  rawConfig: string,
+  env?: Record<string, string>,
+): Config {
   const json = JSON.parse(rawConfig);
+
+  // Environment provides defaults; bank config can override
+  const programId = json.programId ?? env?.programId;
+  const group = json.group ?? env?.group;
+  const admin = json.admin ?? env?.admin;
+  const feePayer = json.feePayer ?? env?.feePayer;
+  const multisigPayer = json.multisigPayer ?? env?.multisigPayer;
 
   let ORACLE_SETUP: Config["ORACLE_SETUP"];
   if (
@@ -261,8 +307,8 @@ export function parseConfig(rawConfig: string): Config {
   }
 
   return {
-    PROGRAM_ID: json.programId,
-    GROUP_KEY: new PublicKey(json.group),
+    PROGRAM_ID: programId,
+    GROUP_KEY: new PublicKey(group),
     BANK_MINT: new PublicKey(json.bankMint),
     JUPLEND_LENDING: new PublicKey(json.juplendLending),
     F_TOKEN_MINT: new PublicKey(json.fTokenMint),
@@ -276,5 +322,8 @@ export function parseConfig(rawConfig: string): Config {
     RISK_TIER: json.riskTier,
     ORACLE_MAX_AGE: json.oracleMaxAge,
     CONFIG_FLAGS: json.configFlags,
+    ADMIN: admin ? new PublicKey(admin) : undefined,
+    FEE_PAYER: feePayer ? new PublicKey(feePayer) : undefined,
+    MULTISIG_PAYER: multisigPayer ? new PublicKey(multisigPayer) : undefined,
   };
 }

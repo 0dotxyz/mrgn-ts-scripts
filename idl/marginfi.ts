@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/marginfi.json`.
  */
 export type Marginfi = {
-  "address": "2jGhuVUuy3umdzByFx8sNWUAaf5vaeuDm78RDPEnhrMr",
+  "address": "",
   "metadata": {
     "name": "marginfi",
     "version": "0.1.8",
@@ -2986,7 +2986,8 @@ export type Marginfi = {
           "name": "mint",
           "docs": [
             "The liquidity token mint (e.g., USDC)",
-            "Needs serde to get the mint decimals for transfer checked"
+            "Needs serde to get the mint decimals for transfer checked",
+            "TODO: rename to just 'mint' to make use of has_one and to be consistent with deposit"
           ],
           "writable": true,
           "relations": [
@@ -17805,4 +17806,3 @@ export type Marginfi = {
     }
   ]
 };
-
