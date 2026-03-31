@@ -20,7 +20,11 @@ import {
   deriveJuplendCpiAccounts,
   findJuplendLendingAdminPda,
 } from "./lib/utils";
-import { deriveLiquidityVaultAuthority } from "../common/pdas";
+import {
+  deriveJuplendFTokenVault,
+  deriveLiquidityVault,
+  deriveLiquidityVaultAuthority,
+} from "../common/pdas";
 import { commonSetup } from "../../lib/common-setup";
 import { bs58 } from "@switchboard-xyz/common";
 
@@ -28,11 +32,14 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { deriveBankWithSeed } from "../common/pdas";
 
-const DEFAULT_WALLET_PATH = "/keys/staging-deploy.json";
+const DEFAULT_WALLET_PATH = "/.keys/staging-deploy.json";
 
 type Config = {
   PROGRAM_ID: string;
   BANK: PublicKey;
+  BANK_MINT: PublicKey;
+  JUPLEND_LENDING?: PublicKey;
+  F_TOKEN_MINT?: PublicKey;
 
   /** Pays flat sol fee to init and rent (generally the MS on mainnet) */
   FEE_PAYER?: PublicKey; // If omitted, defaults to wallet.pubkey
@@ -48,6 +55,10 @@ function parseInitConfig(configFile: string): Config {
   const programId = json.programId;
   const group = new PublicKey(json.group);
   const bankMint = new PublicKey(json.bankMint);
+  const juplendLending = json.juplendLending
+    ? new PublicKey(json.juplendLending)
+    : undefined;
+  const fTokenMint = json.fTokenMint ? new PublicKey(json.fTokenMint) : undefined;
   const seed = new BN(json.seed);
   const [bank] = deriveBankWithSeed(
     new PublicKey(programId),
@@ -62,10 +73,11 @@ function parseInitConfig(configFile: string): Config {
   return {
     PROGRAM_ID: programId,
     BANK: bank,
+    BANK_MINT: bankMint,
+    JUPLEND_LENDING: juplendLending,
+    F_TOKEN_MINT: fTokenMint,
     FEE_PAYER: feePayer ? new PublicKey(feePayer) : undefined,
-    MULTISIG_PAYER: multisigPayer
-      ? new PublicKey(multisigPayer)
-      : undefined,
+    MULTISIG_PAYER: multisigPayer ? new PublicKey(multisigPayer) : undefined,
   };
 }
 
@@ -111,7 +123,11 @@ async function main() {
 
   console.log("=== Init JupLend Position ===\n");
   console.log("Bank:", config.BANK.toString());
-  console.log("Amount:", (config.INIT_DEPOSIT_AMOUNT ?? new BN(100)).toString());
+  console.log("Bank Mint:", config.BANK_MINT.toString());
+  console.log(
+    "Amount:",
+    (config.INIT_DEPOSIT_AMOUNT ?? new BN(100)).toString(),
+  );
   console.log("Send:", sendTx);
   if (config.MULTISIG_PAYER) {
     console.log("Multisig:", config.MULTISIG_PAYER.toString());
@@ -137,11 +153,20 @@ export async function initJuplendPosition(
   const program = user.program;
 
   const feePayer = config.FEE_PAYER ?? wallet.publicKey;
+  let mint = config.BANK_MINT;
+  let juplendLending = config.JUPLEND_LENDING;
+  let fTokenMint = config.F_TOKEN_MINT;
+  let onChainIntegrationAcc2: PublicKey | undefined;
 
-  // Fetch bank to get mint and integration accounts
-  const bankData = await program.account.bank.fetch(config.BANK);
-  const mint = bankData.mint;
-  const juplendLending = bankData.integrationAcc1;
+  // If bank exists on-chain, prefer canonical values from bank state.
+  try {
+    const bankData = await program.account.bank.fetch(config.BANK);
+    mint = bankData.mint;
+    juplendLending = bankData.integrationAcc1;
+    onChainIntegrationAcc2 = bankData.integrationAcc2;
+  } catch {
+    // bank may not exist yet; this is expected for pre-init bs58 generation
+  }
 
   // Detect token program
   let tokenProgram = TOKEN_PROGRAM_ID;
@@ -158,34 +183,42 @@ export async function initJuplendPosition(
     program.programId,
     config.BANK,
   );
+  const [liquidityVault] = deriveLiquidityVault(program.programId, config.BANK);
+  const [derivedIntegrationAcc2] = deriveJuplendFTokenVault(
+    program.programId,
+    config.BANK,
+  );
   const [lendingAdmin] = findJuplendLendingAdminPda();
   const juplendAccounts = deriveJuplendCpiAccounts(mint, tokenProgram);
-
-  // Fetch JupLend Lending account
-  const lendingInfo = await connection.getAccountInfo(juplendLending);
-  if (!lendingInfo) {
-    throw new Error("JupLend Lending not found: " + juplendLending.toString());
+  juplendLending = juplendLending ?? juplendAccounts.lending;
+  fTokenMint = fTokenMint ?? juplendAccounts.fTokenMint;
+  const supplyTokenReservesLiquidity = juplendAccounts.tokenReserve;
+  const lendingSupplyPositionOnLiquidity = juplendAccounts.supplyPosition;
+  let integrationAcc2 = derivedIntegrationAcc2;
+  if (onChainIntegrationAcc2) {
+    if (!onChainIntegrationAcc2.equals(integrationAcc2)) {
+      console.log(
+        "Warning: on-chain integrationAcc2 differs from derived PDA; using on-chain value.",
+      );
+    }
+    integrationAcc2 = onChainIntegrationAcc2;
   }
-  const fTokenMint = new PublicKey(lendingInfo.data.slice(40, 72));
-  const supplyTokenReservesLiquidity = new PublicKey(
-    lendingInfo.data.slice(131, 163),
-  );
-  const lendingSupplyPositionOnLiquidity = new PublicKey(
-    lendingInfo.data.slice(163, 195),
-  );
 
   const signerTokenAccount = getAssociatedTokenAddressSync(
     mint,
     feePayer,
-    false,
+    true,
     tokenProgram,
     ASSOCIATED_TOKEN_PROGRAM_ID,
   );
 
   console.log("Derived accounts:");
+  console.log("  juplendLending:", juplendLending.toString());
+  console.log("  liquidityVault:", liquidityVault.toString());
   console.log("  liquidityVaultAuthority:", liquidityVaultAuthority.toString());
   console.log("  lendingAdmin:", lendingAdmin.toString());
   console.log("  fTokenMint:", fTokenMint.toString());
+  console.log("  integrationAcc2 (fToken vault):", integrationAcc2.toString());
   console.log(
     "  supplyTokenReserves:",
     supplyTokenReservesLiquidity.toString(),
@@ -253,7 +286,6 @@ export async function initJuplendPosition(
     .accounts({
       feePayer,
       signerTokenAccount,
-      bank: config.BANK,
       lendingAdmin,
       supplyTokenReservesLiquidity,
       lendingSupplyPositionOnLiquidity,
@@ -265,6 +297,11 @@ export async function initJuplendPosition(
       tokenProgram,
     })
     .accountsPartial({
+      bank: config.BANK,
+      liquidityVault,
+      mint,
+      integrationAcc1: juplendLending,
+      integrationAcc2,
       fTokenMint,
     })
     .instruction();
@@ -276,20 +313,27 @@ export async function initJuplendPosition(
   const { blockhash } = await connection.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;
 
-  console.log("Simulating juplendInitPosition...");
-  const simulation = await connection.simulateTransaction(transaction);
+  if (sendTx) {
+    console.log("Simulating juplendInitPosition...");
+    const simulation = await connection.simulateTransaction(transaction);
 
-  if (simulation.value.err) {
-    console.log("\nProgram Logs:");
-    simulation.value.logs?.forEach((log) => console.log("  " + log));
-    console.log("\nSimulation failed:");
-    console.log(JSON.stringify(simulation.value.err, null, 2));
-    process.exit(1);
+    if (simulation.value.err) {
+      console.log("\nProgram Logs:");
+      simulation.value.logs?.forEach((log) => console.log("  " + log));
+      console.log("\nSimulation failed:");
+      console.log(JSON.stringify(simulation.value.err, null, 2));
+      process.exit(1);
+    }
+
+    console.log("\nSimulation successful!");
+    console.log("Compute units:", simulation.value.unitsConsumed);
+    console.log();
+  } else {
+    console.log(
+      "Skipping simulation in unsigned mode; transaction can be generated before bank exists.",
+    );
+    console.log();
   }
-
-  console.log("\nSimulation successful!");
-  console.log("Compute units:", simulation.value.unitsConsumed);
-  console.log();
 
   if (sendTx) {
     const signature = await sendAndConfirmTransaction(connection, transaction, [

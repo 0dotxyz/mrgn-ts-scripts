@@ -9,14 +9,13 @@ import {
   TOKEN_PROGRAM_ID,
   TOKEN_2022_PROGRAM_ID,
   getMint,
-  getAssociatedTokenAddressSync,
-  ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { JuplendConfigCompact } from "./lib/utils";
 import {
   deriveBankWithSeed,
+  deriveJuplendFTokenVault,
   deriveLiquidityVault,
   deriveLiquidityVaultAuthority,
 } from "../common/pdas";
@@ -236,14 +235,8 @@ export async function addJuplendBank(
   );
   const [liquidityVault] = deriveLiquidityVault(program.programId, bank);
 
-  // fToken vault is an ATA of liquidityVaultAuthority for fTokenMint
-  const juplendFTokenVault = getAssociatedTokenAddressSync(
-    config.F_TOKEN_MINT,
-    liquidityVaultAuthority,
-    true,
-    tokenProgram,
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-  );
+  // integration_acc_2 is a PDA token account: seeds ["f_token_vault", bank]
+  const [juplendFTokenVault] = deriveJuplendFTokenVault(program.programId, bank);
 
   const admin = config.ADMIN;
   const feePayer = config.FEE_PAYER;

@@ -4,15 +4,15 @@
   "bankMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
   "juplendLending": "2vVYHYM8VYnvZqQWpTJSj8o8DBf1wM8pVs3bsTgYZiqJ",
   "fTokenMint": "9BEcn9aPEmhSPbPQeFGjidRiEKki46fVQDyPpSQXPA2D",
-  "oracle": "ujzWjo2bG8XPY8Qnjw7tGK97uYF7VrkmiyBZh4oeHra",
-  "oracleSetup": "juplendSwitchboardPull",
-  "seed": 600,
-  "assetWeightInit": "0.9",
-  "assetWeightMaint": "0.95",
-  "depositLimit": "50000000000000",
-  "totalAssetValueInitLimit": "50000000",
+  "oracle": "Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX",
+  "oracleSetup": "juplendPythPull",
+  "seed": 509,
+  "assetWeightInit": "1",
+  "assetWeightMaint": "1",
+  "depositLimit": "50_000_000_000_000",
+  "totalAssetValueInitLimit": "50_000_000",
   "riskTier": "collateral",
-  "oracleMaxAge": 180,
+  "oracleMaxAge": 300,
   "configFlags": 1,
   "admin": "CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw",
   "feePayer": "CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw",
@@ -23,6 +23,6 @@
     "asset": "USD Coin",
     "tokenProgram": "SPL Token",
     "decimals": 6,
-    "bankAddress": "2j8xSz6m1hBufkqspPd56SCj2TsSNGSrG7T54VCrpppP"
+    "bankAddress": "Be5LNsgq7Zs3LJkCnqW4j3bs7GsZksNNmqEiyEhbsugn"
   }
 }

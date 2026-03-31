@@ -18,6 +18,16 @@ export const deriveLiquidityVault = (programId: PublicKey, bank: PublicKey) => {
   );
 };
 
+export const deriveJuplendFTokenVault = (
+  programId: PublicKey,
+  bank: PublicKey,
+) => {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("f_token_vault", "utf-8"), bank.toBuffer()],
+    programId,
+  );
+};
+
 export const deriveInsuranceVaultAuthority = (
   programId: PublicKey,
   bank: PublicKey,
@@ -113,4 +123,3 @@ export const deriveLiquidationRecord = (
     programId
   );
 };
-
