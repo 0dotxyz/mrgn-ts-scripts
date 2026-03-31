@@ -6,11 +6,11 @@
   "fTokenMint": "9fvHrYNw1A8Evpcj7X2yy4k4fT7nNHcA9L6UsamNHAif",
   "oracle": "6JkZmXGgWnzsyTQaqRARzP64iFYnpMNT4siiuUDUaB8s",
   "oracleSetup": "juplendPythPull",
-  "seed": 600,
-  "assetWeightInit": "0.9",
-  "assetWeightMaint": "0.95",
-  "depositLimit": "10000000000000",
-  "totalAssetValueInitLimit": "10000000",
+  "seed": 509,
+  "assetWeightInit": "0.80",
+  "assetWeightMaint": "0.85",
+  "depositLimit": "2_000_000_000_000",
+  "totalAssetValueInitLimit": "2_000_000",
   "riskTier": "collateral",
   "oracleMaxAge": 300,
   "configFlags": 1,
@@ -23,6 +23,6 @@
     "asset": "Global Dollar",
     "tokenProgram": "Token-2022",
     "decimals": 6,
-    "bankAddress": "EyaEZJsZPwqJjcduvN1mTTHSgQtEDKCpxSYNxkZCQyRt"
+    "bankAddress": "EtWUqSnQEVFvpAUimcHaxGMJy8vU2Y6WCGFK1LPR7AWA"
   }
 }

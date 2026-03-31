@@ -1,10 +1,10 @@
 {
   "programId": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
-  "bankMint": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
-  "juplendLending": "Ey9UTFK5KDMZJuHqndU8kYrSrWHQb5uQqNEaTk57Toc",
-  "fTokenMint": "j14XLJZSVMcUYpAfajdZRpnfHUpJieZHS4aPektLWvh",
-  "oracle": "EtEbRr1fiigYs51PVaX6Ldupda4aMxz9qQE2iTBwLpZD",
+  "bankMint": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+  "juplendLending": "papYEgeG5uPE4niUWZhihUUzVVotJn1mAWbYo2UBSHi",
+  "fTokenMint": "7GxATsNMnaC88vdwd2t3mwrFuQwwGvmYPrUQ4D6FotXk",
+  "oracle": "DnNKEemtzfCg6wrCR1X5iiPyecKNTxozQW2dRQiY6GNu",
   "oracleSetup": "juplendSwitchboardPull",
   "seed": 509,
   "assetWeightInit": "0.85",
@@ -17,12 +17,12 @@
   "admin": "CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw",
   "feePayer": "CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw",
   "multisigPayer": "CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw",
-  "ticker": "USDS | USDS",
-  "description": "USDS | Stablecoin | USDS | JupLend",
+  "ticker": "JupUSD | Jupiter USD",
+  "description": "Jupiter USD | Stablecoin | JupUSD | JupLend",
   "comments": {
-    "asset": "USDS",
+    "asset": "Jupiter USD",
     "tokenProgram": "SPL Token",
     "decimals": 6,
-    "bankAddress": "8J7nwjQwKTFmx1FkhGN2YeKhMTC6r7kZnHAK8hLK7rLm"
+    "bankAddress": "hLkUhGPbBUuiCUWRsBsXrWnWH95rH3HkRkNtR8vyA7k"
   }
 }

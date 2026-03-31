@@ -342,12 +342,34 @@ export async function initJuplendPosition(
     console.log("Signature:", signature);
     console.log("Position initialized!");
   } else {
+    const lutKeys = [
+      signerTokenAccount,
+      juplendLending,
+      liquidityVault,
+      liquidityVaultAuthority,
+      lendingAdmin,
+      fTokenMint,
+      integrationAcc2,
+      supplyTokenReservesLiquidity,
+      lendingSupplyPositionOnLiquidity,
+      withdrawIntermediaryAta,
+      config.BANK, // keep bank last for copy/paste ergonomics
+    ];
+    const uniqueLutKeys = Array.from(
+      new Map(lutKeys.map((key) => [key.toString(), key])).values(),
+    );
+
     transaction.feePayer = config.MULTISIG_PAYER; // Set the fee payer to Squads wallet
     const serialized = transaction.serialize({
       requireAllSignatures: false,
       verifySignatures: false,
     });
     console.log("bank:", config.BANK.toString());
+    console.log("LUT keys (paste into update_lut.ts):");
+    uniqueLutKeys.forEach((key) =>
+      console.log(`    new PublicKey("${key.toString()}"),`),
+    );
+    console.log();
     console.log("Base58-encoded transaction:", bs58.encode(serialized));
   }
 }

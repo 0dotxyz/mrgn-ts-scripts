@@ -173,6 +173,9 @@ particular organization.
 - DP9JAbtatfCrSAJQiWZUmWTfgHCnuWsx1QBczi1mnuxW (owned by staging shared
   HMZshKmPfpwxJiwu6WeEt8FSac8heU3gqLnyF26vQgu2)
 
+  3XpcTktgNzeMv2ATg4Y6yLgE5Wfxebcb8Tb9zj755PhH (owned by
+  FDr3iLdfyyzMmge9rN5sqQ38PgbrXY94VDW726EUN2kK) - mostly juplend accounts to init banks
+
 ## DESTROYED ACCOUNTS
 
 - Activating Cavey Cool Stake Account for Phantom Wallet that was deposited to the single pool: CBkEBnagcbmZrmbg9yV1d1gWxi6tmuR26616XXwVwus
