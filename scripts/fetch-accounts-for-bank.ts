@@ -15,7 +15,7 @@ type Config = {
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  BANK: new PublicKey("BeNBJrAh1tZg5sqgt8D6AWKJLD5KkBrfZvtcgd7EuiAR"),
+  BANK: new PublicKey("Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi"),
   ONLY_LIABS: false,
 };
 
@@ -26,7 +26,7 @@ const BALANCE_SIZE = 104;
 const BALANCE_BANK_PK_OFFSET = 1;
 const MAX_BALANCES = 16;
 //** Count how many users have more or less than this many shares */
-const MIN_SHARES = 841683837;
+const MIN_SHARES = 1000;
 
 function bankPkOffsetForIndex(i: number): number {
   return (
@@ -42,11 +42,42 @@ function formatNumber(num: number | string) {
   return number === "0.0000" ? "-" : number;
 }
 
+function toFixedOrDash(num: number, decimals = 6) {
+  if (!Number.isFinite(num) || num === 0) return "-";
+  return num.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: decimals,
+  });
+}
+
+type BankConversionMeta = {
+  mintDecimals: number;
+  assetShareValue: number;
+  liabilityShareValue: number;
+  cachedPrice: number;
+};
+
+function convertSharesToTokens(
+  shares: number,
+  shareValue: number,
+  mintDecimals: number,
+): number {
+  return (shares * shareValue) / Math.pow(10, mintDecimals);
+}
+
+function getCachedBankPrice(bankAcc: any): number {
+  const oracleSetup = bankAcc?.config?.oracleSetup ?? {};
+  if (Object.prototype.hasOwnProperty.call(oracleSetup, "fixed")) {
+    return wrappedI80F48toBigNumber(bankAcc.config.fixedPrice).toNumber();
+  }
+  return wrappedI80F48toBigNumber(bankAcc.cache.lastOraclePrice).toNumber();
+}
+
 async function main() {
   const user = commonSetup(
     true,
     config.PROGRAM_ID,
-    "/.config/stage/id.json",
+    "/.config/solana/id.json",
     undefined,
   );
   const program = user.program;
@@ -69,6 +100,13 @@ async function main() {
     allAcc.push(...accForSlot);
   }
 
+  // Deduplicate by account key in case it appears in more than one scanned slot.
+  const dedupedAccounts = new Map<string, any>();
+  for (const item of allAcc) {
+    dedupedAccounts.set(item.publicKey.toString(), item);
+  }
+  const uniqueAccounts = Array.from(dedupedAccounts.values());
+
   // Prepare JSON output and summary totals
   const jsonOutput: any[] = [];
 
@@ -79,9 +117,11 @@ async function main() {
   let countBelowMinShares = 0;
 
   // Collateral-at-risk map: bankPk -> total assetShares (for accounts borrowing the target bank)
-  const collateralByBank: Record<string, number> = {};
+  const collateralByBankShares: Record<string, number> = {};
+  // Inverse metric: for users lending target bank, sum all their liabilities by bank
+  const liabilitiesByBankShares: Record<string, number> = {};
 
-  allAcc.forEach((accInfo, index) => {
+  uniqueAccounts.forEach((accInfo, index) => {
     const acc = accInfo.account;
     const pk = accInfo.publicKey.toString();
     const balances = acc.lendingAccount.balances;
@@ -94,6 +134,7 @@ async function main() {
     };
 
     let hasThisBank = false;
+    let hasTargetBankAsset = false;
     let hasAnyLiabilities = false;
     let hasTargetBankLiability = false;
     let targetBankAssetShares = 0;
@@ -130,6 +171,9 @@ async function main() {
         totalAssetSharesForBank += asset;
         totalLiabilitySharesForBank += liab;
         targetBankAssetShares += asset;
+        if (asset > 0) {
+          hasTargetBankAsset = true;
+        }
 
         if (liab > 0) {
           hasTargetBankLiability = true;
@@ -139,7 +183,7 @@ async function main() {
 
     // Account must contain a position in this BANK to be included in main output / file
     if (hasThisBank) {
-      if (config.ONLY_LIABS && hasTargetBankLiability) {
+      if (!config.ONLY_LIABS || hasTargetBankLiability) {
         jsonOutput.push(accountEntry);
       }
       if (targetBankAssetShares > MIN_SHARES) {
@@ -178,12 +222,51 @@ async function main() {
           if (asset <= 0) continue;
 
           const bankKey = b.bankPk.toString();
-          collateralByBank[bankKey] = (collateralByBank[bankKey] || 0) + asset;
+          collateralByBankShares[bankKey] =
+            (collateralByBankShares[bankKey] || 0) + asset;
+        }
+      }
+
+      // Inverse metric:
+      // If this account is lending in target bank (asset > 0 in target bank),
+      // then all of its positive liabilities are liabilities "at risk", grouped by bank.
+      if (hasTargetBankAsset) {
+        for (let i = 0; i < balances.length; i++) {
+          const b = balances[i];
+          if (b.active === 0) continue;
+
+          const liab = wrappedI80F48toBigNumber(b.liabilityShares).toNumber();
+          if (liab <= 0) continue;
+
+          const bankKey = b.bankPk.toString();
+          liabilitiesByBankShares[bankKey] =
+            (liabilitiesByBankShares[bankKey] || 0) + liab;
         }
       }
 
       console.log();
     }
+  });
+
+  // Fetch all referenced banks once so we can convert SHARES -> TOKEN amounts.
+  const banksNeeded = new Set<string>();
+  banksNeeded.add(config.BANK.toString());
+  Object.keys(collateralByBankShares).forEach((k) => banksNeeded.add(k));
+  Object.keys(liabilitiesByBankShares).forEach((k) => banksNeeded.add(k));
+
+  const bankKeys = Array.from(banksNeeded).map((k) => new PublicKey(k));
+  const bankAccounts = await program.account.bank.fetchMultiple(bankKeys);
+  const bankMetaByPk: Record<string, BankConversionMeta> = {};
+
+  bankAccounts.forEach((bankAcc, i) => {
+    if (!bankAcc) return;
+    const bankPk = bankKeys[i].toString();
+    bankMetaByPk[bankPk] = {
+      mintDecimals: bankAcc.mintDecimals,
+      assetShareValue: wrappedI80F48toBigNumber(bankAcc.assetShareValue).toNumber(),
+      liabilityShareValue: wrappedI80F48toBigNumber(bankAcc.liabilityShareValue).toNumber(),
+      cachedPrice: getCachedBankPrice(bankAcc),
+    };
   });
 
   // ----- WRITE OUTPUT TO FILE -----
@@ -200,11 +283,41 @@ async function main() {
   console.log(`\n📁 Results written to: ${filePath}\n`);
 
   // ----- PRINT SUMMARY TOTALS -----
+  const targetBankMeta = bankMetaByPk[config.BANK.toString()];
+  const totalAssetTokensForBank = targetBankMeta
+    ? convertSharesToTokens(
+        totalAssetSharesForBank,
+        targetBankMeta.assetShareValue,
+        targetBankMeta.mintDecimals,
+      )
+    : NaN;
+  const totalLiabilityTokensForBank = targetBankMeta
+    ? convertSharesToTokens(
+        totalLiabilitySharesForBank,
+        targetBankMeta.liabilityShareValue,
+        targetBankMeta.mintDecimals,
+      )
+    : NaN;
+  const totalAssetsForPureLendersTokens = targetBankMeta
+    ? convertSharesToTokens(
+        totalAssetsForPureLenders,
+        targetBankMeta.assetShareValue,
+        targetBankMeta.mintDecimals,
+      )
+    : NaN;
 
   console.log("====== SUMMARY TOTALS ======");
-  console.log(`Total Asset Shares for bank:        ${totalAssetSharesForBank}`);
   console.log(
-    `Total Liability Shares for bank:     ${totalLiabilitySharesForBank}`,
+    `Total Asset Shares for bank:        ${toFixedOrDash(totalAssetSharesForBank)}`,
+  );
+  console.log(
+    `Total Asset Tokens for bank:        ${toFixedOrDash(totalAssetTokensForBank)}`,
+  );
+  console.log(
+    `Total Liability Shares for bank:     ${toFixedOrDash(totalLiabilitySharesForBank)}`,
+  );
+  console.log(
+    `Total Liability Tokens for bank:     ${toFixedOrDash(totalLiabilityTokensForBank)}`,
   );
   console.log(
     `Accounts with bank assetShares > ${MIN_SHARES}: ${countAboveMinShares}`,
@@ -212,21 +325,92 @@ async function main() {
   console.log(
     `Accounts with bank assetShares < ${MIN_SHARES}: ${countBelowMinShares}`,
   );
-  console.log(`Total Asset Shares NOT AT RISK: ${totalAssetsForPureLenders}`);
+  console.log(
+    `Total Asset Shares NOT AT RISK:      ${toFixedOrDash(totalAssetsForPureLenders)}`,
+  );
+  console.log(
+    `Total Asset Tokens NOT AT RISK:      ${toFixedOrDash(totalAssetsForPureLendersTokens)}`,
+  );
   console.log("=============================\n");
 
   // ----- PRINT COLLATERAL FUNDS AT RISK -----
 
   console.log("====== COLLATERAL FUNDS AT RISK (by bank) ======");
-  const collateralEntries = Object.entries(collateralByBank);
+  const collateralEntries = Object.entries(collateralByBankShares);
   if (collateralEntries.length === 0) {
     console.log("None (no accounts borrowing this bank had collateral).");
   } else {
-    collateralEntries.forEach(([bankPk, amount]) => {
-      console.log(`${bankPk}: ${amount}`);
-    });
+    const rows = collateralEntries
+      .map(([bankPk, shares]) => {
+        const bankMeta = bankMetaByPk[bankPk];
+        const tokens = bankMeta
+          ? convertSharesToTokens(
+              shares,
+              bankMeta.assetShareValue,
+              bankMeta.mintDecimals,
+            )
+          : NaN;
+        const usd = bankMeta ? tokens * bankMeta.cachedPrice : NaN;
+
+        return { bankPk, shares, tokens, usd };
+      })
+      .sort((a, b) => {
+        const av = Number.isFinite(a.usd) ? a.usd : -Infinity;
+        const bv = Number.isFinite(b.usd) ? b.usd : -Infinity;
+        return bv - av;
+      })
+      .map((row) => {
+        const { bankPk, shares, tokens, usd } = row;
+
+        return {
+          Bank: bankPk,
+          "Asset Shares": toFixedOrDash(shares, 2),
+          "Asset Tokens": toFixedOrDash(tokens, 6),
+          "Asset USD": toFixedOrDash(usd, 2),
+        };
+      });
+    console.table(rows);
   }
   console.log("===============================================\n");
+
+  // ----- PRINT LIABILITIES AT RISK -----
+  console.log("====== LIABILITIES AT RISK (by bank) ======");
+  const liabilityEntries = Object.entries(liabilitiesByBankShares);
+  if (liabilityEntries.length === 0) {
+    console.log("None (no lenders in this bank had liabilities).");
+  } else {
+    const rows = liabilityEntries
+      .map(([bankPk, shares]) => {
+        const bankMeta = bankMetaByPk[bankPk];
+        const tokens = bankMeta
+          ? convertSharesToTokens(
+              shares,
+              bankMeta.liabilityShareValue,
+              bankMeta.mintDecimals,
+            )
+          : NaN;
+        const usd = bankMeta ? tokens * bankMeta.cachedPrice : NaN;
+
+        return { bankPk, shares, tokens, usd };
+      })
+      .sort((a, b) => {
+        const av = Number.isFinite(a.usd) ? a.usd : -Infinity;
+        const bv = Number.isFinite(b.usd) ? b.usd : -Infinity;
+        return bv - av;
+      })
+      .map((row) => {
+        const { bankPk, shares, tokens, usd } = row;
+
+        return {
+          Bank: bankPk,
+          "Liability Shares": toFixedOrDash(shares, 2),
+          "Liability Tokens": toFixedOrDash(tokens, 6),
+          "Liability USD": toFixedOrDash(usd, 2),
+        };
+      });
+    console.table(rows);
+  }
+  console.log("==========================================\n");
 }
 
 main().catch((err) => {

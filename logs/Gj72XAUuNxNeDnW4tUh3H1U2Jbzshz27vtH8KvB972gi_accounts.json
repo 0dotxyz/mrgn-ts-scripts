@@ -1,0 +1,3243 @@
+[
+  {
+    "publicKey": "Df8dSSCKBZqhq1hKideUmEZKoATdaW5fbBFJb2RT5JiM",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "0.0122",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "700022.9544",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "BjwjZQQQpAiMnvGPUKHecMENkxD6KR9Fr5PrkhGbavoi",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "700309.2867",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "DW1GbDhrNRVQaMF3vGVXGTfFhMPYkMw1Mv4EVwe65gM3",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "137463.9827",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "1wLPEzHUxBKoWuSdYs1VUWev4bsKatkUNvsEjcmK8yd",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "175396.6406",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "90521.1894",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "17352813.4347",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "5HMH346SMVNGRjurXAUA79VuH4YpieUKD8NL94CkB7FY",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "256367.3511",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "7Y3mMxoCmEs6VBagxR3o8dQ34ehtYRa1xtBhLsZSj3aq",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "2667.1907",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "F4brCRJHx8epWah7p8Ace4ehutphxYZ1ctRq2LS3iiBh",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "33063693.0826",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu",
+        "tag": 0,
+        "assetShares": "63007093.4241",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "991540.7130",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "DZWpVbvQQLysksdW6t57SaN8mJe4tw1wHczugby2zHie",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "27958.6987",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "GR9GNdjWf8kSf3b4REribKKSeVvkzjbAQJ1A8CDnFxLF",
+        "tag": 0,
+        "assetShares": "105821827.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "ARwrmohp8qMCkxQNiq5di4pTnTWhvXhAc7c18tZ877Kg",
+        "tag": 0,
+        "assetShares": "100721397.2127",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "66833770.0345",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "5Js7jNSYScV4JMdxVBfKk5QcKUy5Ek4cppWFBLPEX5Yo",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "1633255.7965",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "5wZz2MV3dFJVq3Wp4tBoqrgrSGZqeLCdLE1L4w6okm9g",
+        "tag": 0,
+        "assetShares": "763154441.8485",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "6SAj5YRy9wJaR4gBhRDZUTYDvQ2e1rggs1qKxTSLTdKi",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "150984.1203",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV",
+        "tag": 0,
+        "assetShares": "239308717.0267",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "CwbdVVmGfR4H9bQ39vmeKjt9Gd128iFGrc9Jvht2oPx6",
+        "tag": 4,
+        "assetShares": "915240777.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "594926.7124",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "41813318.6408",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "154981068.7694",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "7ndLrs1NryL3o2514GqqjhFXDrmNAcWyY4uj43qWnU2i",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "4999.9838",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "BFWeSeY6MQTqj9H161Ym1UGXLJuZAKATw2LMb3rC293q",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "729679.0405",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "2418536955.4910",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "268238549.3833",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "2dsaSyxz8Qq8K6UjBzth5JLDeXfWUBEBpgiLLwnvJSX6",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "94490247.7575",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "23774900418.0406",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "Ep6DvjEwMncgVLqpRdtBebbtKqL3a6cydbY4Kcv3aHDA",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "2355190.7841",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "706230715.5246",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "5u811fZs6HGSS59gaZYmxQeDvHi3TiPgu6vZ8HR1vmK9",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "2427.9141",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "1148625648.5825",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "44696287.6161",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "GeH3jDmVeg9sSjmQcNcwGaZrFrgYD3GBLYVj9uCAw5Tr",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "148.9527",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "6zN8tRxMpuqruDF4ChjeNGCVggqWBMQQ9KmiNhYeiqXb",
+        "tag": 0,
+        "assetShares": "17777333988.4987",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "EuvmHuuFQjsM7A1rvYKj1EDpTqvg1iJazE9S4GfRi5gG",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "14997.8108",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "3807292.9687",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "9Gf1CDRtYva31hMHYQEBSAd8dCAyk135gpWPJfXkJkq4",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "4196463.4640",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "17581582390.1816",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "94142090452.2784",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "5356827958.0090",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "C3YjRcWejvMumvqD9dRLX7de66Z3LN9B9C92Tw1wxqSX",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "301873.2618",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "49875756554.2524",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "6cP4K42XzGXCEgw4Ug3UziHrVMxnWfuhzeMDf5V22jKR",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "149906.9469",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "7GbG8B1aHpV4Q271ozU9EDEGPTLXpekv7m2UgyCgFzr5",
+        "tag": 0,
+        "assetShares": "299994066.9886",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "H9eeZZXiR24opbNwD1PJ7P9doFpyCp1Q27JYF9cgAmAf",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "8317.0405",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "-",
+        "liabilityShares": "13504861.3656",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "8iKgNvkQH9bBXyMbV5vor25gQRFM3tfyA7si68eKrLoa",
+        "tag": 0,
+        "assetShares": "395256210.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "827672.0041",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE",
+        "tag": 0,
+        "assetShares": "36908316.2922",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "CDjUJpWVSNLFFnnJjjAyPQf92qbVwL61K5exwJszBivy",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "5056.9639",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "98713282.4940",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "Dz4XykKsoVe2ajMi4yx4JcmvWUdnPteym2dG1vQB9z7f",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "430.8884",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "105828.6547",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "3ucp5tGLVituCPQnmChyvNCRP2jouHx9BTdbf4pttEuy",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "3131620.4993",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "471956233.0077",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "6VscBrEpaH61PzpyiLEoyKF9anBPrVRVNGW6MRdmvusA",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "6078821.0280",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "CwbdVVmGfR4H9bQ39vmeKjt9Gd128iFGrc9Jvht2oPx6",
+        "tag": 4,
+        "assetShares": "200349378777.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "-",
+        "liabilityShares": "148213424503.1950",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "9rZqFcdUNnjhSBAdVp2XSvRitmKUGpvZgg9amttXgsHu",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "431409.9400",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "FvrTUfd3kimMfXvGrvcS1XC8NrtmSSurX8yP6XeUFt2s",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "203277196.2525",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "1391618308.5996",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "74582.7941",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "6zN8tRxMpuqruDF4ChjeNGCVggqWBMQQ9KmiNhYeiqXb",
+        "tag": 0,
+        "assetShares": "474863451.2343",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "Bb4K8EnEzREtD5toGFcYAcKFcKGXqnhAr78nCqtSesuw",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "0.7396",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "3Etb3eLx4CDmC2Vsb4Z4XStksssg6iRCpCB9JiV85sC9",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "95052.3008",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "140593694.8666",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "29GjuiM19uTyBy2SYcecK2CV1EdT1tw8wuAj41Vzkw7v",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "1682.7167",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "AwLRW3aPMMftXEjgWhTkYwM9CGBHdtKecvahCJZBwAqY",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "5419.4657",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "BS2UUg8sKpZqbMsFJ9iBoKq7FsKuFLmPQnqUZjdrvJGs",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "59.8516",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "66196.2850",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "H4bWQ5jMKGJJFNStBYU9K3J9zF97E3HHaKtif79rsJoK",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "974056.4113",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "6ZPK9BRL4FKJvJpAeCwi6mpzq8mGWRaPHeazbV3seKCf",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "6954.9928",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "Egz8aGQfxim8qPgdskUK3JhNFP5YegVso6AAeq3YwmxN",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "15322294.9625",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "3828444688.9591",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "3623488330.8694",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "6QtR7RThj7gLvphz4ZH6JR7Pfchs7RxLMSaBFE4NEUjp",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "148141.1003",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "H3SLE7TbUkja3PzaBwihZCPf1J7udH6EkpWeC3r5na51",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "54.2123",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "4K1QVeQNCmftx2HoHh4jCUSGVREZ3bowhCwjPRgiJdvb",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "49290.8273",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM",
+        "tag": 0,
+        "assetShares": "374957058582.3655",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "189490954.9169",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "CwbdVVmGfR4H9bQ39vmeKjt9Gd128iFGrc9Jvht2oPx6",
+        "tag": 4,
+        "assetShares": "342054909.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "-",
+        "liabilityShares": "172841507.4367",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "1296474417.6893",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "74331738.4098",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "20943747.4700",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "8g8YfPnv8gzZSt4sCWyGZNDi9ZnVxQHsqLeQ29AkAWja",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "EbuSnXdFz1R4VPdaJ96KQQQmeYgZTHSzpNW94Tw1PE3H",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "7Zcp51CUdqf7ippwqu1UED7ZW2AyPZbBEbCrdW3Ly7R9",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "112983.4578",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "EmMhorGDR3N9ecNWVQjJi2QpFLkeHEvjZFdW6TuVgXjU",
+        "tag": 0,
+        "assetShares": "277894806.3983",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "570262948.1703",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "111964.0206",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "AwLRW3aPMMftXEjgWhTkYwM9CGBHdtKecvahCJZBwAqY",
+        "tag": 0,
+        "assetShares": "706867522.7475",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "11139305.8982",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "5syijTAMBBmdjwUgYYBvvv26zTS6YX1bYV9EdXkgYqLa",
+        "tag": 0,
+        "assetShares": "126933346.2096",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "4YPGUhxmAXgoGDRkg68zGnbGrV2xCgaoqQSfcZCjFhon",
+        "tag": 3,
+        "assetShares": "145883720.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "253787.6029",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "90559220.0783",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "52sBEwXYRgH2o3jP8o4yyH7ssLohqvZCTxhiTtjU4aC3",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "474368.6396",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "18433409.5910",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "AwMesGxj4va5tHRntYCLc7UyGqNQzKZ95s3FW941U72Z",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "667350.2274",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "151.6533",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 0,
+        "assetShares": "5004435618.6224",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "9SerK63jzwLimSP8nnH5aGoZzK2pVXBWTWmUZSyivwaV",
+        "tag": 3,
+        "assetShares": "906310634.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "523293564.8482",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "Z5efZuiFY7RumemyzF7WKYEUfPK288VsT27xY5qbBFX",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "7371.0349",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "1490754.4647",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "91Rytu5kELPuQn7eUYV7rmnTvScknJHzFspndgUh7h4E",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "5.8833",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "2.0393",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "9LFBad4UQFdBMRe9YoomExUop1JaMJvebTgGziq6FoXo",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "5970.8989",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "1910179.7502",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "FnfnQDNYdNhEfdmQBksQHCDEEXdEu9GzkmMtJqTxYetS",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "11265.6936",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "2283297.9352",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "7CuTgr3MCYysNpksHJm8hyuWtkjyKpat7jjZkzSMBAQH",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "396650.3132",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "FWZbU8TSPyjyrWQASzujo7FjgF9f3GEkjaFAtbKWqjMH",
+        "tag": 0,
+        "assetShares": "4531915.3806",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "2176149966.5666",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 0,
+        "assetShares": "125963137.8128",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "AyeEyCiBU2CzZmxz3f3o3vk2hvMsM5G3t3D6vhLsiFkf",
+        "tag": 0,
+        "assetShares": "9065.3844",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "AwLRW3aPMMftXEjgWhTkYwM9CGBHdtKecvahCJZBwAqY",
+        "tag": 0,
+        "assetShares": "1411736934.6842",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "5810073.9029",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "7GbG8B1aHpV4Q271ozU9EDEGPTLXpekv7m2UgyCgFzr5",
+        "tag": 0,
+        "assetShares": "11430937.5398",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "5syijTAMBBmdjwUgYYBvvv26zTS6YX1bYV9EdXkgYqLa",
+        "tag": 0,
+        "assetShares": "6586019.6394",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "4kNXetv8hSv9PzvzPZzEs1CTH6ARRRi2b8h6jk1ad1nP",
+        "tag": 0,
+        "assetShares": "108468639345.8921",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 10,
+        "bankPk": "3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq",
+        "tag": 0,
+        "assetShares": "398114.0157",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 11,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "197999.7574",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 12,
+        "bankPk": "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "132627.4334",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "5odYBxoNgQbnV6Qx5MZkyiqYRFENidUK24cYe8rDfXSg",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "34129.3788",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "5886.7201",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "336356287.3805",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "6110021.0616",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "4986264.9671",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "FrCs1URzF8ogHBnnWUc54YKB7Ld6B1Y3gdYfdvimNeVg",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV",
+        "tag": 0,
+        "assetShares": "35633589.3151",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "8776.9147",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "BeNBJrAh1tZg5sqgt8D6AWKJLD5KkBrfZvtcgd7EuiAR",
+        "tag": 0,
+        "assetShares": "49687.2874",
+        "liabilityShares": "-",
+        "hasEmissions": true
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "ARwrmohp8qMCkxQNiq5di4pTnTWhvXhAc7c18tZ877Kg",
+        "tag": 0,
+        "assetShares": "47005000.1312",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "2950439.5405",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "3eggRLiywUb9hZ9Am5EjDmRJC3qgZJU383YEr8QYCg1G",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV",
+        "tag": 0,
+        "assetShares": "127770036.6162",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "119015.4789",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "85241451.7869",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "CwbdVVmGfR4H9bQ39vmeKjt9Gd128iFGrc9Jvht2oPx6",
+        "tag": 4,
+        "assetShares": "611666040.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "8LaUZadNqtzuCG7iCvZd7d5cbquuYfv19KjAg6GPuuCb",
+        "tag": 0,
+        "assetShares": "1468324625.0793",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "356691457.1225",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE",
+        "tag": 0,
+        "assetShares": "5411592432.0670",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "BFLNV16ifNpNwEj9iz3qba5hXpjbTvZUi7CBGd2vyFzm",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8",
+        "tag": 0,
+        "assetShares": "3636538752.5483",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "86718.8921",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "EbuSnXdFz1R4VPdaJ96KQQQmeYgZTHSzpNW94Tw1PE3H",
+        "tag": 0,
+        "assetShares": "91699201134.0827",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "5969737175.8555",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "2700878998.3543",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "7441061854.4929",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "1691802320.4374",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE",
+        "tag": 0,
+        "assetShares": "9511504172.3732",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "AnsGJjKgzd2XbEg67C8SvHtpfYv2s6Anoj4gsV5oxy4Z",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV",
+        "tag": 0,
+        "assetShares": "167933547.2699",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "88913.7124",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "-",
+        "liabilityShares": "510119988.3533",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "BKneg8M3KTE3P4QFyTLvhjBqhot6DPdPdxvKu4wm8FUR",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HDYFgNRTFL2tVwGyAHaTr4SW7Y7riXjew48qKLHgi8es",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "100.0000",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "100.0000",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "18788536.4653",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "Ac4KV5K5isDqtABtg6h5DiwzZMe3Sp9bc3pBiCUvUpaQ",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "100.0000",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "100.0000",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "3Spzcx9KZoNX19ezpN1hwAuNjEdVCkRiCeQw9oJ69esy",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "13892733851.9725",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "16247543.6729",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "FuyzDwmMbYYPPd3oLtjNk3ZLqsTBPaQtQrxRGzUGcAvp",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "9846249878.8012",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "EYp4j7oHV2SfEGSE3GJ4MjsCL33CzmqLTdvTCdacQ9uG",
+        "tag": 0,
+        "assetShares": "21517876288.4950",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "BkUyfXjbBBALcfZvw76WAFRvYQ21xxMWWeoPtJrUqG3z",
+        "tag": 0,
+        "assetShares": "148335487.8913",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "9p1TiAeTc6FSiNHhnR6BgmwRq49zywczAY4m77BbKGer",
+        "tag": 0,
+        "assetShares": "47022521856.4900",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "6zN8tRxMpuqruDF4ChjeNGCVggqWBMQQ9KmiNhYeiqXb",
+        "tag": 0,
+        "assetShares": "476493221481.4919",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "9Jho6tBjv5HPCQUUJ3z8XQS3Po74Yq2tqwMFt6GNrUem",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "BeNBJrAh1tZg5sqgt8D6AWKJLD5KkBrfZvtcgd7EuiAR",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "AwLRW3aPMMftXEjgWhTkYwM9CGBHdtKecvahCJZBwAqY",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 10,
+        "bankPk": "Ac4KV5K5isDqtABtg6h5DiwzZMe3Sp9bc3pBiCUvUpaQ",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 11,
+        "bankPk": "9dpu8KL5ABYiD3WP2Cnajzg1XaotcJvZspv29Y1Y3tn1",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 12,
+        "bankPk": "8LaUZadNqtzuCG7iCvZd7d5cbquuYfv19KjAg6GPuuCb",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 13,
+        "bankPk": "6hS9i46WyTq1KXcoa2Chas2Txh9TJAVr6n1t3tnrE23K",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 14,
+        "bankPk": "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "AJLT8sjrku75GQ2f3icFRurPpHi63EsjjZCqzmpvGcFH",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "GJCi1uj3kYPZ64puA5sLUiCQfFapxT2xnREzrbDzFkYY",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "EbuSnXdFz1R4VPdaJ96KQQQmeYgZTHSzpNW94Tw1PE3H",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "E4td8i8PT2BZkMygzW4MGHCv2KPPs57dvz5W2ZXf9Twu",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 10,
+        "bankPk": "Ac4KV5K5isDqtABtg6h5DiwzZMe3Sp9bc3pBiCUvUpaQ",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 11,
+        "bankPk": "6hS9i46WyTq1KXcoa2Chas2Txh9TJAVr6n1t3tnrE23K",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 12,
+        "bankPk": "4kNXetv8hSv9PzvzPZzEs1CTH6ARRRi2b8h6jk1ad1nP",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 13,
+        "bankPk": "3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 14,
+        "bankPk": "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "2c7d8B476Ho7jeCRchkggPyDwMCrqRa5fzKciSHvDrs8",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "GJCi1uj3kYPZ64puA5sLUiCQfFapxT2xnREzrbDzFkYY",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "EbuSnXdFz1R4VPdaJ96KQQQmeYgZTHSzpNW94Tw1PE3H",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "BeNBJrAh1tZg5sqgt8D6AWKJLD5KkBrfZvtcgd7EuiAR",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "AwLRW3aPMMftXEjgWhTkYwM9CGBHdtKecvahCJZBwAqY",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 10,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 11,
+        "bankPk": "Ac4KV5K5isDqtABtg6h5DiwzZMe3Sp9bc3pBiCUvUpaQ",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 12,
+        "bankPk": "6hS9i46WyTq1KXcoa2Chas2Txh9TJAVr6n1t3tnrE23K",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 13,
+        "bankPk": "3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 14,
+        "bankPk": "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "6D9GYs1K3hTniWeeq3hWHkvaFsfifN3Q55Qiy5bZuK3E",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "GJCi1uj3kYPZ64puA5sLUiCQfFapxT2xnREzrbDzFkYY",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "Ac4KV5K5isDqtABtg6h5DiwzZMe3Sp9bc3pBiCUvUpaQ",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 10,
+        "bankPk": "8LaUZadNqtzuCG7iCvZd7d5cbquuYfv19KjAg6GPuuCb",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 11,
+        "bankPk": "6hS9i46WyTq1KXcoa2Chas2Txh9TJAVr6n1t3tnrE23K",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "8Q1TZ6Qt6GtDacCxhcu7fcPUKkVFU5MnbcmMG4dWQMZn",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "J5mxC3hLXqmsJB4Nauf9YrtbNMSTHGz7FWfAmy1v6Fzr",
+        "tag": 3,
+        "assetShares": "761666386.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "63098.4920",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM",
+        "tag": 0,
+        "assetShares": "355400002801.2011",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "181948110.3513",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "50421.1413",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "24.9126",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE",
+        "tag": 0,
+        "assetShares": "175994849.0479",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "DJGXFRyGTfs7u4ZUqmCoskALPrAc19eohCCbSFAv3BHe",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HDYFgNRTFL2tVwGyAHaTr4SW7Y7riXjew48qKLHgi8es",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "73257.2850",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "3513505.2393",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "Ac4KV5K5isDqtABtg6h5DiwzZMe3Sp9bc3pBiCUvUpaQ",
+        "tag": 0,
+        "assetShares": "449339.5466",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "1043560158.0758",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "7UN8XL8TgT45iuzVnzoNHph835GSfyqcF9QnYu5A8kz2",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV",
+        "tag": 0,
+        "assetShares": "1604108519.1060",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "7761.9411",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "11210896015.3039",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "17664.5522",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "1868294382.5472",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "2ZyKjyeNZCQHhBRmztSh1yd3BNGS6eiRade6U9ehTG1y",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "AwLRW3aPMMftXEjgWhTkYwM9CGBHdtKecvahCJZBwAqY",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "9p1TiAeTc6FSiNHhnR6BgmwRq49zywczAY4m77BbKGer",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "8LaUZadNqtzuCG7iCvZd7d5cbquuYfv19KjAg6GPuuCb",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 10,
+        "bankPk": "6hS9i46WyTq1KXcoa2Chas2Txh9TJAVr6n1t3tnrE23K",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "FFuPmtb5mRekfj31MJMubZhasxLy7YEbSZ3wdFhAsrDL",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "8LaUZadNqtzuCG7iCvZd7d5cbquuYfv19KjAg6GPuuCb",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "6hS9i46WyTq1KXcoa2Chas2Txh9TJAVr6n1t3tnrE23K",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "Fx3ccViPB4uebjikdo9KivENWUZ3LYqT6ErbZNKEQJxM",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HDYFgNRTFL2tVwGyAHaTr4SW7Y7riXjew48qKLHgi8es",
+        "tag": 0,
+        "assetShares": "86955.0703",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "226055.9057",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "188434711.1688",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "1045211597.4598",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "243918.9411",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "22398.5327",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "Ac4KV5K5isDqtABtg6h5DiwzZMe3Sp9bc3pBiCUvUpaQ",
+        "tag": 0,
+        "assetShares": "100777.5342",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "8LaUZadNqtzuCG7iCvZd7d5cbquuYfv19KjAg6GPuuCb",
+        "tag": 0,
+        "assetShares": "160652745.7282",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq",
+        "tag": 0,
+        "assetShares": "157389.4988",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "182516484.9486",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "HEGuDz3eVDfrDrVVYze7kyEDboN8ohV8exijuRnJ4QCS",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HDYFgNRTFL2tVwGyAHaTr4SW7Y7riXjew48qKLHgi8es",
+        "tag": 0,
+        "assetShares": "875.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "874.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "EKwXy2ui2jtJnvH4A2XufyqMyeSFecJE8xAKWpZEtDwd",
+        "tag": 0,
+        "assetShares": "47481.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "19042857.3393",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "Ac4KV5K5isDqtABtg6h5DiwzZMe3Sp9bc3pBiCUvUpaQ",
+        "tag": 0,
+        "assetShares": "876.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq",
+        "tag": 0,
+        "assetShares": "877.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "74702.8477",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "APCQEkoVphHNsJrMVJqMPq9MLnywZJUseoWZGoUv5HFK",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "6954220.5332",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8",
+        "tag": 0,
+        "assetShares": "99999668.0417",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "29749.9136",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "66326605.1947",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "EmMhorGDR3N9ecNWVQjJi2QpFLkeHEvjZFdW6TuVgXjU",
+        "tag": 0,
+        "assetShares": "49884067.2575",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "EdB7YADw4XUt6wErT8kHGCUok4mnTpWGzPUU9rWDebzb",
+        "tag": 0,
+        "assetShares": "10031083085.3888",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "E4td8i8PT2BZkMygzW4MGHCv2KPPs57dvz5W2ZXf9Twu",
+        "tag": 0,
+        "assetShares": "99946598.7331",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "202098003.2342",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "AwLRW3aPMMftXEjgWhTkYwM9CGBHdtKecvahCJZBwAqY",
+        "tag": 0,
+        "assetShares": "329384698.1901",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "5148788.4542",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 10,
+        "bankPk": "9dpu8KL5ABYiD3WP2Cnajzg1XaotcJvZspv29Y1Y3tn1",
+        "tag": 0,
+        "assetShares": "12999999.9996",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 11,
+        "bankPk": "6zN8tRxMpuqruDF4ChjeNGCVggqWBMQQ9KmiNhYeiqXb",
+        "tag": 0,
+        "assetShares": "24189416.8408",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 12,
+        "bankPk": "6hS9i46WyTq1KXcoa2Chas2Txh9TJAVr6n1t3tnrE23K",
+        "tag": 0,
+        "assetShares": "127180976.3602",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 13,
+        "bankPk": "5syijTAMBBmdjwUgYYBvvv26zTS6YX1bYV9EdXkgYqLa",
+        "tag": 0,
+        "assetShares": "9944989.7053",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 14,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "24274461.1460",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 15,
+        "bankPk": "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE",
+        "tag": 0,
+        "assetShares": "358956621.0717",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "5UxVWNabhj9fCNhrYvewFBGTQK1XFJYz2xiFhyQ4TWbq",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "JBcir4DPRPYVUpks9hkS1jtHMXejfeBo4xJGv3AYYHg6",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "EbuSnXdFz1R4VPdaJ96KQQQmeYgZTHSzpNW94Tw1PE3H",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "AwLRW3aPMMftXEjgWhTkYwM9CGBHdtKecvahCJZBwAqY",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 10,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 11,
+        "bankPk": "Ac4KV5K5isDqtABtg6h5DiwzZMe3Sp9bc3pBiCUvUpaQ",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 12,
+        "bankPk": "6hS9i46WyTq1KXcoa2Chas2Txh9TJAVr6n1t3tnrE23K",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 13,
+        "bankPk": "3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 14,
+        "bankPk": "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "C2XnQ7nHCmgVFdRrQ5MPkTnYjg25VaeXUZ2wCx25paT5",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "JBcir4DPRPYVUpks9hkS1jtHMXejfeBo4xJGv3AYYHg6",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "EbuSnXdFz1R4VPdaJ96KQQQmeYgZTHSzpNW94Tw1PE3H",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 10,
+        "bankPk": "Ac4KV5K5isDqtABtg6h5DiwzZMe3Sp9bc3pBiCUvUpaQ",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 11,
+        "bankPk": "8LaUZadNqtzuCG7iCvZd7d5cbquuYfv19KjAg6GPuuCb",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 12,
+        "bankPk": "6hS9i46WyTq1KXcoa2Chas2Txh9TJAVr6n1t3tnrE23K",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 13,
+        "bankPk": "61Qx9kgWo9RVtPHf8Rku6gbaUtcnzgkpAuifQBUcMRVK",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "7pMFkhNpn56aK6bZYU7LyTQizNYBT59syoVLZhoYaTww",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "324465449.6955",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "HDYFgNRTFL2tVwGyAHaTr4SW7Y7riXjew48qKLHgi8es",
+        "tag": 0,
+        "assetShares": "154534.9444",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "778884.2893",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "FuyzDwmMbYYPPd3oLtjNk3ZLqsTBPaQtQrxRGzUGcAvp",
+        "tag": 0,
+        "assetShares": "251045670549.1951",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "140657394.6744",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "EbuSnXdFz1R4VPdaJ96KQQQmeYgZTHSzpNW94Tw1PE3H",
+        "tag": 0,
+        "assetShares": "11627153056.1277",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "E4td8i8PT2BZkMygzW4MGHCv2KPPs57dvz5W2ZXf9Twu",
+        "tag": 0,
+        "assetShares": "1340907134.2454",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "Dj2CwMF3GM7mMT5hcyGXKuYSQ2kQ5zaVCkA1zX1qaTva",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "95059772.3465",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 0,
+        "assetShares": "4444773200.1917",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 9,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "2528200275.0650",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 10,
+        "bankPk": "Ac4KV5K5isDqtABtg6h5DiwzZMe3Sp9bc3pBiCUvUpaQ",
+        "tag": 0,
+        "assetShares": "7380.8743",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 11,
+        "bankPk": "ARwrmohp8qMCkxQNiq5di4pTnTWhvXhAc7c18tZ877Kg",
+        "tag": 0,
+        "assetShares": "1178132216.8309",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 12,
+        "bankPk": "3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq",
+        "tag": 0,
+        "assetShares": "269.9664",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 13,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "327889255.1153",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "4DDRjaLwKx6saMGJBW7L98StA1K6LLvuqCmYHKr2MG91",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV",
+        "tag": 0,
+        "assetShares": "8.7739",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "HWA59PLUXJmgrjGPWE2eH1381Wnz512qocV4PtyqhKqs",
+        "tag": 0,
+        "assetShares": "2784932215.8945",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "253625.0533",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+        "tag": 0,
+        "assetShares": "77420501.9894",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "8LaUZadNqtzuCG7iCvZd7d5cbquuYfv19KjAg6GPuuCb",
+        "tag": 0,
+        "assetShares": "82833612.5649",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "6hS9i46WyTq1KXcoa2Chas2Txh9TJAVr6n1t3tnrE23K",
+        "tag": 0,
+        "assetShares": "12758812.0318",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "2z8C1CCoJBKMLCNbaMWXuTYKHjcdHQBVth5CHsSQq611",
+        "tag": 0,
+        "assetShares": "9999978.6573",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "15124255.5555",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "FGETRkS2nogWkymQuaLSsr6PJn3bYZPMZWor27gm2AsV",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV",
+        "tag": 0,
+        "assetShares": "70363427.4084",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8",
+        "tag": 0,
+        "assetShares": "187202157.2136",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "172569.4246",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "EbuSnXdFz1R4VPdaJ96KQQQmeYgZTHSzpNW94Tw1PE3H",
+        "tag": 0,
+        "assetShares": "3046428694.9276",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5",
+        "tag": 0,
+        "assetShares": "36557748.6356",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh",
+        "tag": 1,
+        "assetShares": "2232041573.4873",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "127614367.2371",
+        "hasEmissions": false
+      }
+    ]
+  },
+  {
+    "publicKey": "EsHrmw7nYWV8daZ8quupTXTtkCMyYP5h1X4EgHaPsdGb",
+    "balances": [
+      {
+        "balanceIndex": 0,
+        "bankPk": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV",
+        "tag": 0,
+        "assetShares": "598823797.2605",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 1,
+        "bankPk": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "487725403.5589",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 2,
+        "bankPk": "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi",
+        "tag": 0,
+        "assetShares": "140606.6962",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 3,
+        "bankPk": "CwbdVVmGfR4H9bQ39vmeKjt9Gd128iFGrc9Jvht2oPx6",
+        "tag": 4,
+        "assetShares": "18681469179.0000",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 4,
+        "bankPk": "AwLRW3aPMMftXEjgWhTkYwM9CGBHdtKecvahCJZBwAqY",
+        "tag": 0,
+        "assetShares": "39994867499.9088",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 5,
+        "bankPk": "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa",
+        "tag": 0,
+        "assetShares": "750574449.6582",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 6,
+        "bankPk": "9p1TiAeTc6FSiNHhnR6BgmwRq49zywczAY4m77BbKGer",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "2807028139.3065",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 7,
+        "bankPk": "8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu",
+        "tag": 0,
+        "assetShares": "-",
+        "liabilityShares": "6962649782.4221",
+        "hasEmissions": false
+      },
+      {
+        "balanceIndex": 8,
+        "bankPk": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB",
+        "tag": 0,
+        "assetShares": "3516592798.8521",
+        "liabilityShares": "-",
+        "hasEmissions": false
+      }
+    ]
+  }
+]
