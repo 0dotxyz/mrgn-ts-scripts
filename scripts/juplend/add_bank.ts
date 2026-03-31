@@ -234,11 +234,9 @@ export async function addJuplendBank(
     bank,
   );
   const [liquidityVault] = deriveLiquidityVault(program.programId, bank);
-
-  // integration_acc_2 is a PDA token account: seeds ["f_token_vault", bank]
   const [juplendFTokenVault] = deriveJuplendFTokenVault(program.programId, bank);
 
-  const admin = config.ADMIN;
+  // const admin = config.ADMIN;
   const feePayer = config.FEE_PAYER;
 
   // Remaining accounts for oracle validation
