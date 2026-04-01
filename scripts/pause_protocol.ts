@@ -13,7 +13,7 @@ const sendTx = false;
 /**
  * If true, pause. If false, unpause.
  */
-const pause = false;
+const pause = true;
 
 type Config = {
   PROGRAM_ID: string;

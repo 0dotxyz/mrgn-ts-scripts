@@ -15,7 +15,7 @@ type Config = {
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  BANK: new PublicKey("Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi"),
+  BANK: new PublicKey("HSWzj4oipYaMD7DtpiFcBs3oH5ZwDp4PUTtzPCJNMSd4"),
   ONLY_LIABS: false,
 };
 
@@ -263,8 +263,12 @@ async function main() {
     const bankPk = bankKeys[i].toString();
     bankMetaByPk[bankPk] = {
       mintDecimals: bankAcc.mintDecimals,
-      assetShareValue: wrappedI80F48toBigNumber(bankAcc.assetShareValue).toNumber(),
-      liabilityShareValue: wrappedI80F48toBigNumber(bankAcc.liabilityShareValue).toNumber(),
+      assetShareValue: wrappedI80F48toBigNumber(
+        bankAcc.assetShareValue,
+      ).toNumber(),
+      liabilityShareValue: wrappedI80F48toBigNumber(
+        bankAcc.liabilityShareValue,
+      ).toNumber(),
       cachedPrice: getCachedBankPrice(bankAcc),
     };
   });
@@ -283,6 +287,7 @@ async function main() {
   console.log(`\n📁 Results written to: ${filePath}\n`);
 
   // ----- PRINT SUMMARY TOTALS -----
+  console.log(`\nBANK: ${config.BANK}\n`);
   const targetBankMeta = bankMetaByPk[config.BANK.toString()];
   const totalAssetTokensForBank = targetBankMeta
     ? convertSharesToTokens(

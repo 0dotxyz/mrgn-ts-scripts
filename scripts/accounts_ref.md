@@ -187,7 +187,7 @@ Mrgn Account: E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt
 Bank(s) Lending: 3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL (Cavey Cool Staked Sol)
 Banks(s) Borrowed: 3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp (SOL with asset tag)
 
-
 ## Banks currently not being indexed by get-all
+
 RkSOL - GR9GNdjWf8kSf3b4REribKKSeVvkzjbAQJ1A8CDnFxLF
 LanternSOL - FvrTUfd3kimMfXvGrvcS1XC8NrtmSSurX8yP6XeUFt2s
