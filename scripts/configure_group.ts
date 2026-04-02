@@ -20,6 +20,7 @@ type Config = {
   ADMIN_GENERAL?: PublicKey;
   EMODE_ADMIN?: PublicKey;
   CURVE_ADMIN?: PublicKey;
+  FLOW_ADMIN?: PublicKey;
   LIMIT_ADMIN?: PublicKey;
   EMISS_ADMIN?: PublicKey;
   META_ADMIN?: PublicKey;
@@ -48,14 +49,15 @@ const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
   // ADMIN_GENERAL: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  EMODE_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  // EMODE_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
   // CURVE_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
+  // FLOW_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // LIMIT_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // EMISS_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // META_ADMIN: new PublicKey("B2QBNiT857wyU56jffuy5i7YPpLC9eUwJ99CzJt52RN9"),
-  RISK_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  EMODE_MAX_INIT_LEVERAGE: bigNumberToWrappedI80F48(20),
-  EMODE_MAX_MAINT_LEVERAGE: bigNumberToWrappedI80F48(40),
+  RISK_ADMIN: new PublicKey("CNHBsXx4pej97awWEWijwZN2SRboA784zonUy1Cxs6cP"),
+  // EMODE_MAX_INIT_LEVERAGE: bigNumberToWrappedI80F48(20),
+  // EMODE_MAX_MAINT_LEVERAGE: bigNumberToWrappedI80F48(40),
 
   MULTISIG: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
@@ -78,6 +80,9 @@ async function main() {
   if (config.CURVE_ADMIN) {
     console.log("setting curve admin to: " + config.CURVE_ADMIN.toString());
   }
+  if (config.FLOW_ADMIN) {
+    console.log("setting flow admin to: " + config.FLOW_ADMIN.toString());
+  }
   if (config.LIMIT_ADMIN) {
     console.log("setting limit admin to: " + config.LIMIT_ADMIN.toString());
   }
@@ -92,7 +97,7 @@ async function main() {
   }
 
   let groupBefore = await program.account.marginfiGroup.fetch(config.GROUP);
-  // console.log("Current risk admin:", groupBefore.riskAdmin.toString());
+  console.log("Current risk admin:", groupBefore.riskAdmin.toString());
 
   const transaction = new Transaction();
   transaction.add(
@@ -101,6 +106,7 @@ async function main() {
         config.ADMIN_GENERAL ?? groupBefore.admin,
         config.EMODE_ADMIN ?? groupBefore.emodeAdmin,
         config.CURVE_ADMIN ?? groupBefore.delegateCurveAdmin,
+        config.FLOW_ADMIN ?? groupBefore.delegateFlowAdmin,
         config.LIMIT_ADMIN ?? groupBefore.delegateLimitAdmin,
         config.EMISS_ADMIN ?? groupBefore.delegateEmissionsAdmin,
         config.META_ADMIN ?? groupBefore.metadataAdmin,
@@ -140,6 +146,12 @@ async function main() {
         groupAfter.delegateCurveAdmin +
         " was " +
         groupBefore.delegateCurveAdmin,
+    );
+    console.log(
+      "new curve admin: " +
+        groupAfter.delegateFlowAdmin +
+        " was " +
+        groupBefore.delegateFlowAdmin,
     );
     console.log(
       "new limit admin: " +
