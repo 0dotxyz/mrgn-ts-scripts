@@ -55,7 +55,7 @@ const config: Config = {
   // LIMIT_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // EMISS_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // META_ADMIN: new PublicKey("B2QBNiT857wyU56jffuy5i7YPpLC9eUwJ99CzJt52RN9"),
-  RISK_ADMIN: new PublicKey("CNHBsXx4pej97awWEWijwZN2SRboA784zonUy1Cxs6cP"),
+  RISK_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
   // EMODE_MAX_INIT_LEVERAGE: bigNumberToWrappedI80F48(20),
   // EMODE_MAX_MAINT_LEVERAGE: bigNumberToWrappedI80F48(40),
 
