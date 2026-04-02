@@ -20,8 +20,8 @@ type Config = {
   ADMIN_GENERAL?: PublicKey;
   EMODE_ADMIN?: PublicKey;
   CURVE_ADMIN?: PublicKey;
-  FLOW_ADMIN?: PublicKey;
   LIMIT_ADMIN?: PublicKey;
+  FLOW_ADMIN?: PublicKey;
   EMISS_ADMIN?: PublicKey;
   META_ADMIN?: PublicKey;
   RISK_ADMIN?: PublicKey;
@@ -80,11 +80,11 @@ async function main() {
   if (config.CURVE_ADMIN) {
     console.log("setting curve admin to: " + config.CURVE_ADMIN.toString());
   }
-  if (config.FLOW_ADMIN) {
-    console.log("setting flow admin to: " + config.FLOW_ADMIN.toString());
-  }
   if (config.LIMIT_ADMIN) {
     console.log("setting limit admin to: " + config.LIMIT_ADMIN.toString());
+  }
+  if (config.FLOW_ADMIN) {
+    console.log("setting flow admin to: " + config.FLOW_ADMIN.toString());
   }
   if (config.EMISS_ADMIN) {
     console.log("setting emiss admin to: " + config.EMISS_ADMIN.toString());
@@ -106,8 +106,8 @@ async function main() {
         config.ADMIN_GENERAL ?? groupBefore.admin,
         config.EMODE_ADMIN ?? groupBefore.emodeAdmin,
         config.CURVE_ADMIN ?? groupBefore.delegateCurveAdmin,
-        config.FLOW_ADMIN ?? groupBefore.delegateFlowAdmin,
         config.LIMIT_ADMIN ?? groupBefore.delegateLimitAdmin,
+        config.FLOW_ADMIN ?? groupBefore.delegateFlowAdmin,
         config.EMISS_ADMIN ?? groupBefore.delegateEmissionsAdmin,
         config.META_ADMIN ?? groupBefore.metadataAdmin,
         config.RISK_ADMIN ?? groupBefore.riskAdmin,
@@ -148,16 +148,16 @@ async function main() {
         groupBefore.delegateCurveAdmin,
     );
     console.log(
-      "new curve admin: " +
-        groupAfter.delegateFlowAdmin +
-        " was " +
-        groupBefore.delegateFlowAdmin,
-    );
-    console.log(
       "new limit admin: " +
         groupAfter.delegateLimitAdmin +
         " was " +
         groupBefore.delegateLimitAdmin,
+    );
+    console.log(
+      "new flow admin: " +
+        groupAfter.delegateFlowAdmin +
+        " was " +
+        groupBefore.delegateFlowAdmin,
     );
     console.log(
       "new emiss admin: " +
