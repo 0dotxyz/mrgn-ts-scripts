@@ -34,7 +34,8 @@ export type Config = {
   /**
    * Array of banks and their corresponding config overrides.
    */
-  BANKS: BankConfigPair[];
+  BANKS: PublicKey[];
+  CONFIG: BankConfigOptRaw;
 };
 
 const config: Config = {
@@ -44,41 +45,45 @@ const config: Config = {
 
   LUT: new PublicKey("CQ8omkUwDtsszuJLo9grtXCeEyDU4QqBLRv9AjRDaUZ3"),
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-
-  // One tx per entry in this array:
   BANKS: [
-    {
-      bank: new PublicKey("4YPGUhxmAXgoGDRkg68zGnbGrV2xCgaoqQSfcZCjFhon"),
-      config: {
-        assetWeightInit: null,
-        assetWeightMaint: null,
-        liabilityWeightInit: null,
-        liabilityWeightMaint: null,
-        depositLimit: new BN(3750000000000),
-        borrowLimit: null,
-        riskTier: null,
-        assetTag: null,
-        totalAssetValueInitLimit: null,
-        interestRateConfig: {
-          protocolOriginationFee: null,
-          protocolIrFee: null,
-          protocolFixedFeeApr: null,
-          insuranceIrFee: null,
-          insuranceFeeFixedApr: null,
-          zeroUtilRate: null,
-          hundredUtilRate: null,
-          points: null,
-        },
-        operationalState: { reduceOnly: {} },
-        oracleMaxAge: null,
-        oracleMaxConfidence: null,
-        permissionlessBadDebtSettlement: null,
-        freezeSettings: null,
-        tokenlessRepaymentsAllowed: null,
-      },
-    },
-    // Add more { bank, config: bankConfigOptForThatBank() } as needed
+    new PublicKey("5GZmPEr6czroe3ax29D2FHyKuT64ixj5evB2NqWjUk1d"),
+    new PublicKey("8yH6soQM2SUFjkRQiBo5UDLbLTWPCYEsyT22Xdi1sfh7"),
+    new PublicKey("BYZ4ZPjNw8Ha2o6DcNLUPfmuuacTno9j135XeYRubHfA"),
+    new PublicKey("BpEDE4y44E3JYhNoRycxiPxr4UnhtG5qAKX5AVtG7Wp5"),
+    new PublicKey("BsvoBGsejZTbkUckZtdQDav3PGvbatCoZTfJgB48CsCK"),
+    new PublicKey("CwbdVVmGfR4H9bQ39vmeKjt9Gd128iFGrc9Jvht2oPx6"),
+    new PublicKey("FKrkgcTCduBvnitwqg5GPnfK7M4aBNuZDjZZeeUhz7Uv"),
+    new PublicKey("HSWzj4oipYaMD7DtpiFcBs3oH5ZwDp4PUTtzPCJNMSd4"),
+    new PublicKey("2D1dc9jo8CNjgVG4qTKpRuGA83zrXv9iuSHV9BWZ7Js9"),
   ],
+
+  CONFIG: {
+    assetWeightInit: null,
+    assetWeightMaint: null,
+    liabilityWeightInit: null,
+    liabilityWeightMaint: null,
+    depositLimit: null,
+    borrowLimit: null,
+    riskTier: null,
+    assetTag: null,
+    totalAssetValueInitLimit: null,
+    interestRateConfig: {
+      protocolOriginationFee: null,
+      protocolIrFee: null,
+      protocolFixedFeeApr: null,
+      insuranceIrFee: null,
+      insuranceFeeFixedApr: null,
+      zeroUtilRate: null,
+      hundredUtilRate: null,
+      points: null,
+    },
+    operationalState: null,
+    oracleMaxAge: null,
+    oracleMaxConfidence: null,
+    permissionlessBadDebtSettlement: null,
+    freezeSettings: null,
+    tokenlessRepaymentsAllowed: true,
+  },
 };
 
 export function bankConfigOptDefault(): BankConfigOptRaw {
@@ -148,7 +153,7 @@ export async function configBank(
   }
 
   for (let i = 0; i < config.BANKS.length; i++) {
-    const entry = config.BANKS[i];
+    const bank = config.BANKS[i];
 
     // Choose payer: if broadcasting now, use the local wallet; otherwise, use multisig payer.
     const payerKey = sendTx
@@ -162,9 +167,9 @@ export async function configBank(
       await connection.getLatestBlockhash();
 
     const ix = await program.methods
-      .lendingPoolConfigureBank(entry.config)
+      .lendingPoolConfigureBank(config.CONFIG)
       .accounts({
-        bank: entry.bank,
+        bank,
       })
       .accountsPartial({
         admin: config.ADMIN,
