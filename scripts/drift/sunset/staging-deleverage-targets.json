@@ -1,0 +1,255 @@
+{
+  "group": "ERBiJdWtnVBBd4gFm7YVHT3a776x5NbGbJBR5BDvsxtj",
+  "driftBanks": [
+    {
+      "address": "5kW3rsj6XoB2VsE7RdGkmWMo4wQy5ZgLNcH3CFRHEq7J",
+      "mint": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+      "mintDecimals": 9,
+      "oracle": "Fixed",
+      "state": "Operational",
+      "totalAssetShares": "0",
+      "flags": "16",
+      "lendingPositionCount": 0
+    },
+    {
+      "address": "73PAdXZSH7s89QBLUHntp12QaHWqdc6GChCYLSVF1RBJ",
+      "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "mintDecimals": 9,
+      "oracle": "Fixed",
+      "state": "Operational",
+      "totalAssetShares": "7152370633",
+      "flags": "16",
+      "lendingPositionCount": 1
+    },
+    {
+      "address": "7TduwJSpq2zhPguaciA3GADsnspwSx6FQjZUhy37Jtgz",
+      "mint": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+      "mintDecimals": 9,
+      "oracle": "DriftPythPull",
+      "state": "Operational",
+      "totalAssetShares": "0",
+      "flags": "16",
+      "lendingPositionCount": 0
+    },
+    {
+      "address": "7iPsp3XiMFe3yJppCzSj7dLhkhnejm8id2ejBBoW4RgW",
+      "mint": "bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1",
+      "mintDecimals": 9,
+      "oracle": "DriftPythPull",
+      "state": "Operational",
+      "totalAssetShares": "0",
+      "flags": "16",
+      "lendingPositionCount": 0
+    },
+    {
+      "address": "8txe1gXz2yGGsy22NAtimJnCM4ivDQSQAf5kz2VZJsRR",
+      "mint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+      "mintDecimals": 9,
+      "oracle": "Fixed",
+      "state": "Operational",
+      "totalAssetShares": "8138525300",
+      "flags": "16",
+      "lendingPositionCount": 1
+    },
+    {
+      "address": "BWAm7qFe3uQ3mEzuJNU8umCjKBMvsMr3AiFKGowiD5B8",
+      "mint": "So11111111111111111111111111111111111111112",
+      "mintDecimals": 9,
+      "oracle": "DriftPythPull",
+      "state": "Operational",
+      "totalAssetShares": "0",
+      "flags": "16",
+      "lendingPositionCount": 0
+    },
+    {
+      "address": "H2FT24RksVSq6kxhfPZacyqbEaXUtRZNi1QvMGV9RrFX",
+      "mint": "So11111111111111111111111111111111111111112",
+      "mintDecimals": 9,
+      "oracle": "DriftPythPull",
+      "state": "Operational",
+      "totalAssetShares": "10090218",
+      "flags": "16",
+      "lendingPositionCount": 2
+    }
+  ],
+  "affectedAccounts": [
+    {
+      "address": "4PfteTYTBPQyNaEygBiqRjAcuDKevbDz4qCdkXjy9988",
+      "authority": "6QXw5bWtMcHBVPoqedh7hdwnetfQyKSZ19Vh1xrCvmym",
+      "group": "ERBiJdWtnVBBd4gFm7YVHT3a776x5NbGbJBR5BDvsxtj",
+      "flags": "0",
+      "positions": [
+        {
+          "bankPk": "8txe1gXz2yGGsy22NAtimJnCM4ivDQSQAf5kz2VZJsRR",
+          "mint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+          "assetTag": 4,
+          "isDrift": true,
+          "oracle": "Fixed",
+          "assetShares": "8138525300",
+          "liabilityShares": "0",
+          "depositAmount": 8.1385253,
+          "borrowAmount": 0
+        },
+        {
+          "bankPk": "73PAdXZSH7s89QBLUHntp12QaHWqdc6GChCYLSVF1RBJ",
+          "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "assetTag": 4,
+          "isDrift": true,
+          "oracle": "Fixed",
+          "assetShares": "7152370633",
+          "liabilityShares": "0",
+          "depositAmount": 7.152370633,
+          "borrowAmount": 0
+        },
+        {
+          "bankPk": "2niLzLpnYRh7Xf7YLzhX7rxfUn41T3FzPTEgPtAkyRiJ",
+          "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "assetTag": 0,
+          "isDrift": false,
+          "oracle": "PythPushOracle",
+          "assetShares": "0",
+          "liabilityShares": "9999.451730291086943",
+          "depositAmount": 0,
+          "borrowAmount": 0.010000322128666002
+        }
+      ]
+    },
+    {
+      "address": "69hytF6JSbVJpQGmQUwj5Bhjn18H5BM7GwsQ8aW6PTYd",
+      "authority": "feede7jEz2zbghUCaxXq9FDfJcnJdZ3sARNwrJKmMTm",
+      "group": "ERBiJdWtnVBBd4gFm7YVHT3a776x5NbGbJBR5BDvsxtj",
+      "flags": "0",
+      "positions": [
+        {
+          "bankPk": "H2FT24RksVSq6kxhfPZacyqbEaXUtRZNi1QvMGV9RrFX",
+          "mint": "So11111111111111111111111111111111111111112",
+          "assetTag": 4,
+          "isDrift": true,
+          "oracle": "DriftPythPull",
+          "assetShares": "833723",
+          "liabilityShares": "0",
+          "depositAmount": 0.000833723,
+          "borrowAmount": 0
+        },
+        {
+          "bankPk": "4iApZwbuTCkxgeg67sQsvSAPxWdWkkT5XVgv3R29s6JU",
+          "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "assetTag": 3,
+          "isDrift": false,
+          "oracle": "KaminoPythPush",
+          "assetShares": "4550361",
+          "liabilityShares": "0",
+          "depositAmount": 4.550361,
+          "borrowAmount": 0
+        },
+        {
+          "bankPk": "2niLzLpnYRh7Xf7YLzhX7rxfUn41T3FzPTEgPtAkyRiJ",
+          "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "assetTag": 0,
+          "isDrift": false,
+          "oracle": "PythPushOracle",
+          "assetShares": "0",
+          "liabilityShares": "9999.129629662202493",
+          "depositAmount": 0,
+          "borrowAmount": 0.009999999999999995
+        }
+      ]
+    },
+    {
+      "address": "98X6PB5yrje9MFntmGJT56otAC5ZkWhcLnfpw3Ve3djD",
+      "authority": "mfi9ydRxCS4t69BohndhYqUSGLq1bsAVg1fRhHTBNbp",
+      "group": "ERBiJdWtnVBBd4gFm7YVHT3a776x5NbGbJBR5BDvsxtj",
+      "flags": "0",
+      "positions": [
+        {
+          "bankPk": "J7tLRtFsqYACaoANgDVaArihQwCt5umhkoULbqr3M23X",
+          "mint": "So11111111111111111111111111111111111111112",
+          "assetTag": 0,
+          "isDrift": false,
+          "oracle": "PythPushOracle",
+          "assetShares": "50999878.096692842570466",
+          "liabilityShares": "0",
+          "depositAmount": 0.05100000243807208,
+          "borrowAmount": 0
+        },
+        {
+          "bankPk": "H2FT24RksVSq6kxhfPZacyqbEaXUtRZNi1QvMGV9RrFX",
+          "mint": "So11111111111111111111111111111111111111112",
+          "assetTag": 4,
+          "isDrift": true,
+          "oracle": "DriftPythPull",
+          "assetShares": "9256495",
+          "liabilityShares": "0",
+          "depositAmount": 0.009256495,
+          "borrowAmount": 0
+        },
+        {
+          "bankPk": "DbBEA9j25DqfUHi4W48hXcuS8JVxGUASjcaLo8pYfsaC",
+          "mint": "So11111111111111111111111111111111111111112",
+          "assetTag": 3,
+          "isDrift": false,
+          "oracle": "KaminoPythPush",
+          "assetShares": "909523",
+          "liabilityShares": "0",
+          "depositAmount": 0.000909523,
+          "borrowAmount": 0
+        },
+        {
+          "bankPk": "AH3mAxhpvYXrfL4rWspN716eiUukPqWjMqVx3TiFGhHu",
+          "mint": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+          "assetTag": 0,
+          "isDrift": false,
+          "oracle": "PythPushOracle",
+          "assetShares": "205171",
+          "liabilityShares": "0",
+          "depositAmount": 0.000205171,
+          "borrowAmount": 0
+        },
+        {
+          "bankPk": "54BbBaVDni5Eoy5AmDQ7rmXsmeeT4ginaj9PcQaZhanV",
+          "mint": "So11111111111111111111111111111111111111112",
+          "assetTag": 3,
+          "isDrift": false,
+          "oracle": "KaminoSwitchboardPull",
+          "assetShares": "945058",
+          "liabilityShares": "0",
+          "depositAmount": 0.000945058,
+          "borrowAmount": 0
+        },
+        {
+          "bankPk": "4iApZwbuTCkxgeg67sQsvSAPxWdWkkT5XVgv3R29s6JU",
+          "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "assetTag": 3,
+          "isDrift": false,
+          "oracle": "KaminoPythPush",
+          "assetShares": "94939",
+          "liabilityShares": "0",
+          "depositAmount": 0.094939,
+          "borrowAmount": 0
+        },
+        {
+          "bankPk": "2xSD6DiLxEweueLmgJyYKJmLXJXqguqEn4VPERHdsVRY",
+          "mint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+          "assetTag": 0,
+          "isDrift": false,
+          "oracle": "PythPushOracle",
+          "assetShares": "4137071",
+          "liabilityShares": "0",
+          "depositAmount": 4.137071,
+          "borrowAmount": 0
+        },
+        {
+          "bankPk": "2niLzLpnYRh7Xf7YLzhX7rxfUn41T3FzPTEgPtAkyRiJ",
+          "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "assetTag": 0,
+          "isDrift": false,
+          "oracle": "PythPushOracle",
+          "assetShares": "1000000",
+          "liabilityShares": "0",
+          "depositAmount": 1.000013066806691,
+          "borrowAmount": 0
+        }
+      ]
+    }
+  ]
+}

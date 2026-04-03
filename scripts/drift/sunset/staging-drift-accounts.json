@@ -1,0 +1,1715 @@
+[
+  {
+    "address": "4PfteTYTBPQyNaEygBiqRjAcuDKevbDz4qCdkXjy9988",
+    "group": "ERBiJdWtnVBBd4gFm7YVHT3a776x5NbGbJBR5BDvsxtj",
+    "authority": "6QXw5bWtMcHBVPoqedh7hdwnetfQyKSZ19Vh1xrCvmym",
+    "lending_account": {
+      "balances": [
+        {
+          "active": 1,
+          "bank_pk": "8txe1gXz2yGGsy22NAtimJnCM4ivDQSQAf5kz2VZJsRR",
+          "bank_asset_tag": 4,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "8138525300",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "1762730089",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 1,
+          "bank_pk": "73PAdXZSH7s89QBLUHntp12QaHWqdc6GChCYLSVF1RBJ",
+          "bank_asset_tag": 4,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "7152370633",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "1762730262",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 1,
+          "bank_pk": "2niLzLpnYRh7Xf7YLzhX7rxfUn41T3FzPTEgPtAkyRiJ",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "9999.451730291086943",
+          "emissions_outstanding": "0",
+          "last_update": "1762729151",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        }
+      ],
+      "last_tag_used": 0,
+      "_pad1": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "_padding": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ]
+    },
+    "account_flags": "0",
+    "emissions_destination_account": "11111111111111111111111111111111",
+    "health_cache": {
+      "asset_value": "17.45549580514653",
+      "liability_value": "0.0110135249796",
+      "asset_value_maint": "0",
+      "liability_value_maint": "0",
+      "asset_value_equity": "0",
+      "liability_value_equity": "0",
+      "timestamp": "1762730262",
+      "flags": 3,
+      "mrgn_err": 0,
+      "prices": [
+        [
+          176,
+          100,
+          49,
+          4,
+          212,
+          161,
+          241,
+          63
+        ],
+        [
+          96,
+          112,
+          208,
+          250,
+          45,
+          252,
+          242,
+          63
+        ],
+        [
+          208,
+          208,
+          24,
+          69,
+          9,
+          5,
+          240,
+          63
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "internal_err": 0,
+      "err_index": 0,
+      "program_version": 3,
+      "pad0": [
+        0,
+        0
+      ],
+      "internal_liq_err": 0,
+      "internal_bankruptcy_err": 0,
+      "reserved0": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reserved1": "0"
+    },
+    "migrated_from": "11111111111111111111111111111111",
+    "migrated_to": "11111111111111111111111111111111",
+    "last_update": "1762729151",
+    "account_index": 0,
+    "third_party_index": 0,
+    "bump": 0,
+    "_pad0": [
+      0,
+      0,
+      0
+    ],
+    "liquidation_record": "11111111111111111111111111111111",
+    "_padding0": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "address": "69hytF6JSbVJpQGmQUwj5Bhjn18H5BM7GwsQ8aW6PTYd",
+    "group": "ERBiJdWtnVBBd4gFm7YVHT3a776x5NbGbJBR5BDvsxtj",
+    "authority": "feede7jEz2zbghUCaxXq9FDfJcnJdZ3sARNwrJKmMTm",
+    "lending_account": {
+      "balances": [
+        {
+          "active": 1,
+          "bank_pk": "H2FT24RksVSq6kxhfPZacyqbEaXUtRZNi1QvMGV9RrFX",
+          "bank_asset_tag": 4,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "833723",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "1764161636",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 1,
+          "bank_pk": "4iApZwbuTCkxgeg67sQsvSAPxWdWkkT5XVgv3R29s6JU",
+          "bank_asset_tag": 3,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "4550361",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "1760095873",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 1,
+          "bank_pk": "2niLzLpnYRh7Xf7YLzhX7rxfUn41T3FzPTEgPtAkyRiJ",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "9999.129629662202493",
+          "emissions_outstanding": "0",
+          "last_update": "1764162064",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        }
+      ],
+      "last_tag_used": 0,
+      "_pad1": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "_padding": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ]
+    },
+    "account_flags": "0",
+    "emissions_destination_account": "11111111111111111111111111111111",
+    "health_cache": {
+      "asset_value": "3.175374581221735",
+      "liability_value": "0.011013297957199",
+      "asset_value_maint": "0",
+      "liability_value_maint": "0",
+      "asset_value_equity": "0",
+      "liability_value_equity": "0",
+      "timestamp": "1764162694",
+      "flags": 3,
+      "mrgn_err": 0,
+      "prices": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          32,
+          175,
+          0,
+          216,
+          216,
+          155,
+          242,
+          63
+        ],
+        [
+          80,
+          196,
+          4,
+          161,
+          243,
+          4,
+          240,
+          63
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "internal_err": 6322,
+      "err_index": 0,
+      "program_version": 3,
+      "pad0": [
+        0,
+        0
+      ],
+      "internal_liq_err": 0,
+      "internal_bankruptcy_err": 0,
+      "reserved0": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reserved1": "0"
+    },
+    "migrated_from": "11111111111111111111111111111111",
+    "migrated_to": "11111111111111111111111111111111",
+    "last_update": "1764162694",
+    "account_index": 0,
+    "third_party_index": 0,
+    "bump": 0,
+    "_pad0": [
+      0,
+      0,
+      0
+    ],
+    "liquidation_record": "11111111111111111111111111111111",
+    "_padding0": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "address": "98X6PB5yrje9MFntmGJT56otAC5ZkWhcLnfpw3Ve3djD",
+    "group": "ERBiJdWtnVBBd4gFm7YVHT3a776x5NbGbJBR5BDvsxtj",
+    "authority": "mfi9ydRxCS4t69BohndhYqUSGLq1bsAVg1fRhHTBNbp",
+    "lending_account": {
+      "balances": [
+        {
+          "active": 1,
+          "bank_pk": "J7tLRtFsqYACaoANgDVaArihQwCt5umhkoULbqr3M23X",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "50999878.096692842570466",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "1764598240",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 1,
+          "bank_pk": "H2FT24RksVSq6kxhfPZacyqbEaXUtRZNi1QvMGV9RrFX",
+          "bank_asset_tag": 4,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "9256495",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "1764597833",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 1,
+          "bank_pk": "DbBEA9j25DqfUHi4W48hXcuS8JVxGUASjcaLo8pYfsaC",
+          "bank_asset_tag": 3,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "909523",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "1759844101",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 1,
+          "bank_pk": "AH3mAxhpvYXrfL4rWspN716eiUukPqWjMqVx3TiFGhHu",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "205171",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "1760099258",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 1,
+          "bank_pk": "54BbBaVDni5Eoy5AmDQ7rmXsmeeT4ginaj9PcQaZhanV",
+          "bank_asset_tag": 3,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "945058",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "1759922936",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 1,
+          "bank_pk": "4iApZwbuTCkxgeg67sQsvSAPxWdWkkT5XVgv3R29s6JU",
+          "bank_asset_tag": 3,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "94939",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "1760095726",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 1,
+          "bank_pk": "2xSD6DiLxEweueLmgJyYKJmLXJXqguqEn4VPERHdsVRY",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "4137071",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "1760099229",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 1,
+          "bank_pk": "2niLzLpnYRh7Xf7YLzhX7rxfUn41T3FzPTEgPtAkyRiJ",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "1000000",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "1759958429",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        },
+        {
+          "active": 0,
+          "bank_pk": "11111111111111111111111111111111",
+          "bank_asset_tag": 0,
+          "tag": 0,
+          "_pad0": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "asset_shares": "0",
+          "liability_shares": "0",
+          "emissions_outstanding": "0",
+          "last_update": "0",
+          "_padding": [
+            "0"
+          ]
+        }
+      ],
+      "last_tag_used": 0,
+      "_pad1": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "_padding": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ]
+    },
+    "account_flags": "0",
+    "emissions_destination_account": "11111111111111111111111111111111",
+    "health_cache": {
+      "asset_value": "0",
+      "liability_value": "0",
+      "asset_value_maint": "0",
+      "liability_value_maint": "0",
+      "asset_value_equity": "0",
+      "liability_value_equity": "0",
+      "timestamp": "0",
+      "flags": 0,
+      "mrgn_err": 0,
+      "prices": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "internal_err": 0,
+      "err_index": 0,
+      "program_version": 0,
+      "pad0": [
+        0,
+        0
+      ],
+      "internal_liq_err": 0,
+      "internal_bankruptcy_err": 0,
+      "reserved0": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reserved1": "0"
+    },
+    "migrated_from": "11111111111111111111111111111111",
+    "migrated_to": "11111111111111111111111111111111",
+    "last_update": "1764598240",
+    "account_index": 0,
+    "third_party_index": 0,
+    "bump": 0,
+    "_pad0": [
+      0,
+      0,
+      0
+    ],
+    "liquidation_record": "11111111111111111111111111111111",
+    "_padding0": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  }
+]
