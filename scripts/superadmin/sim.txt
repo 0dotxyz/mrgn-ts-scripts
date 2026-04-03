@@ -1,0 +1,73 @@
+Transaction Simulation
+#1
+Compute Budget Instruction
+> Program returned success
+#2
+Compute Budget Instruction
+> Program returned success
+#3
+Associated Token Instruction
+> Program logged: "CreateIdempotent"
+> Program invoked: Token Program
+  > Program logged: "Instruction: GetAccountDataSize"
+  > Program consumed: 1595 of 1394215 compute units
+  > Program return: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA pQAAAAAAAAA=
+  > Program returned success
+> Program invoked: System Program
+  > Program returned success
+> Program logged: "Initialize the associated token account"
+> Program invoked: Token Program
+  > Program logged: "Instruction: InitializeImmutableOwner"
+  > Program logged: "Please upgrade to SPL Token 2022 for immutable owner support"
+  > Program consumed: 1405 of 1387654 compute units
+  > Program returned success
+> Program invoked: Token Program
+  > Program logged: "Instruction: InitializeAccount3"
+  > Program consumed: 4214 of 1383767 compute units
+  > Program returned success
+> Program consumed: 20451 of 1399700 compute units
+> Program returned success
+#4
+Instruction
+> Program logged: "Instruction: SuperAdminWithdraw"
+> Program data: aHW7nG+aaroAORQvaC/YOISW7L1RBvFceUwkd0M4KPpmQtvr9yADSmGgi7kg6QwksIMyBctMIHOOhHMVhM5xXDloPf3nOKItG/zRQemDLK8QrZF0lcoPJxtbKTzUcCfqc3AH7UDrOaC9xp4AAAAAAAD1Uou5XXGcQQAAAAAAAAAA
+> Program invoked: Token Program
+  > Program logged: "Instruction: Transfer"
+  > Program consumed: 4645 of 1346642 compute units
+  > Program returned success
+> Program data: a6jotZCh/CUBq4O/zg5hoaIzYyukz7q/gSuAI8ryvn34CXK/yf8ydUA5FC9oL9g4hJbsvVEG8Vx5TCR3Qzgo+mZC2+v3IANKYaCLuSDpDCSwgzIFy0wgc46EcxWEznFcOWg9/ec4oi0b/NFB6YMsrxCtkXSVyg8nG1spPNRwJ+pzcAftQOs5oL0AgLk93AEAAA==
+> Program consumed: 53050 of 1379193 compute units
+> Program returned success
+#5
+Associated Token Instruction
+> Program logged: "CreateIdempotent"
+> Program invoked: Token Program
+  > Program logged: "Instruction: GetAccountDataSize"
+  > Program consumed: 1595 of 1320602 compute units
+  > Program return: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA pQAAAAAAAAA=
+  > Program returned success
+> Program invoked: System Program
+  > Program returned success
+> Program logged: "Initialize the associated token account"
+> Program invoked: Token Program
+  > Program logged: "Instruction: InitializeImmutableOwner"
+  > Program logged: "Please upgrade to SPL Token 2022 for immutable owner support"
+  > Program consumed: 1405 of 1314041 compute units
+  > Program returned success
+> Program invoked: Token Program
+  > Program logged: "Instruction: InitializeAccount3"
+  > Program consumed: 4214 of 1310154 compute units
+  > Program returned success
+> Program consumed: 20451 of 1326087 compute units
+> Program returned success
+#6
+Instruction
+> Program logged: "Instruction: SuperAdminWithdraw"
+> Program data: aHW7nG+aaroAORQvaC/YOISW7L1RBvFceUwkd0M4KPpmQtvr9yADSmEPK4hhYu/JTISnYg6QXIlI+vVY8D19B7BtE1AwhI8iPwtiugdPciydQRTy2PcKAMZgAjN7m/kMhzZXptIB20yAWwUAAAAAAABLx3J3xF1EQQAAAAAAAAAA
+> Program invoked: Token Program
+  > Program logged: "Instruction: Transfer"
+  > Program consumed: 4645 of 1273237 compute units
+  > Program returned success
+> Program data: a6jotZCh/CUBq4O/zg5hoaIzYyukz7q/gSuAI8ryvn34CXK/yf8ydUA5FC9oL9g4hJbsvVEG8Vx5TCR3Qzgo+mZC2+v3IANKYQ8riGFi78lMhKdiDpBciUj69VjwPX0HsG0TUDCEjyI/C2K6B09yLJ1BFPLY9woAxmACM3ub+QyHNlem0gHbTICA6/yAFQEAAA==
+> Program consumed: 52846 of 1305580 compute units
+> Program returned success

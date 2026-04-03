@@ -118,6 +118,7 @@
 - WIF (swb) - 6B23K3tkb51vLZA14jcEQVCA1pfHptzEHFA93V5dYwbT
 - DUST (swb) - EmCZsrNqQEqsfafK4j4uRFjGvpUeMS5B2uDR9uc3wBMY
 - UXD (swb) - CoEDGeYda7Mi6c1BAsHE2LL6zEVcitX43wPABSLgQfpB
+- USD\* (swb) - 3xjjfYi2o2nN4w6Jhf3Cf66BgYzMtYqhXojYTgwJMCQq
 
 ## GLOBAL FEE STATE
 
@@ -175,6 +176,9 @@ particular organization.
 
   3XpcTktgNzeMv2ATg4Y6yLgE5Wfxebcb8Tb9zj755PhH (owned by
   FDr3iLdfyyzMmge9rN5sqQ38PgbrXY94VDW726EUN2kK) - mostly juplend accounts to init banks
+
+  inzqinzgHh3muPvSWLqtabt9MJayhVVfTm2eE87RTfC - (owned by
+  FDr3iLdfyyzMmge9rN5sqQ38PgbrXY94VDW726EUN2kK mostly Drift stuff)
 
 ## DESTROYED ACCOUNTS
 
