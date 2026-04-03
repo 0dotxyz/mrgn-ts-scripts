@@ -3,7 +3,7 @@ import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { commonSetup } from "../lib/common-setup";
 import { u32ToUtil } from "../lib/utils";
 
-const printBanks: boolean = false;
+const printBanks: boolean = true;
 
 type Config = {
   PROGRAM_ID: string;
@@ -11,8 +11,8 @@ type Config = {
 };
 
 const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  GROUP: new PublicKey("Diu1q9gniR1qR4Daaej3rcHd6949HMmxLGsnQ94Z3rLz"),
+  PROGRAM_ID: "5UDghkpgW1HfYSrmEj2iAApHShqU44H6PKTAar9LL9bY",
+  GROUP: new PublicKey("ERBiJdWtnVBBd4gFm7YVHT3a776x5NbGbJBR5BDvsxtj"),
 };
 
 async function main() {
