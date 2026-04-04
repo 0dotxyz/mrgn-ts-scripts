@@ -15,7 +15,7 @@ type Config = {
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  BANK: new PublicKey("HSWzj4oipYaMD7DtpiFcBs3oH5ZwDp4PUTtzPCJNMSd4"),
+  BANK: new PublicKey("DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM"),
   ONLY_LIABS: false,
 };
 
