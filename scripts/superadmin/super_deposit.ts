@@ -4,12 +4,16 @@ import {
   AccountMeta,
   AddressLookupTableAccount,
   PublicKey,
+  SystemProgram,
   TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
 import {
+  createAssociatedTokenAccountIdempotentInstruction,
+  createSyncNativeInstruction,
   getAssociatedTokenAddressSync,
+  NATIVE_MINT,
   TOKEN_2022_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
 import Decimal from "decimal.js";
@@ -56,6 +60,13 @@ type BankOnChainContext = {
   adminTokenAccount: PublicKey;
   liquidityVault: PublicKey;
   remainingAccounts: AccountMeta[];
+};
+
+type AtaBalanceSnapshot = {
+  exists: boolean;
+  amountNative: string;
+  amountToken: string;
+  decimals: number;
 };
 
 function parseCsvLine(line: string): string[] {
@@ -167,6 +178,36 @@ async function fetchLutOrThrow(
   return lookup.value;
 }
 
+async function readAtaBalance(
+  connection: ReturnType<typeof commonSetup>["connection"],
+  ata: PublicKey,
+  decimalsHint: number,
+): Promise<AtaBalanceSnapshot> {
+  const ataInfo = await connection.getAccountInfo(ata);
+  if (!ataInfo) {
+    return {
+      exists: false,
+      amountNative: "0",
+      amountToken: "0",
+      decimals: decimalsHint,
+    };
+  }
+
+  const balance = await connection.getTokenAccountBalance(ata);
+  const decimals = balance.value.decimals;
+  const amountNative = balance.value.amount;
+  const amountToken =
+    balance.value.uiAmountString ??
+    new Decimal(amountNative).div(new Decimal(10).pow(decimals)).toString();
+
+  return {
+    exists: true,
+    amountNative,
+    amountToken,
+    decimals,
+  };
+}
+
 function buildDepositPlan(csvRows: Record<string, string>[]): ParsedDepositRow[] {
   const out: ParsedDepositRow[] = [];
 
@@ -247,6 +288,7 @@ async function main() {
   const lut = await fetchLutOrThrow(connection, config.LUT);
   const batches = chunk(depositPlan, config.BATCH_SIZE);
   const mintOwnerCache = new Map<string, PublicKey>();
+  const ataBalanceCache = new Map<string, AtaBalanceSnapshot>();
 
   for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
     const batch = batches[batchIdx];
@@ -258,6 +300,18 @@ async function main() {
       amount_native: string;
       amount_token: string;
       admin_token_account: string;
+    }> = [];
+    const ataBalanceTable: Array<{
+      bank: string;
+      name: string;
+      mint: string;
+      admin_token_account: string;
+      ata_exists: boolean;
+      ata_amount_native: string;
+      ata_amount_token: string;
+      planned_deposit_native: string;
+      planned_deposit_token: string;
+      sufficient_for_planned_deposit: string;
     }> = [];
 
     for (const item of batch) {
@@ -312,14 +366,77 @@ async function main() {
         );
       }
 
+      if (!item.mint.equals(NATIVE_MINT)) {
+        const ataKey = bankCtx.adminTokenAccount.toBase58();
+        let ataBalance = ataBalanceCache.get(ataKey);
+        if (!ataBalance) {
+          ataBalance = await readAtaBalance(
+            connection,
+            bankCtx.adminTokenAccount,
+            item.decimals,
+          );
+          ataBalanceCache.set(ataKey, ataBalance);
+        }
+
+        const hasEnough =
+          ataBalance.exists &&
+          new BN(ataBalance.amountNative).gte(item.amountNative);
+
+        ataBalanceTable.push({
+          bank: item.bank.toBase58(),
+          name: item.name,
+          mint: item.mint.toBase58(),
+          admin_token_account: ataKey,
+          ata_exists: ataBalance.exists,
+          ata_amount_native: ataBalance.amountNative,
+          ata_amount_token: ataBalance.amountToken,
+          planned_deposit_native: item.amountNative.toString(),
+          planned_deposit_token: item.withdrawToken.abs().toString(),
+          sufficient_for_planned_deposit: hasEnough ? "yes" : "no",
+        });
+      }
+
+      if (item.mint.equals(NATIVE_MINT)) {
+        // Ensure WSOL ATA exists and is funded for this deposit amount.
+        const createWsolAtaIx = createAssociatedTokenAccountIdempotentInstruction(
+          sendTx ? user.wallet.publicKey : config.MULTISIG_PAYER,
+          bankCtx.adminTokenAccount,
+          config.ADMIN_SOURCE_WALLET,
+          item.mint,
+          bankCtx.tokenProgram,
+        );
+        ixes.push(createWsolAtaIx);
+        addLutKeysFromIx(createWsolAtaIx, lutKeys);
+
+        if (item.amountNative.gt(new BN(Number.MAX_SAFE_INTEGER.toString()))) {
+          throw new Error(
+            `WSOL wrap amount exceeds JS safe integer: ${item.amountNative.toString()} for bank ${item.bank.toBase58()}`,
+          );
+        }
+
+        const wrapLamportsIx = SystemProgram.transfer({
+          fromPubkey: adminKey,
+          toPubkey: bankCtx.adminTokenAccount,
+          lamports: item.amountNative.toNumber(),
+        });
+        ixes.push(wrapLamportsIx);
+        addLutKeysFromIx(wrapLamportsIx, lutKeys);
+
+        const syncNativeIx = createSyncNativeInstruction(
+          bankCtx.adminTokenAccount,
+        );
+        ixes.push(syncNativeIx);
+        addLutKeysFromIx(syncNativeIx, lutKeys);
+      }
+
       const depositIx = await program.methods
         .superAdminDeposit(item.amountNative)
         .accounts({
-          group: config.GROUP,
-          admin: adminKey,
+          // group: config.GROUP,
+          // admin: adminKey,
           bank: item.bank,
           adminTokenAccount: bankCtx.adminTokenAccount,
-          liquidityVault: bankCtx.liquidityVault,
+          // liquidityVault: bankCtx.liquidityVault,
           tokenProgram: bankCtx.tokenProgram,
         })
         .remainingAccounts(bankCtx.remainingAccounts)
@@ -369,6 +486,10 @@ async function main() {
 
     console.log("\nDeposit amount table (actual native amount passed):");
     console.table(amountTable);
+    console.log(
+      "\nSource ATA balance table (non-SOL mints, read before tx assembly):",
+    );
+    console.table(ataBalanceTable);
 
     console.log("LUT keys (paste into update_lut.ts):");
     Array.from(lutKeys.values()).forEach((key) => {
