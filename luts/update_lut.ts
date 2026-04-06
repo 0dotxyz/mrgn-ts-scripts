@@ -26,23 +26,20 @@ type Config = {
 };
 
 const config: Config = {
-  LUT: new PublicKey("7mTGsbaXnNpdcP2jdStswRx8rdH8cVCdj2xKKENDsJHH"),
+  LUT: new PublicKey("inzqinzgHh3muPvSWLqtabt9MJayhVVfTm2eE87RTfC"),
   KEYS: [
+    new PublicKey("MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA"),
+    new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
+    new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"),
+    new PublicKey("ZtQEme6PSK9P6wNiMzjp6EE8SeiB7bBuT1yHLeS6BrZ"),
+    new PublicKey("3uxNepDbmkDNq6JhRja5Z8QwbTrfmkKP8AKZV5chYDGG"),
+    new PublicKey("7jaiZR5Sk8hdYN9MxTpczTcwbWpb5WEoxSANuUwveuat"),
     new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-    new PublicKey("SysvarRent111111111111111111111111111111111"),
-    // new PublicKey("5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm"),
-    // new PublicKey("CuG9VXiEps4tMdZPzm7x4TJDEtCQNRLBFuyk5GmX4BWg"),
-    // new PublicKey("2qnzecL2r35LM51S9EZVrPcdvCSqsg8r2QWcJJqyDuH3"),
-    // new PublicKey("5zpq7DvB6UdFFvpmBPspGPNfUGoBRRCE2HHg5u3gxcsN"),
-    // new PublicKey("B62ErTornx9tSVwcLwGh9RqvfFCen4cfWkArYdRpRy91"),
-    // new PublicKey("58ACj986huaXwNUHD6YKJ88gZzyUY4rhSTizyaGvnyAy"),
-    // new PublicKey("7SAxf2SCJe5c72rZNo4etpGjz5TaEAqi8QkbfpRbouuT"),
-    // new PublicKey("dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH"),
   ],
 };
 
 async function main() {
-  await updateLut(sendTx, config, "/.config/stage/id.json");
+  await updateLut(sendTx, config, "/.config/solana/id.json");
 }
 
 export async function updateLut(

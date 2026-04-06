@@ -7,7 +7,6 @@ import {
 import { BN } from "@coral-xyz/anchor";
 import {
   bigNumberToWrappedI80F48,
-  getMint,
   TOKEN_2022_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
@@ -16,6 +15,7 @@ import { KaminoConfigCompact, OracleSetupRawWithKamino } from "./kamino-types";
 import { commonSetup } from "../../lib/common-setup";
 import { makeAddKaminoBankIx } from "./ixes-common";
 import { deriveBankWithSeed } from "../common/pdas";
+import { getMint } from "@solana/spl-token";
 
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
@@ -27,7 +27,7 @@ type Config = {
   GROUP_KEY: PublicKey;
   /** For Pyth, This is the feed, and is owned by rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ */
   ORACLE: PublicKey;
-  /** { kaminoPythPush: {} } or  { kaminoSwitchboardPull: {} } */
+  /** { kaminoPythPush: {} } (6) or  { kaminoSwitchboardPull: {} } (7) */
   ORACLE_TYPE: OracleSetupRawWithKamino;
   /** Group admin (generally the MS on mainnet) */
   ADMIN: PublicKey;
@@ -43,27 +43,16 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE_TYPE: { kaminoSwitchboardPull: {} },
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  // USDS
-  // ORACLE: new PublicKey("DyYBBWEi9xZvgNAeMDCiFnmC1U9gqgVsJDXkL5WETpoX"), // usds
-  // BANK_MINT: new PublicKey("USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA"), // usds
-  // KAMINO_RESERVE: new PublicKey("BiSRKTadXSiyTSpiqw9nJge33N32AXewUPY7skFJwMvA"), // usds
-  // KAMINO_MARKET: new PublicKey("6WEGfej9B9wjxRs6t4BYpb9iCXd8CpTpJ8fVSNzHCC5y"), // maple
 
-  // USDC
-  // ORACLE: new PublicKey("Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"), // usdc
-  // BANK_MINT: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), // usdc
-  // KAMINO_RESERVE: new PublicKey("D6q6wuQSrifJKZYpR1M8R4YawnLDtDsMmWM1NbBmgJ59"), // usdc
-  // KAMINO_MARKET: new PublicKey("7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF"), // main
+  // syrupUSDC
+  ORACLE: new PublicKey("7AjwutSAhQkaTqSsMrnWPNrvX97vcAz5FfcCmLfpYaPz"),
+  ORACLE_TYPE: { kaminoSwitchboardPull: {} },
+  BANK_MINT: new PublicKey("AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj"),
+  KAMINO_RESERVE: new PublicKey("AwCyCPZYJSZ93xcVKNK7jR8e1BHzJXq1D4bReNuh9woY"),
+  KAMINO_MARKET: new PublicKey("6WEGfej9B9wjxRs6t4BYpb9iCXd8CpTpJ8fVSNzHCC5y"), // maple
 
-  // STKESOL
-  ORACLE: new PublicKey("HaF6jK16UwZZt9iFXRUqpSMWUFzhUJaU8rmVtXcokoTZ"),
-  BANK_MINT: new PublicKey("stke7uu3fXHsGqKVVjKnkmj65LRPVrqr4bLG2SJg7rh"),
-  KAMINO_RESERVE: new PublicKey("2gFjdQLFaFqTKMv4nFGMAP4bX2F5KAsyiJn8yZQHPKSE"),
-  KAMINO_MARKET: new PublicKey("7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF"),
-
-  SEED: 42,
+  SEED: 33,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
@@ -75,7 +64,6 @@ export async function addKaminoBank(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ): Promise<PublicKey> {
   console.log("adding bank to group: " + config.GROUP_KEY);
   const user = commonSetup(
@@ -83,19 +71,18 @@ export async function addKaminoBank(
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   const program = user.program;
   const connection = user.connection;
 
   const bankConfig: KaminoConfigCompact = {
-    assetWeightInit: bigNumberToWrappedI80F48(0.65),
-    assetWeightMaint: bigNumberToWrappedI80F48(0.8),
-    depositLimit: new BN(2000000 * 10 ** 9),
+    assetWeightInit: bigNumberToWrappedI80F48(0.5),
+    assetWeightMaint: bigNumberToWrappedI80F48(0.6),
+    depositLimit: new BN(1_500_000 * 10 ** 6),
     operationalState: { operational: {} },
     riskTier: { collateral: {} },
-    totalAssetValueInitLimit: new BN(200000000),
-    oracleMaxAge: 70,
+    totalAssetValueInitLimit: new BN(1_500_000),
+    oracleMaxAge: 300,
     oracleMaxConfidence: 0,
     oracle: config.ORACLE,
     oracleSetup: config.ORACLE_TYPE,
@@ -167,6 +154,14 @@ export async function addKaminoBank(
     const base58Transaction = bs58.encode(serializedTransaction);
     console.log("bank key: " + bankKey);
     console.log("Base58-encoded transaction:", base58Transaction);
+    console.log("ALL accounts:");
+    for (let ix of initBankTx.instructions)
+    {
+      for (let account of ix.keys)
+      {
+        console.log(account.pubkey.toString());
+      }
+    }
   }
 
   return bankKey;

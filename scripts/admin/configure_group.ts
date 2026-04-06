@@ -12,7 +12,7 @@ import { utilToU32 } from "../../lib/utils";
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
-const sendTx = false;
+const sendTx = true;
 
 type Config = {
   PROGRAM_ID: string;
@@ -21,6 +21,7 @@ type Config = {
   EMODE_ADMIN?: PublicKey;
   CURVE_ADMIN?: PublicKey;
   LIMIT_ADMIN?: PublicKey;
+  FLOW_ADMIN?: PublicKey;
   EMISS_ADMIN?: PublicKey;
   META_ADMIN?: PublicKey;
   RISK_ADMIN?: PublicKey;
@@ -47,13 +48,14 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  // ADMIN_GENERAL: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  EMODE_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  ADMIN_GENERAL: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  // EMODE_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
   // CURVE_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // LIMIT_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
+  // FLOW_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // EMISS_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // META_ADMIN: new PublicKey("B2QBNiT857wyU56jffuy5i7YPpLC9eUwJ99CzJt52RN9"),
-  RISK_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  // RISK_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   EMODE_MAX_INIT_LEVERAGE: bigNumberToWrappedI80F48(20),
   EMODE_MAX_MAINT_LEVERAGE: bigNumberToWrappedI80F48(40),
 
@@ -66,7 +68,6 @@ async function main() {
     config.PROGRAM_ID,
     "/.keys/zerotrade_admin.json",
     config.MULTISIG,
-    "current",
   );
   const program = user.program;
   const connection = user.connection;
@@ -81,6 +82,9 @@ async function main() {
   }
   if (config.LIMIT_ADMIN) {
     console.log("setting limit admin to: " + config.LIMIT_ADMIN.toString());
+  }
+  if (config.FLOW_ADMIN) {
+    console.log("setting flow admin to: " + config.FLOW_ADMIN.toString());
   }
   if (config.EMISS_ADMIN) {
     console.log("setting emiss admin to: " + config.EMISS_ADMIN.toString());
@@ -103,6 +107,7 @@ async function main() {
         config.EMODE_ADMIN ?? groupBefore.emodeAdmin,
         config.CURVE_ADMIN ?? groupBefore.delegateCurveAdmin,
         config.LIMIT_ADMIN ?? groupBefore.delegateLimitAdmin,
+        config.FLOW_ADMIN ?? groupBefore.delegateFlowAdmin,
         config.EMISS_ADMIN ?? groupBefore.delegateEmissionsAdmin,
         config.META_ADMIN ?? groupBefore.metadataAdmin,
         config.RISK_ADMIN ?? groupBefore.riskAdmin,

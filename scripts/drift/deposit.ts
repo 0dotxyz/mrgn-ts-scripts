@@ -48,14 +48,12 @@ export async function depositDrift(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ) {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   const connection = user.connection;
   const wallet = user.wallet;
@@ -65,7 +63,7 @@ export async function depositDrift(
   const mint = bank.mint;
 
   console.log("=== Drift Deposit ===\n");
-  console.log("Bank mint:", mint);
+  console.log("Bank:", config.BANK.toString());
   console.log("Amount:", config.AMOUNT.toString(), "base units");
   console.log();
 

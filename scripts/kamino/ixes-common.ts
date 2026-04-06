@@ -104,6 +104,10 @@ export interface InitObligationAccounts {
   lendingMarket: PublicKey;
   reserve: PublicKey;
   liquidityTokenProgram?: PublicKey;
+  mint: PublicKey;
+  reserveLiquiditySupply: PublicKey;
+  reserveCollateralMint: PublicKey;
+  reserveDestinationDepositCollateral: PublicKey;
 
   obligationFarmUserState?: PublicKey | null;
   reserveFarmState?: PublicKey | null;
@@ -157,17 +161,9 @@ export const makeInitObligationIx = async (
     KLEND_PROGRAM_ID,
     accounts.lendingMarket,
   );
-  const [reserveLiquiditySupply] = deriveReserveLiquiditySupply(
-    KLEND_PROGRAM_ID,
-    accounts.reserve,
-  );
-  const [reserveCollateralMint] = deriveReserveCollateralMint(
-    KLEND_PROGRAM_ID,
-    accounts.reserve,
-  );
-  const [reserveCollateralSupply] = deriveReserveCollateralSupply(
-    KLEND_PROGRAM_ID,
-    accounts.reserve,
+  const [baseObligation] = deriveBaseObligation(
+    liquidityVaultAuthority,
+    accounts.lendingMarket,
   );
 
   const ix = await program.methods
@@ -176,21 +172,15 @@ export const makeInitObligationIx = async (
       // Derived
       userMetadata,
       lendingMarketAuthority,
-      reserveLiquiditySupply,
-      reserveCollateralMint,
-      reserveDestinationDepositCollateral: reserveCollateralSupply,
       liquidityTokenProgram: accounts.liquidityTokenProgram
         ? accounts.liquidityTokenProgram
         : TOKEN_PROGRAM_ID,
       ...accs,
     })
     .accountsPartial({
-      // TODO fix this IX running when the bank does not yet exist using partial here..
-      // liquidityVault: liquidityVault,
-      // bank: accounts.bank,
-      // kaminoReserve: accounts.reserve,
-      // kaminoObligation: baseObligation,
-      // mint: accounts.reserveLiquidityMint,
+      liquidityVault,
+      integrationAcc1: accounts.reserve,
+      integrationAcc2: baseObligation,
     })
     .instruction();
 
@@ -265,6 +255,7 @@ export interface KaminoWithdrawAccounts {
   destinationTokenAccount: PublicKey;
   lendingMarket: PublicKey;
   reserve: PublicKey;
+  reserveLiquidityMint: PublicKey;
 
   obligationFarmUserState?: PublicKey | null;
   reserveFarmState?: PublicKey | null;

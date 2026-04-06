@@ -33,50 +33,52 @@ type Config = {
   /** Pays flat sol fee to init and rent (generally the MS on mainnet) */
   FEE_PAYER?: PublicKey; // If omitted, defaults to ADMIN
   BANK: PublicKey;
-  KAMINO_MARKET: PublicKey;
+
   /** Oracle address the Kamino Reserve uses. Typically read from reserve.config.tokenInfo.scope */
   RESERVE_ORACLE: PublicKey;
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
+
+  RESERVE?: PublicKey; // If omitted, read from the bank.integrationAcc1
 };
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
 
-  // BANK: new PublicKey("44WmBHm3bKvrwy1jnf9EkgX8hBT61Dz7Z9yfLCSmdEyy"), // USDS
-  // BANK: new PublicKey("8u7NuUBxckF2ouC3XKFkuxurinBYQTQiTcXVyqqoyRgM"), // USDC
-  BANK: new PublicKey("24gdUT9SNqeizCD1dHXWgjpa6NnWSFD6TWPAnCFSJnAk"), // STKESOL
-  ADMIN: new PublicKey("CS3NzMknNWtjo2pq5dqp67hQYQ8wdLPt5m67oa5mBZUX"),
-  // KAMINO_MARKET: new PublicKey("6WEGfej9B9wjxRs6t4BYpb9iCXd8CpTpJ8fVSNzHCC5y"), // maple
-  KAMINO_MARKET: new PublicKey("7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF"), // main
+  BANK: new PublicKey("5wEJdDtCAVwPASNM2QfXAmLUnP8DCLy7D2piSgZxQ9xb"), // syrupUSDC Maple
+  ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
   RESERVE_ORACLE: new PublicKey("3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH"),
+  RESERVE: new PublicKey("AwCyCPZYJSZ93xcVKNK7jR8e1BHzJXq1D4bReNuh9woY"),
+
+  MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
 async function main() {
-  await initKaminoObligation(sendTx, config, "/.config/stage/id.json");
+  await initKaminoObligation(sendTx, config, "/.config/arena/id.json");
 }
 
 export async function initKaminoObligation(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ): Promise<PublicKey> {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
   const program = user.program;
   const connection = user.connection;
 
-  const bank = await program.account.bank.fetch(config.BANK);
-  const mint = bank.mint;
-  const reserve = bank.integrationAcc1;
+  const reserve = config.RESERVE ?? (await program.account.bank.fetch(config.BANK)).integrationAcc1;
+
+  const reserveAcc = await user.kaminoProgram.account.reserve.fetch(reserve);
+  const mint = reserveAcc.liquidity.mintPubkey;
+  const lendingMarket = reserveAcc.lendingMarket;
+  let reserveFarmState = reserveAcc.farmCollateral;
 
   console.log("Detecting token program for mint...");
   let tokenProgram = TOKEN_PROGRAM_ID;
@@ -93,18 +95,10 @@ export async function initKaminoObligation(
   console.log(
     "init obligation for bank: " + config.BANK + " (mint: " + mint + ")",
   );
-  const [lendingVaultAuthority] = deriveLiquidityVaultAuthority(
+  const [liquidityVaultAuthority] = deriveLiquidityVaultAuthority(
     program.programId,
     config.BANK,
   );
-  const [baseObligation] = deriveBaseObligation(
-    lendingVaultAuthority,
-    config.KAMINO_MARKET,
-    KLEND_PROGRAM_ID,
-  );
-
-  const reserveAcc = await user.kaminoProgram.account.reserve.fetch(reserve);
-  const reserveFarmState = reserveAcc.farmCollateral;
 
   const ata = getAssociatedTokenAddressSync(
     mint,
@@ -112,26 +106,42 @@ export async function initKaminoObligation(
     true,
     tokenProgram,
   );
-  const [userState] = deriveUserState(
+
+  const [baseObligation] = deriveBaseObligation(
+    liquidityVaultAuthority,
+    lendingMarket,
+  );
+
+  let [userState] = deriveUserState(
     FARMS_PROGRAM_ID,
     reserveFarmState,
     baseObligation,
   );
 
+  if (reserveFarmState.toString() == PublicKey.default.toString())
+  {
+    reserveFarmState = null;
+    userState = null;
+  }
+
   let initObligationTx = new Transaction().add(
-    ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
+    // ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
     await makeInitObligationIx(
       program,
       {
         feePayer: config.FEE_PAYER ?? config.ADMIN,
         bank: config.BANK,
         signerTokenAccount: ata,
-        lendingMarket: config.KAMINO_MARKET,
-        reserve: bank.integrationAcc1,
+        lendingMarket,
+        reserve,
         scopePrices: config.RESERVE_ORACLE,
         reserveFarmState,
         obligationFarmUserState: userState,
         liquidityTokenProgram: tokenProgram,
+        mint,
+        reserveLiquiditySupply: reserveAcc.liquidity.supplyVault,
+        reserveCollateralMint: reserveAcc.collateral.mintPubkey,
+        reserveDestinationDepositCollateral: reserveAcc.collateral.supplyVault,
       },
       new BN(100),
     ),
@@ -160,6 +170,14 @@ export async function initKaminoObligation(
     const base58Transaction = bs58.encode(serializedTransaction);
     console.log("bank key: " + config.BANK);
     console.log("Base58-encoded transaction:", base58Transaction);
+    console.log("ALL accounts:");
+    for (let ix of initObligationTx.instructions)
+    {
+      for (let account of ix.keys)
+      {
+        console.log(account.pubkey.toString());
+      }
+    }
   }
 
   return baseObligation;

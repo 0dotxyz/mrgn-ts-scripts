@@ -22,8 +22,8 @@ export type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  CLONE_FROM: new PublicKey("FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV"),
-  CLONE_TO: new PublicKey("3xn7strvpinirQ5KxEgVFemb6qYeHG39krohoeRHRrRt"),
+  CLONE_FROM: new PublicKey("4uawSqEM2jDPKkQRtnoSTmBjFJ51Ehu79EvGfu3R45o7"),
+  CLONE_TO: new PublicKey("4cSk2pyxFkPdc5Kp5Yk1HYLjTbNoYzwtz2MCKUogjqeg"),
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
@@ -33,7 +33,6 @@ async function main() {
     config.PROGRAM_ID,
     "/.keys/BURNED_staging-deploy.json",
     config.MULTISIG_PAYER,
-    "current",
   );
   const program = user.program;
   const connection = user.connection;

@@ -22,7 +22,7 @@ export type Config = {
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  ACCOUNT: new PublicKey("9BEFUYsNsASkQFxBMcXis2giLrFL6QEitsZ49YhVC7Pw"),
+  ACCOUNT: new PublicKey("CqqeFwSJuzFCijtv3HLCZX8YNx6nJtrCQYHFQK1vsGg"),
 
   LUT: new PublicKey("CQ8omkUwDtsszuJLo9grtXCeEyDU4QqBLRv9AjRDaUZ3"),
 };
@@ -34,14 +34,12 @@ async function main() {
 export async function pulseHealth(
   config: Config,
   walletPath: string,
-  version?: "current",
 ) {
   const user = commonSetup(
     true,
     config.PROGRAM_ID,
     walletPath,
     undefined,
-    version,
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
   const program = user.program;

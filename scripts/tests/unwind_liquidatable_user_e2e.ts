@@ -11,6 +11,7 @@ import { Config, State } from "./create_liquidatable_user_e2e";
 import { sleep } from "@mrgnlabs/mrgn-common";
 import { updateLut } from "../../luts/update_lut";
 import { withdrawDrift } from "../drift/withdraw";
+import { withdrawJuplend } from "../juplend/withdraw";
 
 async function main() {
   const raw_config = readFileSync("liquidation_e2e_config.json", "utf8");
@@ -38,7 +39,42 @@ async function main() {
   );
   await sleep(1000);
 
+  let kaminoRemainingAccounts: PublicKey[][] = [];
+  for (let i = 0; i < state.kaminoBanks.length; i++) {
+    kaminoRemainingAccounts.push([
+      state.kaminoBanks[i],
+      config.KAMINO_COLLATERAL_ORACLE,
+      config.KAMINO_RESERVE,
+    ]);
+  }
+  let driftRemainingAccounts: PublicKey[][] = [];
+  for (let i = 0; i < state.driftBanks.length; i++) {
+    driftRemainingAccounts.push([
+      state.driftBanks[i],
+      config.DRIFT_COLLATERAL_ORACLE,
+      config.DRIFT_SPOT_MARKET,
+    ]);
+  }
+  let juplendRemainingAccounts: PublicKey[][] = [];
+  for (let i = 0; i < state.juplendBanks.length; i++) {
+    juplendRemainingAccounts.push([
+      state.juplendBanks[i],
+      config.JUPLEND_COLLATERAL_ORACLE,
+      config.JUPLEND_LENDING,
+    ]);
+  }
+
   console.log("\n\n\n 2. REPAY DEBT BY LIQUIDATEE");
+  let remainingAccounts: PublicKey[][] = [
+    ...kaminoRemainingAccounts,
+    ...driftRemainingAccounts,
+    ...juplendRemainingAccounts,
+  ];
+
+  const NEW_REMAINING = composeRemainingAccounts(remainingAccounts);
+  // Repay all still requires the closing bank's oracles. They must come last.
+  NEW_REMAINING.push(state.debtBank, config.DEBT_ORACLE, config.DEBT_MINT);
+
   const repayConfig = {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: state.debtBank,
@@ -47,20 +83,12 @@ async function main() {
     REPAY_ALL: true,
     MINT: config.DEBT_MINT,
     ADD_COMPUTE_UNITS: false,
+    NEW_REMAINING,
   };
   await repay(true, repayConfig, config.LIQUIDATEE_WALLET_PATH);
   await sleep(1000);
 
   console.log("\n\n\n 3. WITHDRAW FROM KAMINO BANKS BY LIQUIDATEE");
-  let remainingAccounts: PublicKey[][] = [];
-  for (let i = 0; i < 7; i++) {
-    remainingAccounts.push([
-      state.driftBanks[i],
-      config.DRIFT_COLLATERAL_ORACLE,
-      config.DRIFT_SPOT_MARKET,
-    ]);
-  }
-
   let kaminoWithdrawConfig = {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: state.kaminoBanks[0],
@@ -77,24 +105,30 @@ async function main() {
     ADD_COMPUTE_UNITS: true,
   };
 
-  for (let i = 0; i < 8; i++) {
-    // Deep clone
-    let fullRemainingAccounts = remainingAccounts.map((inner) =>
-      inner.map((pk) => new PublicKey(pk.toBytes())),
-    );
+  for (let i = 0; i < state.kaminoBanks.length; i++) {
+    remainingAccounts = [
+      ...driftRemainingAccounts,
+      ...juplendRemainingAccounts,
+    ];
     // Add all active Kamino banks except the one to withdraw from
-    for (let j = i + 1; j < 8; j++) {
-      fullRemainingAccounts.push([
+    for (let j = i + 1; j < state.kaminoBanks.length; j++) {
+      remainingAccounts.push([
         state.kaminoBanks[j],
         config.KAMINO_COLLATERAL_ORACLE,
         config.KAMINO_RESERVE,
       ]);
     }
 
-    kaminoWithdrawConfig.BANK = state.kaminoBanks[i];
-    kaminoWithdrawConfig.NEW_REMAINING = composeRemainingAccounts(
-      fullRemainingAccounts,
+    const NEW_REMAINING = composeRemainingAccounts(remainingAccounts);
+    // Withdraw all still requires the closing bank's oracles. They must come last.
+    NEW_REMAINING.push(
+      state.kaminoBanks[i],
+      config.KAMINO_COLLATERAL_ORACLE,
+      config.KAMINO_RESERVE,
     );
+
+    kaminoWithdrawConfig.BANK = state.kaminoBanks[i];
+    kaminoWithdrawConfig.NEW_REMAINING = NEW_REMAINING;
     await withdrawKamino(
       true,
       kaminoWithdrawConfig,
@@ -120,21 +154,27 @@ async function main() {
     ADD_COMPUTE_UNITS: true,
   };
 
-  for (let i = 0; i < 7; i++) {
-    let fullRemainingAccounts = [];
+  for (let i = 0; i < state.driftBanks.length; i++) {
+    remainingAccounts = [...juplendRemainingAccounts];
     // Add all active Drift banks except the one to withdraw from
-    for (let j = i + 1; j < 7; j++) {
-      fullRemainingAccounts.push([
+    for (let j = i + 1; j < state.driftBanks.length; j++) {
+      remainingAccounts.push([
         state.driftBanks[j],
         config.DRIFT_COLLATERAL_ORACLE,
         config.DRIFT_SPOT_MARKET,
       ]);
     }
 
-    driftWithdrawConfig.BANK = state.driftBanks[i];
-    driftWithdrawConfig.NEW_REMAINING = composeRemainingAccounts(
-      fullRemainingAccounts,
+    const NEW_REMAINING = composeRemainingAccounts(remainingAccounts);
+    // Withdraw all still requires the closing bank's oracles. They must come last.
+    NEW_REMAINING.push(
+      state.driftBanks[i],
+      config.DRIFT_COLLATERAL_ORACLE,
+      config.DRIFT_SPOT_MARKET,
     );
+
+    driftWithdrawConfig.BANK = state.driftBanks[i];
+    driftWithdrawConfig.NEW_REMAINING = NEW_REMAINING;
     await withdrawDrift(
       true,
       driftWithdrawConfig,
@@ -143,7 +183,50 @@ async function main() {
     await sleep(1000);
   }
 
-  console.log("\n\n\n 5. WITHDRAW FROM DEBT BANK BY LIQUIDATOR");
+  console.log("\n\n\n 5. WITHDRAW FROM JUPLEND BANKS BY LIQUIDATEE");
+  let juplendWithdrawConfig = {
+    PROGRAM_ID: config.PROGRAM_ID,
+    BANK: state.juplendBanks[0],
+    ACCOUNT: state.liquidatee,
+    AMOUNT: new BN(0), // doesn't matter, since we withdraw all
+    WITHDRAW_ALL: true,
+
+    LUT: config.LUT, // a liquidator-created LUT
+
+    NEW_REMAINING: [],
+    ADD_COMPUTE_UNITS: true,
+  };
+
+  for (let i = 0; i < state.juplendBanks.length; i++) {
+    let remainingAccounts = [];
+    // Add all active Juplend banks except the one to withdraw from
+    for (let j = i + 1; j < state.juplendBanks.length; j++) {
+      remainingAccounts.push([
+        state.juplendBanks[j],
+        config.JUPLEND_COLLATERAL_ORACLE,
+        config.JUPLEND_LENDING,
+      ]);
+    }
+
+    const NEW_REMAINING = composeRemainingAccounts(remainingAccounts);
+    // Withdraw all still requires the closing bank's oracles. They must come last.
+    NEW_REMAINING.push(
+      state.juplendBanks[i],
+      config.JUPLEND_COLLATERAL_ORACLE,
+      config.JUPLEND_LENDING,
+    );
+
+    juplendWithdrawConfig.BANK = state.juplendBanks[i];
+    juplendWithdrawConfig.NEW_REMAINING = NEW_REMAINING;
+    await withdrawJuplend(
+      true,
+      juplendWithdrawConfig,
+      config.LIQUIDATEE_WALLET_PATH,
+    );
+    await sleep(1000);
+  }
+
+  console.log("\n\n\n 6. WITHDRAW FROM DEBT BANK BY LIQUIDATOR");
   let withdrawConfig = {
     PROGRAM_ID: config.PROGRAM_ID,
     ACCOUNT: state.liquidator,
@@ -152,13 +235,13 @@ async function main() {
     AMOUNT: new BN(0), // doesn't matter, since we withdraw all
     WITHDRAW_ALL: true,
     LUT: config.LUT, // a liquidator-created LUT
-    REMAINING: [],
+    REMAINING: [[state.debtBank, config.DEBT_ORACLE, config.DEBT_MINT]], // required even in case of withdraw all
     ADD_COMPUTE_UNITS: false,
   };
   await withdraw(true, withdrawConfig, config.LIQUIDATOR_WALLET_PATH);
   await sleep(1000);
 
-  console.log("\n\n\n 6. CLOSE LIQUIDATOR AND LIQUIDATEE ACCOUNTS");
+  console.log("\n\n\n 7. CLOSE LIQUIDATOR AND LIQUIDATEE ACCOUNTS");
   await closeAccount(
     true,
     { PROGRAM_ID: config.PROGRAM_ID, ACCOUNT: state.liquidator },
@@ -172,8 +255,8 @@ async function main() {
   );
   await sleep(1000);
 
-  console.log("\n\n\n 7. CLOSE ALL BANKS");
-  for (let i = 0; i < 8; i++) {
+  console.log("\n\n\n 8. CLOSE ALL BANKS");
+  for (let i = 0; i < state.kaminoBanks.length; i++) {
     await closeBank(
       true,
       { PROGRAM_ID: config.PROGRAM_ID, BANK: state.kaminoBanks[i] },
@@ -181,10 +264,18 @@ async function main() {
     );
     await sleep(1000);
   }
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < state.driftBanks.length; i++) {
     await closeBank(
       true,
       { PROGRAM_ID: config.PROGRAM_ID, BANK: state.driftBanks[i] },
+      config.LIQUIDATOR_WALLET_PATH,
+    );
+    await sleep(1000);
+  }
+  for (let i = 0; i < state.juplendBanks.length; i++) {
+    await closeBank(
+      true,
+      { PROGRAM_ID: config.PROGRAM_ID, BANK: state.juplendBanks[i] },
       config.LIQUIDATOR_WALLET_PATH,
     );
     await sleep(1000);
@@ -212,6 +303,8 @@ function parseConfig(rawConfig: string): Config {
     KAMINO_COLLATERAL_ORACLE: pkFromString(json.KAMINO_COLLATERAL_ORACLE),
     DRIFT_COLLATERAL_MINT: pkFromString(json.DRIFT_COLLATERAL_MINT),
     DRIFT_COLLATERAL_ORACLE: pkFromString(json.DRIFT_COLLATERAL_ORACLE),
+    JUPLEND_COLLATERAL_MINT: pkFromString(json.JUPLEND_COLLATERAL_MINT),
+    JUPLEND_COLLATERAL_ORACLE: pkFromString(json.JUPLEND_COLLATERAL_ORACLE),
     DEBT_MINT: pkFromString(json.DEBT_MINT),
     DEBT_ORACLE: pkFromString(json.DEBT_ORACLE),
     KAMINO_RESERVE: pkFromString(json.KAMINO_RESERVE),
@@ -221,6 +314,8 @@ function parseConfig(rawConfig: string): Config {
     DRIFT_SPOT_MARKET: pkFromString(json.DRIFT_SPOT_MARKET),
     DRIFT_MARKET_INDEX: json.DRIFT_MARKET_INDEX,
     DRIFT_ORACLE: pkFromString(json.DRIFT_ORACLE),
+    JUPLEND_LENDING: pkFromString(json.JUPLEND_LENDING),
+    JUPLEND_F_TOKEN_MINT: pkFromString(json.JUPLEND_F_TOKEN_MINT),
     LUT: pkFromString(json.LUT),
   };
 }
@@ -236,6 +331,7 @@ export function parseState(raw: string): State {
     kaminoBanks: json.kaminoBanks.map(pkFromString),
     kaminoObligations: json.kaminoObligations.map(pkFromString),
     driftBanks: json.driftBanks.map(pkFromString),
+    juplendBanks: json.juplendBanks.map(pkFromString),
   };
 }
 

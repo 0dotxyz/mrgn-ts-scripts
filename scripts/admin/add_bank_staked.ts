@@ -53,7 +53,6 @@ async function addStakedBank(
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG_PAYER,
-    version,
   );
   const connection = user.connection;
   const wallet = user.wallet;

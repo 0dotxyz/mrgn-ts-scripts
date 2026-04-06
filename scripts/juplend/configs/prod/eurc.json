@@ -1,0 +1,28 @@
+{
+  "programId": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
+  "bankMint": "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr",
+  "juplendLending": "3vejrc7HzHszWjn5YpntjiQEtJNB4Yd1Fff2cs9Hh7JZ",
+  "fTokenMint": "GcV9tEj62VncGithz4o4N9x6HWXARxuRgEAYk9zahNA8",
+  "oracle": "CTn1eaLioKeZ53DyA5XRYVA9rWutxCfTzfvyezAPuSuC",
+  "oracleSetup": "juplendSwitchboardPull",
+  "seed": 509,
+  "assetWeightInit": "0.55",
+  "assetWeightMaint": "0.65",
+  "depositLimit": "500_000_000_000",
+  "totalAssetValueInitLimit": "750_000",
+  "riskTier": "collateral",
+  "oracleMaxAge": 300,
+  "configFlags": 1,
+  "admin": "CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw",
+  "feePayer": "CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw",
+  "multisigPayer": "CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw",
+  "ticker": "EURC | Eurocoin",
+  "description": "Eurocoin | Stablecoin | EURC | JupLend",
+  "comments": {
+    "asset": "Eurocoin",
+    "tokenProgram": "Token-22",
+    "decimals": 6,
+    "bankAddress": "ATNeEjgUCkeRr11tx3SyRfejyKuqC8WyahfPtzFdA2dZ"
+  }
+}

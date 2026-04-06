@@ -1,0 +1,25 @@
+{
+  "programId": "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  "group": "Diu1q9gniR1qR4Daaej3rcHd6949HMmxLGsnQ94Z3rLz",
+  "bankMint": "2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH",
+  "juplendLending": "xRVWEc2J4o5BPxEaiZ6jKyvcNmFovrVuYhuowp9hPM4",
+  "fTokenMint": "9fvHrYNw1A8Evpcj7X2yy4k4fT7nNHcA9L6UsamNHAif",
+  "oracle": "6JkZmXGgWnzsyTQaqRARzP64iFYnpMNT4siiuUDUaB8s",
+  "oracleSetup": "juplendPythPull",
+  "seed": 600,
+  "assetWeightInit": "0.9",
+  "assetWeightMaint": "0.95",
+  "depositLimit": "10000000000000",
+  "totalAssetValueInitLimit": "10000000",
+  "riskTier": "collateral",
+  "oracleMaxAge": 300,
+  "configFlags": 1,
+  "ticker": "USDG | Global Dollar",
+  "description": "Global Dollar | Stablecoin | USDG | JupLend",
+  "comments": {
+    "asset": "Global Dollar",
+    "tokenProgram": "Token-2022",
+    "decimals": 6,
+    "bankAddress": "ErdhJmhLRxwTG2uJVw5f22j7aTDtMkVefZ3iPWN6Knkq"
+  }
+}

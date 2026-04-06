@@ -1,0 +1,25 @@
+{
+  "programId": "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  "group": "Diu1q9gniR1qR4Daaej3rcHd6949HMmxLGsnQ94Z3rLz",
+  "bankMint": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+  "juplendLending": "Ey9UTFK5KDMZJuHqndU8kYrSrWHQb5uQqNEaTk57Toc",
+  "fTokenMint": "j14XLJZSVMcUYpAfajdZRpnfHUpJieZHS4aPektLWvh",
+  "oracle": "DyYBBWEi9xZvgNAeMDCiFnmC1U9gqgVsJDXkL5WETpoX",
+  "oracleSetup": "juplendPythPull",
+  "seed": 600,
+  "assetWeightInit": "0.9",
+  "assetWeightMaint": "0.95",
+  "depositLimit": "10000000000000",
+  "totalAssetValueInitLimit": "10000000",
+  "riskTier": "collateral",
+  "oracleMaxAge": 180,
+  "configFlags": 1,
+  "ticker": "USDS | USDS",
+  "description": "USDS | Stablecoin | USDS | JupLend",
+  "comments": {
+    "asset": "USDS",
+    "tokenProgram": "SPL Token",
+    "decimals": 6,
+    "bankAddress": "GBFxM5tS6q32pk5NhWjMwyrfzNEzFFmXVf3L9995RNt8"
+  }
+}

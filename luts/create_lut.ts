@@ -34,7 +34,7 @@ async function main() {
   console.log("api: " + apiUrl);
   const connection = new Connection(apiUrl, "confirmed");
   const wallet = loadKeypairFromFile(
-    process.env.HOME + "/.config/stage/id.json"
+    process.env.HOME + "/.config/solana/id.json"
   );
 
   const transaction = new Transaction();

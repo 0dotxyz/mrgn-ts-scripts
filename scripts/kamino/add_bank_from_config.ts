@@ -72,7 +72,6 @@ export async function addBankFromConfig(
     MAINNET_PROGRAM_ID,
     undefined,
     new PublicKey(MAINNET_MULTISIG),
-    "current"
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toBase58());
 
@@ -218,7 +217,7 @@ export async function addBankFromConfig(
       group,
       feePayer: multisig,
       bankMint: mint,
-      kaminoReserve,
+      integrationAcc1: kaminoReserve,
       kaminoMarket,
       oracle,
       tokenProgram,

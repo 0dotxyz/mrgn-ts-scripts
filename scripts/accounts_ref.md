@@ -74,6 +74,14 @@
 - Drift PYUSD - 7orqowokyyXEX8yRLSkPCocjpEFXktCdsvUAt3XD4XsW
 - Drift USDS - 8kVdNTKro2eaFvM1JTfo5d3WFbf98Xz9SNxWbgZadgvK
 
+## JUPLEND INTEGRATION BANKS (Staging Mainnet Clone)
+
+- WSOL (juplend) - EC1T1SWsT81MdrGWdrwesDs1vApJNtjDXibcBX4GFsEH
+- USDC (juplend) - 2mPDpFXRDXguzz29rhSsnAUd23ZU5MzqYXyU5dvLLx9q
+- USDT (juplend) - C8xW2QAizzCaxAacAEHxnQUa3rXnRdTHXuTRNwHjTi8e
+- USDG (juplend) - ErdhJmhLRxwTG2uJVw5f22j7aTDtMkVefZ3iPWN6Knkq
+- USDS (juplend) - GBFxM5tS6q32pk5NhWjMwyrfzNEzFFmXVf3L9995RNt8
+
 ## KAMINO INTEGRATION BANKS (Staging Alt)
 
 - EURC (kamino) - 4TAjQVpmwKX3Zp2pRHa14W5eoPHyXk7jYbhzfZtBiHym
@@ -110,6 +118,7 @@
 - WIF (swb) - 6B23K3tkb51vLZA14jcEQVCA1pfHptzEHFA93V5dYwbT
 - DUST (swb) - EmCZsrNqQEqsfafK4j4uRFjGvpUeMS5B2uDR9uc3wBMY
 - UXD (swb) - CoEDGeYda7Mi6c1BAsHE2LL6zEVcitX43wPABSLgQfpB
+- USD\* (swb) - 3xjjfYi2o2nN4w6Jhf3Cf66BgYzMtYqhXojYTgwJMCQq
 
 ## GLOBAL FEE STATE
 
@@ -165,6 +174,12 @@ particular organization.
 - DP9JAbtatfCrSAJQiWZUmWTfgHCnuWsx1QBczi1mnuxW (owned by staging shared
   HMZshKmPfpwxJiwu6WeEt8FSac8heU3gqLnyF26vQgu2)
 
+  3XpcTktgNzeMv2ATg4Y6yLgE5Wfxebcb8Tb9zj755PhH (owned by
+  FDr3iLdfyyzMmge9rN5sqQ38PgbrXY94VDW726EUN2kK) - mostly juplend accounts to init banks
+
+  inzqinzgHh3muPvSWLqtabt9MJayhVVfTm2eE87RTfC - (owned by
+  FDr3iLdfyyzMmge9rN5sqQ38PgbrXY94VDW726EUN2kK mostly Drift stuff)
+
 ## DESTROYED ACCOUNTS
 
 - Activating Cavey Cool Stake Account for Phantom Wallet that was deposited to the single pool: CBkEBnagcbmZrmbg9yV1d1gWxi6tmuR26616XXwVwus
@@ -176,7 +191,7 @@ Mrgn Account: E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt
 Bank(s) Lending: 3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL (Cavey Cool Staked Sol)
 Banks(s) Borrowed: 3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp (SOL with asset tag)
 
-
 ## Banks currently not being indexed by get-all
+
 RkSOL - GR9GNdjWf8kSf3b4REribKKSeVvkzjbAQJ1A8CDnFxLF
 LanternSOL - FvrTUfd3kimMfXvGrvcS1XC8NrtmSSurX8yP6XeUFt2s

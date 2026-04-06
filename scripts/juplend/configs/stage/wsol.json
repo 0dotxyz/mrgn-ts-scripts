@@ -1,0 +1,25 @@
+{
+  "programId": "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  "group": "Diu1q9gniR1qR4Daaej3rcHd6949HMmxLGsnQ94Z3rLz",
+  "bankMint": "So11111111111111111111111111111111111111112",
+  "juplendLending": "BeAqbxfrcXmzEYT2Ra62oW2MqkuFDHaCtps47Mzg6Zj3",
+  "fTokenMint": "2uQsyo1fXXQkDtcpXnLofWy88PxcvnfH2L8FPSE62FVU",
+  "oracle": "4Hmd6PdjVA9auCoScE12iaBogfwS4ZXQ6VZoBeqanwWW",
+  "oracleSetup": "juplendSwitchboardPull",
+  "seed": 600,
+  "assetWeightInit": "0.75",
+  "assetWeightMaint": "0.85",
+  "depositLimit": "150000000000000",
+  "totalAssetValueInitLimit": "20000000",
+  "riskTier": "collateral",
+  "oracleMaxAge": 70,
+  "configFlags": 1,
+  "ticker": "WSOL | Wrapped SOL",
+  "description": "Wrapped SOL | Native | WSOL | JupLend",
+  "comments": {
+    "asset": "Wrapped SOL",
+    "tokenProgram": "SPL Token",
+    "decimals": 9,
+    "bankAddress": "EC1T1SWsT81MdrGWdrwesDs1vApJNtjDXibcBX4GFsEH"
+  }
+}

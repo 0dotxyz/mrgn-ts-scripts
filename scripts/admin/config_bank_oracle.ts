@@ -10,7 +10,7 @@ import { commonSetup } from "../../lib/common-setup";
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
-const sendTx = true;
+const sendTx = false;
 
 const ORACLE_TYPE_PYTH = 3;
 const ORACLE_TYPE_SWB = 4;
@@ -23,8 +23,9 @@ type SharedConfig = {
 };
 
 const configCommon: SharedConfig = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  ADMIN: new PublicKey("mfC1LoEk4mpM5yx1LjwR9QLZQ49AitxxWkK5Aciw7ZC"),
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  MULTISIG: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
 type BankOracleConfig = {
@@ -37,8 +38,8 @@ type BankOracleConfig = {
 /** One entry per bank to update */
 const configs: BankOracleConfig[] = [
   {
-    bank: new PublicKey("4Gg6pW1U8W6ZQ22TbUWYRetx2nxjhUAydfKoCTSHhkkG"),
-    oracle: new PublicKey("BWK8Wnybb7rPteNMqJs9uWoqdfYApNym6WgE59BwLe1v"),
+    bank: new PublicKey("EKwXy2ui2jtJnvH4A2XufyqMyeSFecJE8xAKWpZEtDwd"),
+    oracle: new PublicKey("3xjjfYi2o2nN4w6Jhf3Cf66BgYzMtYqhXojYTgwJMCQq"),
     oracleType: ORACLE_TYPE_SWB,
   },
   // ...More entries here as needed. The limit even without using LUTs is fairly high (at least 6)
@@ -48,8 +49,8 @@ async function main() {
   const user = commonSetup(
     sendTx,
     configCommon.PROGRAM_ID,
-    "/keys/staging-deploy.json",
-    configCommon.MULTISIG
+    "/.keys/staging-deploy.json",
+    configCommon.MULTISIG,
   );
   const program = user.program;
   const connection = user.connection;
@@ -81,7 +82,7 @@ async function main() {
       const signature = await sendAndConfirmTransaction(
         connection,
         transaction,
-        [user.wallet.payer]
+        [user.wallet.payer],
       );
       console.log("Transaction signature:", signature);
     } catch (error) {

@@ -1,0 +1,13 @@
+{
+  "stage": {
+    "programId": "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+    "group": "Diu1q9gniR1qR4Daaej3rcHd6949HMmxLGsnQ94Z3rLz"
+  },
+  "prod": {
+    "programId": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+    "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
+    "admin": "CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw",
+    "feePayer": "CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw",
+    "multisigPayer": "CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"
+  }
+}

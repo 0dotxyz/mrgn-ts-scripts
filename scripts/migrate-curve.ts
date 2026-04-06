@@ -22,7 +22,6 @@ async function main() {
     config.PROGRAM_ID,
     "/.keys/zerotrade_admin.json",
     undefined,
-    "current",
   );
   const program = user.program;
   const connection = user.connection;

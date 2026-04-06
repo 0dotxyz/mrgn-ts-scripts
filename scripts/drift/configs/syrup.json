@@ -1,0 +1,20 @@
+{
+  "programId": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
+  "bankMint": "AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj",
+  "bankAddress": "FKrkgcTCduBvnitwqg5GPnfK7M4aBNuZDjZZeeUhz7Uv",
+  "driftMarketIndex": 57,
+  "oracle": "7AjwutSAhQkaTqSsMrnWPNrvX97vcAz5FfcCmLfpYaPz",
+  "marginfiOracleType": "switchboardPull",
+  "driftOracle": "6cvX4Sgcuw53y8yYXLcpAjZ7fn1VcLKojVS23tor9sVx",
+  "depositLimit": "1500000000000",
+  "totalAssetValueInitLimit": "1500000",
+  "seed": "42",
+  "initDepositAmount": "100",
+  "comments": {
+    "asset": "SyrupUSDC",
+    "driftSpotMarket": "6gMq3mRCKf8aP3ttTyYhuijVZ2LGi14oDsBbkgubfLB3",
+    "tokenProgram": "SPL Token",
+    "decimals": 6
+  }
+}

@@ -1,9 +1,13 @@
 // Run deposit_single_pool first to convert to LST. In production, these will likely be atomic.
 import {
   AccountMeta,
+  AddressLookupTableAccount,
   ComputeBudgetProgram,
   PublicKey,
   Transaction,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
@@ -11,11 +15,24 @@ import {
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
-import { commonSetup, registerKaminoProgram } from "../../lib/common-setup";
+import {
+  commonSetup,
+  registerDriftProgram,
+  registerJuplendProgram,
+  registerKaminoProgram,
+} from "../../lib/common-setup";
 import { BankAndOracles } from "../../lib/utils";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { KLEND_PROGRAM_ID } from "../kamino/kamino-types";
 import { simpleRefreshReserve } from "../kamino/ixes-common";
+import {
+  DRIFT_PROGRAM_ID,
+  makeUpdateSpotMarketCumulativeInterestIx,
+} from "../drift/lib/utils";
+import {
+  JUPLEND_LENDING_PROGRAM_ID,
+  makeJuplendNativeUpdateRateIx,
+} from "../juplend/lib/utils";
 
 const sendTx = true;
 
@@ -31,13 +48,19 @@ type Config = {
    * */
   NEW_REMAINING: BankAndOracles;
   ADD_COMPUTE_UNITS: boolean;
+  LUT?: PublicKey; // Optional but likely needed, especially if you use integration accs
 
   // Optional, omit if not using MS.
   MULTISIG?: PublicKey;
-  KAMINO_RESERVE: PublicKey;
-  KAMINO_MARKET: PublicKey;
-  RESERVE_ORACLE: PublicKey;
-  OBLIGATION?: PublicKey;
+
+  // Optional, if Kamino positions's health is required for borrow
+  KAMINO_RESERVES?: PublicKey[];
+
+  // Optional, if Drift positions's health is required for borrow
+  DRIFT_MARKETS?: number[];
+
+  // Optional, if Juplend positions's health is required for borrow
+  JUPLEND_STATES?: PublicKey[];
 };
 
 const config: Config = {
@@ -104,10 +127,9 @@ const config: Config = {
     new PublicKey("Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"),
   ],
   ADD_COMPUTE_UNITS: true,
-  KAMINO_RESERVE: new PublicKey("D6q6wuQSrifJKZYpR1M8R4YawnLDtDsMmWM1NbBmgJ59"),
-  KAMINO_MARKET: new PublicKey("7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF"),
-  RESERVE_ORACLE: new PublicKey("3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH"),
-  OBLIGATION: new PublicKey("5HxomAyh1wDSqHp9Gg5n3aF4vLAKQL3WK3baYMZwK6Yd"),
+  KAMINO_RESERVES: [
+    new PublicKey("D6q6wuQSrifJKZYpR1M8R4YawnLDtDsMmWM1NbBmgJ59"),
+  ],
 };
 
 async function main() {
@@ -118,18 +140,29 @@ export async function borrow(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
 ) {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
     config.MULTISIG,
-    version,
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
+  registerDriftProgram(user, DRIFT_PROGRAM_ID.toString());
+  registerJuplendProgram(user, JUPLEND_LENDING_PROGRAM_ID.toString());
   const program = user.program;
   const connection = user.connection;
+
+  let luts: AddressLookupTableAccount[] = [];
+  const lutLookup = await connection.getAddressLookupTable(config.LUT);
+  if (!lutLookup || !lutLookup.value) {
+    console.warn(
+      `Warning: LUT ${config.LUT.toBase58()} not found on-chain. Proceeding without it.`,
+    );
+    luts = [];
+  } else {
+    luts = [lutLookup.value];
+  }
 
   const oracleMeta: AccountMeta[] = config.NEW_REMAINING.flat().map(
     (pubkey) => {
@@ -138,35 +171,58 @@ export async function borrow(
   );
 
   const ata = getAssociatedTokenAddressSync(config.MINT, user.wallet.publicKey);
-  const transaction = new Transaction();
+  let instructions: TransactionInstruction[] = [];
 
   if (config.ADD_COMPUTE_UNITS) {
-    transaction.add(
+    instructions.push(
       ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 100_000 }),
     );
-    transaction.add(
+    instructions.push(
       ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
     );
   }
+  const reserves = config.KAMINO_RESERVES ?? [];
+  for (let i = 0; i < reserves.length; i++) {
+    const reserve = config.KAMINO_RESERVES[i];
+    const reserveAcc = await user.kaminoProgram.account.reserve.fetch(reserve);
 
-  transaction.add(
+    instructions.push(
+      await simpleRefreshReserve(
+        user.kaminoProgram,
+        reserve,
+        reserveAcc.lendingMarket,
+        reserveAcc.config.tokenInfo.scopeConfiguration.priceFeed, // NOTE: depends on the config, but in practice it's always 'scope'
+      ),
+    );
+  }
+
+  const spotMarkets = config.DRIFT_MARKETS ?? [];
+  for (let i = 0; i < spotMarkets.length; i++) {
+    const marketIndex = config.DRIFT_MARKETS[i];
+
+    instructions.push(
+      await makeUpdateSpotMarketCumulativeInterestIx(
+        user.driftProgram,
+        marketIndex,
+      ),
+    );
+  }
+
+  const lendingStates = config.JUPLEND_STATES ?? [];
+  for (let i = 0; i < lendingStates.length; i++) {
+    const lending = config.JUPLEND_STATES[i];
+
+    instructions.push(
+      await makeJuplendNativeUpdateRateIx(user.juplendProgram, lending),
+    );
+  }
+
+  instructions.push(
     // createAssociatedTokenAccountIdempotentInstruction(
     //   user.wallet.publicKey,
     //   ata,
     //   user.wallet.publicKey,
     //   config.MINT
-    // ),
-    await simpleRefreshReserve(
-      user.kaminoProgram,
-      config.KAMINO_RESERVE,
-      config.KAMINO_MARKET,
-      config.RESERVE_ORACLE,
-    ),
-    // await simpleRefreshObligation(
-    //   user.kaminoProgram,
-    //   config.KAMINO_MARKET,
-    //   config.OBLIGATION,
-    //   [config.KAMINO_RESERVE]
     // ),
     await program.methods
       .lendingAccountBorrow(config.AMOUNT)
@@ -188,25 +244,39 @@ export async function borrow(
     "borrowing : " + config.AMOUNT.toString() + " from " + config.BANK,
   );
 
+  const { blockhash, lastValidBlockHeight } =
+    await connection.getLatestBlockhash();
+
   if (sendTx) {
     try {
-      const signature = await sendAndConfirmTransaction(
-        connection,
-        transaction,
-        [user.wallet.payer],
+      const v0Message = new TransactionMessage({
+        payerKey: user.wallet.publicKey,
+        recentBlockhash: blockhash,
+        instructions,
+      }).compileToV0Message(luts);
+      const v0Tx = new VersionedTransaction(v0Message);
+
+      v0Tx.sign([user.wallet.payer]);
+      const signature = await connection.sendTransaction(v0Tx, {
+        maxRetries: 2,
+      });
+      await connection.confirmTransaction(
+        { signature, blockhash, lastValidBlockHeight },
+        "confirmed",
       );
       console.log("Transaction signature:", signature);
     } catch (error) {
       console.error("Transaction failed:", error);
     }
   } else {
-    transaction.feePayer = config.MULTISIG; // Set the fee payer to Squads wallet
-    const { blockhash } = await connection.getLatestBlockhash();
-    transaction.recentBlockhash = blockhash;
-    const serializedTransaction = transaction.serialize({
-      requireAllSignatures: false,
-      verifySignatures: false,
-    });
+    const v0Message = new TransactionMessage({
+      payerKey: config.MULTISIG,
+      recentBlockhash: blockhash,
+      instructions,
+    }).compileToV0Message(luts);
+    const v0Tx = new VersionedTransaction(v0Message);
+
+    const serializedTransaction = v0Tx.serialize();
     const base58Transaction = bs58.encode(serializedTransaction);
     console.log("Base58-encoded transaction:", base58Transaction);
   }
