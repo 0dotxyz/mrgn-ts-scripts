@@ -8,7 +8,7 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "../scripts/utils";
+import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "../scripts/utils/utils";
 import { findPoolAddress, findPoolStakeAddress, SinglePoolProgram } from "@solana/spl-single-pool-classic";
 import { createStakeAccount, delegateStake } from "./stake-utils";
 

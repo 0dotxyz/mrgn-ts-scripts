@@ -42,7 +42,7 @@ import {
   formatSimulationValidation,
 } from "./lib/simulation_validator";
 import { KaminoConfigCompact, KLEND_PROGRAM_ID } from "./kamino-types";
-import { PYTH_PULL_MIGRATED } from "../utils";
+import { PYTH_PULL_MIGRATED } from "../utils/utils";
 
 async function main() {
   const args = process.argv.slice(2);

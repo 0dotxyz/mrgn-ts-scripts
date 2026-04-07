@@ -12,7 +12,7 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
-import { SINGLE_POOL_PROGRAM_ID } from "../scripts/utils";
+import { SINGLE_POOL_PROGRAM_ID } from "../scripts/utils/utils";
 
 /**
  * Create a stake account for some user

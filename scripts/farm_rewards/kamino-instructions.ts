@@ -4,21 +4,22 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import BN from "bn.js";
-import { Marginfi } from "../../target/types/marginfi";
+import { Marginfi } from "../../idl/marginfi";
 import { Program } from "@coral-xyz/anchor";
-import { KaminoConfigCompact } from "./kamino-utils";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { KLEND_PROGRAM_ID } from "./types";
+import { KaminoConfigCompact, KLEND_PROGRAM_ID } from "../kamino/kamino-types";
 import {
   deriveBankWithSeed,
+  deriveLiquidityVaultAuthority,
+} from "../common/pdas";
+import {
   deriveBaseObligation,
   deriveLendingMarketAuthority,
-  deriveLiquidityVaultAuthority,
   deriveReserveCollateralMint,
   deriveReserveCollateralSupply,
   deriveReserveLiquiditySupply,
   deriveUserMetadata,
-} from "./pdas";
+} from "../kamino/pdas";
 
 const DEFAULT_KAMINO_DEPOSIT_OPTIONAL_ACCOUNTS = {
   obligationFarmUserState: null,

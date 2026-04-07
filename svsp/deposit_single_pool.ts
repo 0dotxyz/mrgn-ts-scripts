@@ -8,7 +8,7 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
-import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "../scripts/utils";
+import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "../scripts/utils/utils";
 import {
   createAssociatedTokenAccountInstruction,
   getAssociatedTokenAddressSync,
