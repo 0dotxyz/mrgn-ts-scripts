@@ -1,0 +1,1180 @@
+{
+  "_meta": {
+    "cachedAt": 1775833742216,
+    "fromCache": true,
+    "maxAgeSec": 7464960000
+  },
+  "bankCount": 130,
+  "banks": {
+    "8iKgNvkQH9bBXyMbV5vor25gQRFM3tfyA7si68eKrLoa": {
+      "ticker": "fwdSOL | Forward Industries Staked SOL",
+      "description": "Forward Industries Staked SOL | sol-lst | fwdSOL | P0 | -",
+      "symbol": "fwdSOL",
+      "name": "Forward Industries Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "D7xjUTY2tH1QWd7cefecJy86DTWJaWRj6XevzChGDzXm": {
+      "ticker": "EURC | EURC",
+      "description": "EURC | stablecoins | EURC | P0 | -",
+      "symbol": "EURC",
+      "name": "EURC",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV": {
+      "ticker": "USDT | USDT",
+      "description": "USDT | stablecoins | USDT | P0 | -",
+      "symbol": "USDT",
+      "name": "USDT",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "61Qx9kgWo9RVtPHf8Rku6gbaUtcnzgkpAuifQBUcMRVK": {
+      "ticker": "PUMP | Pump",
+      "description": "Pump | governance | PUMP | P0 | -",
+      "symbol": "PUMP",
+      "name": "Pump",
+      "assetGroup": "governance",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "EtWUqSnQEVFvpAUimcHaxGMJy8vU2Y6WCGFK1LPR7AWA": {
+      "ticker": "USDG | Global Dollar",
+      "description": "Global Dollar | stablecoins | USDG | Jupiter | -",
+      "symbol": "USDG",
+      "name": "Global Dollar",
+      "assetGroup": "stablecoins",
+      "venue": "Jupiter",
+      "venueIdentifier": "-"
+    },
+    "HSWzj4oipYaMD7DtpiFcBs3oH5ZwDp4PUTtzPCJNMSd4": {
+      "ticker": "JitoSOL | Jito Staked SOL",
+      "description": "Jito Staked SOL | sol-lst | JitoSOL | Drift | Main Market",
+      "symbol": "JitoSOL",
+      "name": "Jito Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "Drift",
+      "venueIdentifier": "Main Market"
+    },
+    "6Fk3bzhqmUqupk6sN5CbfYMdafvyzDdqDNHW5CsJzq8K": {
+      "ticker": "BLZE | Blaze",
+      "description": "Blaze | W/E | BLZE | P0 | -",
+      "symbol": "BLZE",
+      "name": "Blaze",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "DcpTd5URXYj77dxgCRouVJ71E6gBE32rk1ofW2M9boju": {
+      "ticker": "DRIFT | DRIFT",
+      "description": "DRIFT | W/E | DRIFT | P0 | -",
+      "symbol": "DRIFT",
+      "name": "DRIFT",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "5syijTAMBBmdjwUgYYBvvv26zTS6YX1bYV9EdXkgYqLa": {
+      "ticker": "hyUSD | Hylo USD",
+      "description": "Hylo USD | stablecoins | hyUSD | P0 | -",
+      "symbol": "hyUSD",
+      "name": "Hylo USD",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "EdB7YADw4XUt6wErT8kHGCUok4mnTpWGzPUU9rWDebzb": {
+      "ticker": "JTO | JITO",
+      "description": "JITO | governance | JTO | P0 | -",
+      "symbol": "JTO",
+      "name": "JITO",
+      "assetGroup": "governance",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "Ac4KV5K5isDqtABtg6h5DiwzZMe3Sp9bc3pBiCUvUpaQ": {
+      "ticker": "cbBTC | Coinbase Wrapped BTC",
+      "description": "Coinbase Wrapped BTC | blue-chip | cbBTC | P0 | -",
+      "symbol": "cbBTC",
+      "name": "Coinbase Wrapped BTC",
+      "assetGroup": "blue-chip",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "6hS9i46WyTq1KXcoa2Chas2Txh9TJAVr6n1t3tnrE23K": {
+      "ticker": "bSOL | BlazeStake Staked SOL (bSOL)",
+      "description": "BlazeStake Staked SOL (bSOL) | sol-lst | bSOL | P0 | -",
+      "symbol": "bSOL",
+      "name": "BlazeStake Staked SOL (bSOL)",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "Emb5g6cEbRU2Yq9ZQnKhRDQLNRLSMWdgYRvJrBHzH6yB": {
+      "ticker": "SNS | SynesisOne",
+      "description": "SynesisOne | W/E | SNS | P0 | -",
+      "symbol": "SNS",
+      "name": "SynesisOne",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "GZK3yC3Kfn1ykFhLryzeKqemRNZ3wpZgWhbh5b5ygGML": {
+      "ticker": "KIN | KIN",
+      "description": "KIN | W/E | KIN | P0 | -",
+      "symbol": "KIN",
+      "name": "KIN",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "8yH6soQM2SUFjkRQiBo5UDLbLTWPCYEsyT22Xdi1sfh7": {
+      "ticker": "mSOL | Marinade staked SOL (mSOL)",
+      "description": "Marinade staked SOL (mSOL) | sol-lst | mSOL | Drift | Main Market",
+      "symbol": "mSOL",
+      "name": "Marinade staked SOL (mSOL)",
+      "assetGroup": "sol-lst",
+      "venue": "Drift",
+      "venueIdentifier": "Main Market"
+    },
+    "9KbkQsu4EGAeM7ZxvwsZcpxoekZyg5LTk1BF5SAMPXdY": {
+      "ticker": "TNSR | Tensor",
+      "description": "Tensor | governance | TNSR | P0 | -",
+      "symbol": "TNSR",
+      "name": "Tensor",
+      "assetGroup": "governance",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "FVVKPocxQqJNjDTjzvT3HFXte5oarfp29vJ9tqjAPUW4": {
+      "ticker": "BNSOL | Binance Staked SOL",
+      "description": "Binance Staked SOL | sol-lst | BNSOL | P0 | -",
+      "symbol": "BNSOL",
+      "name": "Binance Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "9LiRrrzgnu84wL6ftqGGDBZfjGmYSNCnExmL4gKf9mzr": {
+      "ticker": "PYUSD | PayPal USD",
+      "description": "PayPal USD | stablecoins | PYUSD | Kamino | Maple Market",
+      "symbol": "PYUSD",
+      "name": "PayPal USD",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "Maple Market"
+    },
+    "BpEDE4y44E3JYhNoRycxiPxr4UnhtG5qAKX5AVtG7Wp5": {
+      "ticker": "USDS | USDS",
+      "description": "USDS | stablecoins | USDS | Drift | Main Market",
+      "symbol": "USDS",
+      "name": "USDS",
+      "assetGroup": "stablecoins",
+      "venue": "Drift",
+      "venueIdentifier": "Main Market"
+    },
+    "DMoqjmsuoru986HgfjqrKEvPv8YBufvBGADHUonkadC5": {
+      "ticker": "LST | Liquid Staking Token",
+      "description": "Liquid Staking Token | sol-lst | LST | P0 | -",
+      "symbol": "LST",
+      "name": "Liquid Staking Token",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "GZcUY6egnYuXHGWPukTo8iKEZiv5CVKXutcphRuKryNE": {
+      "ticker": "DUST | DUST Protocol",
+      "description": "DUST Protocol | W/E | DUST | P0 | -",
+      "symbol": "DUST",
+      "name": "DUST Protocol",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "8efP4VoKDo3SqxoVCUcgxpN9S7boDWtPmeFwahRZ4ukg": {
+      "ticker": "USD1 | World Liberty Financial USD",
+      "description": "World Liberty Financial USD | stablecoins | USD1 | P0 | -",
+      "symbol": "USD1",
+      "name": "World Liberty Financial USD",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "Ffe4RTL4oYrzA9QKQVJ3PCATXnp3mS3s7buDKnnmHYGX": {
+      "ticker": "STKESOL | STKE SOL",
+      "description": "STKE SOL | sol-lst | STKESOL | P0 | -",
+      "symbol": "STKESOL",
+      "name": "STKE SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu": {
+      "ticker": "PYUSD | PayPal USD",
+      "description": "PayPal USD | stablecoins | PYUSD | P0 | -",
+      "symbol": "PYUSD",
+      "name": "PayPal USD",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "EwURhaBfL9ahMqPHrJYpjaNsbXBWmwDxyLNXeudncF8N": {
+      "ticker": "USDC | USD Coin",
+      "description": "USD Coin | stablecoins | USDC | Kamino | Maple Market",
+      "symbol": "USDC",
+      "name": "USD Coin",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "Maple Market"
+    },
+    "EbuSnXdFz1R4VPdaJ96KQQQmeYgZTHSzpNW94Tw1PE3H": {
+      "ticker": "RENDER | Render Token",
+      "description": "Render Token | governance | RENDER | P0 | -",
+      "symbol": "RENDER",
+      "name": "Render Token",
+      "assetGroup": "governance",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "7aoit6hVmaqWn2VjhmDo5qev6QXjsJJf4q5RTd7yczZj": {
+      "ticker": "WEN | Wen",
+      "description": "Wen | W/E | WEN | P0 | -",
+      "symbol": "WEN",
+      "name": "Wen",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "GEDEmTGC5hSaJj13mcnGR8TRwUbhGU7JsdnPdYjzSREk": {
+      "ticker": "PYUSD | PayPal USD",
+      "description": "PayPal USD | stablecoins | PYUSD | Kamino | JLP Market",
+      "symbol": "PYUSD",
+      "name": "PayPal USD",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "JLP Market"
+    },
+    "9cizJpitym7CGL2QauvgG4BtTvSeADvppUpwGTPRc6De": {
+      "ticker": "DITH | Dither",
+      "description": "Dither | W/E | DITH | P0 | -",
+      "symbol": "DITH",
+      "name": "Dither",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi": {
+      "ticker": "zenBTC | Zenrock BTC",
+      "description": "Zenrock BTC | blue-chip | zenBTC | P0 | -",
+      "symbol": "zenBTC",
+      "name": "Zenrock BTC",
+      "assetGroup": "blue-chip",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "2GDC61nu79ZHQBiwMx2BjarEEDZop81Ym9598a5WcCXJ": {
+      "ticker": "laineSOL | Laine Stake Token",
+      "description": "Laine Stake Token | W/E | laineSOL | P0 | -",
+      "symbol": "laineSOL",
+      "name": "Laine Stake Token",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "Amtw3n7GZe5SWmyhMhaFhDTi39zbTkLeWErBsmZXwpDa": {
+      "ticker": "JLP | Jupiter Perps LP",
+      "description": "Jupiter Perps LP | ecosystem | JLP | P0 | -",
+      "symbol": "JLP",
+      "name": "Jupiter Perps LP",
+      "assetGroup": "ecosystem",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "2D1dc9jo8CNjgVG4qTKpRuGA83zrXv9iuSHV9BWZ7Js9": {
+      "ticker": "INF | Infinity",
+      "description": "Infinity | sol-lst | INF | Drift | Main Market",
+      "symbol": "INF",
+      "name": "Infinity",
+      "assetGroup": "sol-lst",
+      "venue": "Drift",
+      "venueIdentifier": "Main Market"
+    },
+    "CwbdVVmGfR4H9bQ39vmeKjt9Gd128iFGrc9Jvht2oPx6": {
+      "ticker": "SOL | Wrapped SOL",
+      "description": "Wrapped SOL | blue-chip | SOL | Drift | Main Market",
+      "symbol": "SOL",
+      "name": "Wrapped SOL",
+      "assetGroup": "blue-chip",
+      "venue": "Drift",
+      "venueIdentifier": "Main Market"
+    },
+    "27Cpv49jQ3hav8zF3qZjp7T78ATdUTZN4m9x389Z8uH4": {
+      "ticker": "USDC | USD Coin",
+      "description": "USD Coin | stablecoins | USDC | Kamino | Main Market",
+      "symbol": "USDC",
+      "name": "USD Coin",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "Main Market"
+    },
+    "6zN8tRxMpuqruDF4ChjeNGCVggqWBMQQ9KmiNhYeiqXb": {
+      "ticker": "hyloSOL | Hylo Staked SOL",
+      "description": "Hylo Staked SOL | sol-lst | hyloSOL | P0 | -",
+      "symbol": "hyloSOL",
+      "name": "Hylo Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "4TBA2upbfULV5ryM8LxSqreztonu5xLYxN6qBEzHXR5f": {
+      "ticker": "Only Possible On Solana | Only Possible On Solana",
+      "description": "Only Possible On Solana | W/E | Only Possible On Solana | P0 | -",
+      "symbol": "Only Possible On Solana",
+      "name": "Only Possible On Solana",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "BtfZEcMywgzmQ1fj1mSzXPj2jpQX5Lpr2zZz6cV5WwXw": {
+      "ticker": "USD1 | World Liberty Financial USD",
+      "description": "World Liberty Financial USD | stablecoins | USD1 | Kamino | Main Market",
+      "symbol": "USD1",
+      "name": "World Liberty Financial USD",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "Main Market"
+    },
+    "F4brCRJHx8epWah7p8Ace4ehutphxYZ1ctRq2LS3iiBh": {
+      "ticker": "CASH | CASH",
+      "description": "CASH | stablecoins | CASH | P0 | -",
+      "symbol": "CASH",
+      "name": "CASH",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "GpNuWCghujQQNyyX1qv2p2r7WpX2hD6UyPnN8rRDGLs": {
+      "ticker": "Neiro | Neiro",
+      "description": "Neiro | W/E | Neiro | P0 | -",
+      "symbol": "Neiro",
+      "name": "Neiro",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "HWA59PLUXJmgrjGPWE2eH1381Wnz512qocV4PtyqhKqs": {
+      "ticker": "HONEY | HONEY",
+      "description": "HONEY | W/E | HONEY | P0 | -",
+      "symbol": "HONEY",
+      "name": "HONEY",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM": {
+      "ticker": "Bonk | Bonk",
+      "description": "Bonk | memes | Bonk | P0 | -",
+      "symbol": "Bonk",
+      "name": "Bonk",
+      "assetGroup": "memes",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "9ojzV5xFHtx2h2GhKRSgCwJK3BLswczdiiLW3hsyRE5c": {
+      "ticker": "LFG | LessFnGas",
+      "description": "LessFnGas | W/E | LFG | P0 | -",
+      "symbol": "LFG",
+      "name": "LessFnGas",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV": {
+      "ticker": "USDS | USDS",
+      "description": "USDS | stablecoins | USDS | P0 | -",
+      "symbol": "USDS",
+      "name": "USDS",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "6SUMngtaS1Bwzxj85EhaekWkZJ9uHrRQCap6MX6RFufW": {
+      "ticker": "USDT | USDT",
+      "description": "USDT | stablecoins | USDT | Jupiter | -",
+      "symbol": "USDT",
+      "name": "USDT",
+      "assetGroup": "stablecoins",
+      "venue": "Jupiter",
+      "venueIdentifier": "-"
+    },
+    "4YPGUhxmAXgoGDRkg68zGnbGrV2xCgaoqQSfcZCjFhon": {
+      "ticker": "CASH | CASH",
+      "description": "CASH | stablecoins | CASH | Kamino | Maple Market",
+      "symbol": "CASH",
+      "name": "CASH",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "Maple Market"
+    },
+    "BsvoBGsejZTbkUckZtdQDav3PGvbatCoZTfJgB48CsCK": {
+      "ticker": "PYUSD | PayPal USD",
+      "description": "PayPal USD | stablecoins | PYUSD | Drift | Main Market",
+      "symbol": "PYUSD",
+      "name": "PayPal USD",
+      "assetGroup": "stablecoins",
+      "venue": "Drift",
+      "venueIdentifier": "Main Market"
+    },
+    "5GZmPEr6czroe3ax29D2FHyKuT64ixj5evB2NqWjUk1d": {
+      "ticker": "USDC | USD Coin",
+      "description": "USD Coin | stablecoins | USDC | Drift | Main Market",
+      "symbol": "USDC",
+      "name": "USD Coin",
+      "assetGroup": "stablecoins",
+      "venue": "Drift",
+      "venueIdentifier": "Main Market"
+    },
+    "5KjGKr7pKBG7DLcPdZTiSji7cwNYJ5ERj2pPSNLTejoZ": {
+      "ticker": "PT-hyUSD | Exponent PT-hyUSD-14APR26",
+      "description": "Exponent PT-hyUSD-14APR26 | rate-products | PT-hyUSD | P0 | -",
+      "symbol": "PT-hyUSD",
+      "name": "Exponent PT-hyUSD-14APR26",
+      "assetGroup": "rate-products",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "GH7ZQbAP8G4xDXaYb7PcGXnqBDBCMKF7d9XhZCk1w1pG": {
+      "ticker": "proSOL | ProStaking SOL",
+      "description": "ProStaking SOL | W/E | proSOL | P0 | -",
+      "symbol": "proSOL",
+      "name": "ProStaking SOL",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "2z8C1CCoJBKMLCNbaMWXuTYKHjcdHQBVth5CHsSQq611": {
+      "ticker": "MOTHER | MOTHER IGGY",
+      "description": "MOTHER IGGY | W/E | MOTHER | P0 | -",
+      "symbol": "MOTHER",
+      "name": "MOTHER IGGY",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "9p1TiAeTc6FSiNHhnR6BgmwRq49zywczAY4m77BbKGer": {
+      "ticker": "BulkSOL | BULK Staked SOL",
+      "description": "BULK Staked SOL | sol-lst | BulkSOL | P0 | -",
+      "symbol": "BulkSOL",
+      "name": "BULK Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq": {
+      "ticker": "zBTC | zBTC",
+      "description": "zBTC | blue-chip | zBTC | P0 | -",
+      "symbol": "zBTC",
+      "name": "zBTC",
+      "assetGroup": "blue-chip",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "EKwXy2ui2jtJnvH4A2XufyqMyeSFecJE8xAKWpZEtDwd": {
+      "ticker": "USD* | USD Star",
+      "description": "USD Star | stablecoins | USD* | P0 | -",
+      "symbol": "USD*",
+      "name": "USD Star",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh": {
+      "ticker": "SOL | Wrapped SOL",
+      "description": "Wrapped SOL | blue-chip | SOL | P0 | -",
+      "symbol": "SOL",
+      "name": "Wrapped SOL",
+      "assetGroup": "blue-chip",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "5wEJdDtCAVwPASNM2QfXAmLUnP8DCLy7D2piSgZxQ9xb": {
+      "ticker": "syrupUSDC | Syrup USDC",
+      "description": "Syrup USDC | stablecoins | syrupUSDC | Kamino | Maple Market",
+      "symbol": "syrupUSDC",
+      "name": "Syrup USDC",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "Maple Market"
+    },
+    "2Ux4yKTTxQf14MzxRPUyybw9akqHC5jnViF1iKWZRxMb": {
+      "ticker": "SHDW | Shadow Token",
+      "description": "Shadow Token | W/E | SHDW | P0 | -",
+      "symbol": "SHDW",
+      "name": "Shadow Token",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "AwLRW3aPMMftXEjgWhTkYwM9CGBHdtKecvahCJZBwAqY": {
+      "ticker": "INF | Infinity",
+      "description": "Infinity | sol-lst | INF | P0 | -",
+      "symbol": "INF",
+      "name": "Infinity",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "9ThXmfwhNzc6qbkRLuSGHwKS7mxjn6QcuRD644Pjn4F": {
+      "ticker": "PT-BulkSOL | Exponent PT-BulkSOL-20JUN26",
+      "description": "Exponent PT-BulkSOL-20JUN26 | rate-products | PT-BulkSOL | P0 | -",
+      "symbol": "PT-BulkSOL",
+      "name": "Exponent PT-BulkSOL-20JUN26",
+      "assetGroup": "rate-products",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "2ZScBCNKfE6X6fGcBtB2uBuvZqUE3cjKQmRv8wVXTN5B": {
+      "ticker": "MOBILE | Helium MOBILE",
+      "description": "Helium MOBILE | W/E | MOBILE | P0 | -",
+      "symbol": "MOBILE",
+      "name": "Helium MOBILE",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "4ujXMjmbw5nJBmBYVSfQj5ATjRwCitcrsFQaYo7UqNRY": {
+      "ticker": "bonkSOL | bonkSOL",
+      "description": "bonkSOL | W/E | bonkSOL | P0 | -",
+      "symbol": "bonkSOL",
+      "name": "bonkSOL",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8": {
+      "ticker": "JitoSOL | Jito Staked SOL",
+      "description": "Jito Staked SOL | sol-lst | JitoSOL | P0 | -",
+      "symbol": "JitoSOL",
+      "name": "Jito Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "ATNeEjgUCkeRr11tx3SyRfejyKuqC8WyahfPtzFdA2dZ": {
+      "ticker": "EURC | EURC",
+      "description": "EURC | stablecoins | EURC | Jupiter | -",
+      "symbol": "EURC",
+      "name": "EURC",
+      "assetGroup": "stablecoins",
+      "venue": "Jupiter",
+      "venueIdentifier": "-"
+    },
+    "3xn7strvpinirQ5KxEgVFemb6qYeHG39krohoeRHRrRt": {
+      "ticker": "JupUSD | Jupiter USD",
+      "description": "Jupiter USD | stablecoins | JupUSD | P0 | -",
+      "symbol": "JupUSD",
+      "name": "Jupiter USD",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "FuyzDwmMbYYPPd3oLtjNk3ZLqsTBPaQtQrxRGzUGcAvp": {
+      "ticker": "ORE | ORE",
+      "description": "ORE | ecosystem | ORE | P0 | -",
+      "symbol": "ORE",
+      "name": "ORE",
+      "assetGroup": "ecosystem",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "4uawSqEM2jDPKkQRtnoSTmBjFJ51Ehu79EvGfu3R45o7": {
+      "ticker": "SOL | Wrapped SOL",
+      "description": "Wrapped SOL | blue-chip | SOL | Kamino | Marinade Market",
+      "symbol": "SOL",
+      "name": "Wrapped SOL",
+      "assetGroup": "blue-chip",
+      "venue": "Kamino",
+      "venueIdentifier": "Marinade Market"
+    },
+    "BKsfDJCMbYep6gr9pq8PsmJbb5XGLHbAJzUV8vmorz7a": {
+      "ticker": "WBTC | Wrapped BTC (Wormhole)",
+      "description": "Wrapped BTC (Wormhole) | blue-chip | WBTC | P0 | -",
+      "symbol": "WBTC",
+      "name": "Wrapped BTC (Wormhole)",
+      "assetGroup": "blue-chip",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "E4td8i8PT2BZkMygzW4MGHCv2KPPs57dvz5W2ZXf9Twu": {
+      "ticker": "PYTH | Pyth Network",
+      "description": "Pyth Network | governance | PYTH | P0 | -",
+      "symbol": "PYTH",
+      "name": "Pyth Network",
+      "assetGroup": "governance",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "Dj2CwMF3GM7mMT5hcyGXKuYSQ2kQ5zaVCkA1zX1qaTva": {
+      "ticker": "USDG | Global Dollar",
+      "description": "Global Dollar | stablecoins | USDG | P0 | -",
+      "symbol": "USDG",
+      "name": "Global Dollar",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "5oNLkC42jSSrLER4tYjax99zkaGJegV1FjAtEbw81Xs6": {
+      "ticker": "MNDE | Marinade",
+      "description": "Marinade | W/E | MNDE | P0 | -",
+      "symbol": "MNDE",
+      "name": "Marinade",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "4YipZHMNQjip1LrG3uF2fj1G5ieWQ9QRQRy1jhAWWKUZ": {
+      "ticker": "bbSOL | BybitSOL",
+      "description": "BybitSOL | sol-lst | bbSOL | P0 | -",
+      "symbol": "bbSOL",
+      "name": "BybitSOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "BDo6z3urnxkMBPWP1PTcPDMNnvgTtEqtKtf219exvA87": {
+      "ticker": "ISC | International Stable Currency",
+      "description": "International Stable Currency | W/E | ISC | P0 | -",
+      "symbol": "ISC",
+      "name": "International Stable Currency",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "5tMcLP49P7CHKEM4KWAiSDNpEh5UFcCLsMVXi74YRg5C": {
+      "ticker": "ezSOL | Renzo Restaked SOL",
+      "description": "Renzo Restaked SOL | W/E | ezSOL | P0 | -",
+      "symbol": "ezSOL",
+      "name": "Renzo Restaked SOL",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "BsrjGaXJNmzXBK855wXev2Jb846AbyRCoA6R8TnpfrNM": {
+      "ticker": "RLB | Rollbit Coin",
+      "description": "Rollbit Coin | W/E | RLB | P0 | -",
+      "symbol": "RLB",
+      "name": "Rollbit Coin",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "4ecRL7M2fdmWjZd81PTZ9Sqg1e47ZpiwhkeDbsBJtqax": {
+      "ticker": "corvusSOL | Corvus SOL",
+      "description": "Corvus SOL | sol-lst | corvusSOL | P0 | -",
+      "symbol": "corvusSOL",
+      "name": "Corvus SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "GR9GNdjWf8kSf3b4REribKKSeVvkzjbAQJ1A8CDnFxLF": {
+      "ticker": "rkSOL | Starke Staked SOL",
+      "description": "Starke Staked SOL | sol-lst | rkSOL | P0 | -",
+      "symbol": "rkSOL",
+      "name": "Starke Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "5xVGr3pAWDtWPLcf6YsQTjKm6pGqLnJrENQXGajdP2wZ": {
+      "ticker": "boden | jeo boden",
+      "description": "jeo boden | W/E | boden | P0 | -",
+      "symbol": "boden",
+      "name": "jeo boden",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "9g3Tug2WbDwekghbPn2u3V84tvikAMBZiFbPUfkjwKNH": {
+      "ticker": "wstETH | Wrapped liquid staked (Wormhole)",
+      "description": "Wrapped liquid staked (Wormhole) | W/E | wstETH | P0 | -",
+      "symbol": "wstETH",
+      "name": "Wrapped liquid staked (Wormhole)",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "FLnBNuXqJYUNa8EwC1APQ4qV128f8iHQQ6vnr1PaD1ax": {
+      "ticker": "USDT | USDT",
+      "description": "USDT | stablecoins | USDT | Kamino | Main Market",
+      "symbol": "USDT",
+      "name": "USDT",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "Main Market"
+    },
+    "BYZ4ZPjNw8Ha2o6DcNLUPfmuuacTno9j135XeYRubHfA": {
+      "ticker": "dSOL | Drift Staked SOL",
+      "description": "Drift Staked SOL | sol-lst | dSOL | Drift | Main Market",
+      "symbol": "dSOL",
+      "name": "Drift Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "Drift",
+      "venueIdentifier": "Main Market"
+    },
+    "FvrTUfd3kimMfXvGrvcS1XC8NrtmSSurX8yP6XeUFt2s": {
+      "ticker": "lanternSOL | Lantern Staked SOL",
+      "description": "Lantern Staked SOL | sol-lst | lanternSOL | P0 | -",
+      "symbol": "lanternSOL",
+      "name": "Lantern Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "FLwQ2tV4gPHKWY1jwdB3Hp8Z18nU4WngvNgJn3qZVGd7": {
+      "ticker": "USDS | USDS",
+      "description": "USDS | stablecoins | USDS | Kamino | Maple Market",
+      "symbol": "USDS",
+      "name": "USDS",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "Maple Market"
+    },
+    "E7LfHgmiWT6TxAcWq18yDBXWxHw4VasjD98aZaoXCp8T": {
+      "ticker": "dzSOL | DoubleZero Staked SOL",
+      "description": "DoubleZero Staked SOL | sol-lst | dzSOL | P0 | -",
+      "symbol": "dzSOL",
+      "name": "DoubleZero Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "4cSk2pyxFkPdc5Kp5Yk1HYLjTbNoYzwtz2MCKUogjqeg": {
+      "ticker": "SOL | Wrapped SOL",
+      "description": "Wrapped SOL | blue-chip | SOL | Jupiter | -",
+      "symbol": "SOL",
+      "name": "Wrapped SOL",
+      "assetGroup": "blue-chip",
+      "venue": "Jupiter",
+      "venueIdentifier": "-"
+    },
+    "8LaUZadNqtzuCG7iCvZd7d5cbquuYfv19KjAg6GPuuCb": {
+      "ticker": "JupSOL | Jupiter Staked SOL",
+      "description": "Jupiter Staked SOL | sol-lst | JupSOL | P0 | -",
+      "symbol": "JupSOL",
+      "name": "Jupiter Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "9LfTcnXVa84mTwAxgHUkLBk1yg6vCWAMLSNY1oLBnnVx": {
+      "ticker": "PYUSD | PayPal USD",
+      "description": "PayPal USD | stablecoins | PYUSD | Kamino | Main Market",
+      "symbol": "PYUSD",
+      "name": "PayPal USD",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "Main Market"
+    },
+    "D1vPUa8JhMpxi5qjZeYLCJvHHQbAZ8pdfXum3AwWAk5H": {
+      "ticker": "PRCL | Parcl",
+      "description": "Parcl | W/E | PRCL | P0 | -",
+      "symbol": "PRCL",
+      "name": "Parcl",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "HDYFgNRTFL2tVwGyAHaTr4SW7Y7riXjew48qKLHgi8es": {
+      "ticker": "xBTC | OKX Wrapped BTC",
+      "description": "OKX Wrapped BTC | blue-chip | xBTC | P0 | -",
+      "symbol": "xBTC",
+      "name": "OKX Wrapped BTC",
+      "assetGroup": "blue-chip",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "5WL5CnjWT71NPgj8iQR2FU5H3FsVci9cnsHSNJzxj788": {
+      "ticker": "USDY | Ondo US Dollar Yield",
+      "description": "Ondo US Dollar Yield | W/E | USDY | P0 | -",
+      "symbol": "USDY",
+      "name": "Ondo US Dollar Yield",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "3UwWCseMeKfoVtesjJycA7AYSE65MeKh1wK98FfeG8kM": {
+      "ticker": "STEP | Step",
+      "description": "Step | W/E | STEP | P0 | -",
+      "symbol": "STEP",
+      "name": "Step",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "ARwrmohp8qMCkxQNiq5di4pTnTWhvXhAc7c18tZ877Kg": {
+      "ticker": "picoSOL | picoSOL",
+      "description": "picoSOL | sol-lst | picoSOL | P0 | -",
+      "symbol": "picoSOL",
+      "name": "picoSOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8": {
+      "ticker": "JUP | Jupiter",
+      "description": "Jupiter | governance | JUP | P0 | -",
+      "symbol": "JUP",
+      "name": "Jupiter",
+      "assetGroup": "governance",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "5wZz2MV3dFJVq3Wp4tBoqrgrSGZqeLCdLE1L4w6okm9g": {
+      "ticker": "JSOL | JPool Staked SOL",
+      "description": "JPool Staked SOL | sol-lst | JSOL | P0 | -",
+      "symbol": "JSOL",
+      "name": "JPool Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "24gdUT9SNqeizCD1dHXWgjpa6NnWSFD6TWPAnCFSJnAk": {
+      "ticker": "STKESOL | STKE SOL",
+      "description": "STKE SOL | sol-lst | STKESOL | Kamino | Main Market",
+      "symbol": "STKESOL",
+      "name": "STKE SOL",
+      "assetGroup": "sol-lst",
+      "venue": "Kamino",
+      "venueIdentifier": "Main Market"
+    },
+    "Be5LNsgq7Zs3LJkCnqW4j3bs7GsZksNNmqEiyEhbsugn": {
+      "ticker": "USDC | USD Coin",
+      "description": "USD Coin | stablecoins | USDC | Jupiter | -",
+      "symbol": "USDC",
+      "name": "USD Coin",
+      "assetGroup": "stablecoins",
+      "venue": "Jupiter",
+      "venueIdentifier": "-"
+    },
+    "8W3GgWFFnHdd98GKGzvNNi9Wzjoq2CU4wW6cHz6cKxk1": {
+      "ticker": "dSOL | Drift Staked SOL",
+      "description": "Drift Staked SOL | sol-lst | dSOL | P0 | -",
+      "symbol": "dSOL",
+      "name": "Drift Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "22DcjMZrMwC5Bpa5AGBsmjc5V9VuQrXG6N9ZtdUNyYGE": {
+      "ticker": "mSOL | Marinade staked SOL (mSOL)",
+      "description": "Marinade staked SOL (mSOL) | sol-lst | mSOL | P0 | -",
+      "symbol": "mSOL",
+      "name": "Marinade staked SOL (mSOL)",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB": {
+      "ticker": "USDC | USD Coin",
+      "description": "USD Coin | stablecoins | USDC | P0 | -",
+      "symbol": "USDC",
+      "name": "USD Coin",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "6KP94PsCrBk2gPqtqT4WSvZ8Zss7r1auz3azXpv5ptrS": {
+      "ticker": "USDG | Global Dollar",
+      "description": "Global Dollar | stablecoins | USDG | Kamino | Main Market",
+      "symbol": "USDG",
+      "name": "Global Dollar",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "Main Market"
+    },
+    "F541dsSsc6xYzHfvLfyEuLfM6a8JdwGaVpyWm2GxcJsA": {
+      "ticker": "compassSOL | Solana Compass LST",
+      "description": "Solana Compass LST | W/E | compassSOL | P0 | -",
+      "symbol": "compassSOL",
+      "name": "Solana Compass LST",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "H6bfRmfZPoxDDs8eoVBgouTPowwyv7opfBbHd5KUmuUz": {
+      "ticker": "META | META",
+      "description": "META | W/E | META | P0 | -",
+      "symbol": "META",
+      "name": "META",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "GJCi1uj3kYPZ64puA5sLUiCQfFapxT2xnREzrbDzFkYY": {
+      "ticker": "hSOL | Helius Staked SOL",
+      "description": "Helius Staked SOL | sol-lst | hSOL | P0 | -",
+      "symbol": "hSOL",
+      "name": "Helius Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "EmMhorGDR3N9ecNWVQjJi2QpFLkeHEvjZFdW6TuVgXjU": {
+      "ticker": "MET | Meteora",
+      "description": "Meteora | governance | MET | P0 | -",
+      "symbol": "MET",
+      "name": "Meteora",
+      "assetGroup": "governance",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "44digRwKFeyiqDaxJRE6iag4cbXECKjG54v5ozxdu5mu": {
+      "ticker": "GUAC | Guacamole",
+      "description": "Guacamole | W/E | GUAC | P0 | -",
+      "symbol": "GUAC",
+      "name": "Guacamole",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "4gQYBXPg4GuUQ58pyRebJrtUt6TvFdznwMu7RLfNsipH": {
+      "ticker": "dfdvSOL | DeFi Development Corp Staked SOL",
+      "description": "DeFi Development Corp Staked SOL | sol-lst | dfdvSOL | P0 | -",
+      "symbol": "dfdvSOL",
+      "name": "DeFi Development Corp Staked SOL",
+      "assetGroup": "sol-lst",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "2VmE6PMRWLRxjMkoK2sWu3WyNGGdXFK1G38ZAaQu3r5Y": {
+      "ticker": "PT-hyloSOL | Exponent PT-hyloSOL-14APR26",
+      "description": "Exponent PT-hyloSOL-14APR26 | rate-products | PT-hyloSOL | P0 | -",
+      "symbol": "PT-hyloSOL",
+      "name": "Exponent PT-hyloSOL-14APR26",
+      "assetGroup": "rate-products",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "BkUyfXjbBBALcfZvw76WAFRvYQ21xxMWWeoPtJrUqG3z": {
+      "ticker": "WETH | Wrapped Ether (Wormhole)",
+      "description": "Wrapped Ether (Wormhole) | blue-chip | WETH | P0 | -",
+      "symbol": "WETH",
+      "name": "Wrapped Ether (Wormhole)",
+      "assetGroup": "blue-chip",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "8J7nwjQwKTFmx1FkhGN2YeKhMTC6r7kZnHAK8hLK7rLm": {
+      "ticker": "USDS | USDS",
+      "description": "USDS | stablecoins | USDS | Jupiter | -",
+      "symbol": "USDS",
+      "name": "USDS",
+      "assetGroup": "stablecoins",
+      "venue": "Jupiter",
+      "venueIdentifier": "-"
+    },
+    "HnKy41QrJNFLJmBGtgLWpy8NissUsNLKRMibRwsNhDnF": {
+      "ticker": "CASH | CASH",
+      "description": "CASH | stablecoins | CASH | Kamino | Main Market",
+      "symbol": "CASH",
+      "name": "CASH",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "Main Market"
+    },
+    "EYp4j7oHV2SfEGSE3GJ4MjsCL33CzmqLTdvTCdacQ9uG": {
+      "ticker": "W | Wormhole Token",
+      "description": "Wormhole Token | governance | W | P0 | -",
+      "symbol": "W",
+      "name": "Wormhole Token",
+      "assetGroup": "governance",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "AyeEyCiBU2CzZmxz3f3o3vk2hvMsM5G3t3D6vhLsiFkf": {
+      "ticker": "tBTC | tBTC v2",
+      "description": "tBTC v2 | W/E | tBTC | P0 | -",
+      "symbol": "tBTC",
+      "name": "tBTC v2",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "FWZbU8TSPyjyrWQASzujo7FjgF9f3GEkjaFAtbKWqjMH": {
+      "ticker": "sUSD | Solayer USD",
+      "description": "Solayer USD | W/E | sUSD | P0 | -",
+      "symbol": "sUSD",
+      "name": "Solayer USD",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "4kNXetv8hSv9PzvzPZzEs1CTH6ARRRi2b8h6jk1ad1nP": {
+      "ticker": "CLOUD | Cloud",
+      "description": "Cloud | governance | CLOUD | P0 | -",
+      "symbol": "CLOUD",
+      "name": "Cloud",
+      "assetGroup": "governance",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "7GbG8B1aHpV4Q271ozU9EDEGPTLXpekv7m2UgyCgFzr5": {
+      "ticker": "ZEC | Zcash",
+      "description": "Zcash | ecosystem | ZEC | P0 | -",
+      "symbol": "ZEC",
+      "name": "Zcash",
+      "assetGroup": "ecosystem",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "4PtX5fLM5JwujjHmSyzbh5XLasKx9kiPxPfygi57jAov": {
+      "ticker": "PT-BulkSOL | Exponent PT-BulkSOL-26FEB26",
+      "description": "Exponent PT-BulkSOL-26FEB26 | rate-products | PT-BulkSOL | P0 | -",
+      "symbol": "PT-BulkSOL",
+      "name": "Exponent PT-BulkSOL-26FEB26",
+      "assetGroup": "rate-products",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "CQVtZK8rpL4M6JQzXxkPhadkVDFChfmdyw9MAXM3oFZT": {
+      "ticker": "ORE | Ore",
+      "description": "Ore | W/E | ORE | P0 | -",
+      "symbol": "ORE",
+      "name": "Ore",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "G1pNtooUWPad3zCJLGAtjD3Zu9K56PrRpmvVB6AED1Tr": {
+      "ticker": "NOS | Nosana",
+      "description": "Nosana | W/E | NOS | P0 | -",
+      "symbol": "NOS",
+      "name": "Nosana",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "Dyuh6umsxbLAXKz3SrwXgYmmXuVWE9muYBvFUBPM58NY": {
+      "ticker": "syrupUSDC | Syrup USDC",
+      "description": "Syrup USDC | stablecoins | syrupUSDC | P0 | -",
+      "symbol": "syrupUSDC",
+      "name": "Syrup USDC",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "hLkUhGPbBUuiCUWRsBsXrWnWH95rH3HkRkNtR8vyA7k": {
+      "ticker": "JupUSD | Jupiter USD",
+      "description": "Jupiter USD | stablecoins | JupUSD | Jupiter | -",
+      "symbol": "JupUSD",
+      "name": "Jupiter USD",
+      "assetGroup": "stablecoins",
+      "venue": "Jupiter",
+      "venueIdentifier": "-"
+    },
+    "CcVpzLenPRWGB8q3pB9kcNma1bp4SdPjJk9wmW5tMvPp": {
+      "ticker": "2Z | DoubleZero",
+      "description": "DoubleZero | governance | 2Z | P0 | -",
+      "symbol": "2Z",
+      "name": "DoubleZero",
+      "assetGroup": "governance",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "JBcir4DPRPYVUpks9hkS1jtHMXejfeBo4xJGv3AYYHg6": {
+      "ticker": "HNT | Helium Network Token",
+      "description": "Helium Network Token | governance | HNT | P0 | -",
+      "symbol": "HNT",
+      "name": "Helium Network Token",
+      "assetGroup": "governance",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "J5mxC3hLXqmsJB4Nauf9YrtbNMSTHGz7FWfAmy1v6Fzr": {
+      "ticker": "SOL | Wrapped SOL",
+      "description": "Wrapped SOL | blue-chip | SOL | Kamino | Jito Market",
+      "symbol": "SOL",
+      "name": "Wrapped SOL",
+      "assetGroup": "blue-chip",
+      "venue": "Kamino",
+      "venueIdentifier": "Jito Market"
+    },
+    "9dpu8KL5ABYiD3WP2Cnajzg1XaotcJvZspv29Y1Y3tn1": {
+      "ticker": "$WIF | dogwifhat",
+      "description": "dogwifhat | memes | $WIF | P0 | -",
+      "symbol": "$WIF",
+      "name": "dogwifhat",
+      "assetGroup": "memes",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "9SerK63jzwLimSP8nnH5aGoZzK2pVXBWTWmUZSyivwaV": {
+      "ticker": "SOL | Wrapped SOL",
+      "description": "Wrapped SOL | blue-chip | SOL | Kamino | Main Market",
+      "symbol": "SOL",
+      "name": "Wrapped SOL",
+      "assetGroup": "blue-chip",
+      "venue": "Kamino",
+      "venueIdentifier": "Main Market"
+    },
+    "B5nEYndavwuzEX1pQZUYcvfuhk1fMGgqrBrJkkEAe7iT": {
+      "ticker": "USDG | Global Dollar",
+      "description": "Global Dollar | stablecoins | USDG | Kamino | Maple Market",
+      "symbol": "USDG",
+      "name": "Global Dollar",
+      "assetGroup": "stablecoins",
+      "venue": "Kamino",
+      "venueIdentifier": "Maple Market"
+    },
+    "FKrkgcTCduBvnitwqg5GPnfK7M4aBNuZDjZZeeUhz7Uv": {
+      "ticker": "syrupUSDC | Syrup USDC",
+      "description": "Syrup USDC | stablecoins | syrupUSDC | Drift | Main Market",
+      "symbol": "syrupUSDC",
+      "name": "Syrup USDC",
+      "assetGroup": "stablecoins",
+      "venue": "Drift",
+      "venueIdentifier": "Main Market"
+    },
+    "5HSLxQN34V9jLihfBDwNLguDKWEPDBL7QBG5JKcAQ7ne": {
+      "ticker": "SAMO | Samoyed Coin",
+      "description": "Samoyed Coin | W/E | SAMO | P0 | -",
+      "symbol": "SAMO",
+      "name": "Samoyed Coin",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "7TZABdVVzqtGwgtqHM6VS8E34LtFq4dogNvTWEH9QaaM": {
+      "ticker": "stSOL | Lido Staked SOL",
+      "description": "Lido Staked SOL | W/E | stSOL | P0 | -",
+      "symbol": "stSOL",
+      "name": "Lido Staked SOL",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "BeNBJrAh1tZg5sqgt8D6AWKJLD5KkBrfZvtcgd7EuiAR": {
+      "ticker": "UXD | UXD Stablecoin",
+      "description": "UXD Stablecoin | stablecoins | UXD | P0 | -",
+      "symbol": "UXD",
+      "name": "UXD Stablecoin",
+      "assetGroup": "stablecoins",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    },
+    "3Hd1VzDCd8xEzcqj6CHqqjeKdzKQPMczGnkSbpaubf3W": {
+      "ticker": "ORCA | Orca",
+      "description": "Orca | W/E | ORCA | P0 | -",
+      "symbol": "ORCA",
+      "name": "Orca",
+      "assetGroup": "W/E",
+      "venue": "P0",
+      "venueIdentifier": "-"
+    }
+  }
+}
