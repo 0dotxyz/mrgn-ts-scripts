@@ -27,8 +27,20 @@ export const getConfig = (env: Environment = "production", groupAddress?: string
 
 export const getMarginfiProgram = (env: Environment = "production") => {
   const config = getConfig(env);
-  const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT, "confirmed");
-  const wallet = loadKeypairFromFile(process.env.MARGINFI_WALLET);
+  const rpc = process.env.PRIVATE_RPC_ENDPOINT?.trim();
+  if (!rpc) {
+    throw new Error(
+      "PRIVATE_RPC_ENDPOINT is missing or empty. Copy env.template to .env and set your Solana RPC URL.",
+    );
+  }
+  const walletPath = process.env.MARGINFI_WALLET?.trim();
+  if (!walletPath) {
+    throw new Error(
+      "MARGINFI_WALLET is missing or empty. Set it to the path of your keypair JSON (see env.template).",
+    );
+  }
+  const connection = new Connection(rpc, "confirmed");
+  const wallet = loadKeypairFromFile(walletPath);
 
   MARGINFI_IDL.address = config.PROGRAM_ID;
 
