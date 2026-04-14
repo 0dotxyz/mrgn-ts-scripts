@@ -45,14 +45,14 @@ const config: Config = {
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
-  // syrupUSDC
-  ORACLE: new PublicKey("7AjwutSAhQkaTqSsMrnWPNrvX97vcAz5FfcCmLfpYaPz"),
+  // USDS
+  ORACLE: new PublicKey("EtEbRr1fiigYs51PVaX6Ldupda4aMxz9qQE2iTBwLpZD"),
   ORACLE_TYPE: { kaminoSwitchboardPull: {} },
-  BANK_MINT: new PublicKey("AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj"),
-  KAMINO_RESERVE: new PublicKey("AwCyCPZYJSZ93xcVKNK7jR8e1BHzJXq1D4bReNuh9woY"),
-  KAMINO_MARKET: new PublicKey("6WEGfej9B9wjxRs6t4BYpb9iCXd8CpTpJ8fVSNzHCC5y"), // maple
+  BANK_MINT: new PublicKey("USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA"),
+  KAMINO_RESERVE: new PublicKey("BHUi32TrEsfN2U821G4FprKrR4hTeK4LCWtA3BFetuqA"),
+  KAMINO_MARKET: new PublicKey("7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF"), // main
 
-  SEED: 33,
+  SEED: 3,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
@@ -76,12 +76,12 @@ export async function addKaminoBank(
   const connection = user.connection;
 
   const bankConfig: KaminoConfigCompact = {
-    assetWeightInit: bigNumberToWrappedI80F48(0.5),
-    assetWeightMaint: bigNumberToWrappedI80F48(0.6),
-    depositLimit: new BN(1_500_000 * 10 ** 6),
+    assetWeightInit: bigNumberToWrappedI80F48(0.85),
+    assetWeightMaint: bigNumberToWrappedI80F48(0.9),
+    depositLimit: new BN(500_000 * 10 ** 6),
     operationalState: { operational: {} },
     riskTier: { collateral: {} },
-    totalAssetValueInitLimit: new BN(1_500_000),
+    totalAssetValueInitLimit: new BN(500_000),
     oracleMaxAge: 300,
     oracleMaxConfidence: 0,
     oracle: config.ORACLE,
