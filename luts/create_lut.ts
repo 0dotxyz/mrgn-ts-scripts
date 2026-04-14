@@ -24,6 +24,7 @@ type Config = {
 
 // stage: 7mTGsbaXnNpdcP2jdStswRx8rdH8cVCdj2xKKENDsJHH
 // prod: 4GcLy4cdMzQ16WUB9Q8fBwBgaohTXT2F1oLGTMfhdjW8
+// drift: EaR4e6VunhfxmLWLRoxiMWKHEStvsbsvTEQjxNjhyWJ
 const config: Config = {
   PLACEHOLDER: new PublicKey("J3oBkTkDXU3TcAggJEa3YeBZE5om5yNAdTtLVNXFD47"),
 };
