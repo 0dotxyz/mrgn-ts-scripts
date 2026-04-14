@@ -9441,6 +9441,154 @@
       "args": []
     },
     {
+      "name": "super_admin_deposit",
+      "docs": [
+        "(primary admin only) Deposit directly into a bank liquidity vault and raise",
+        "`asset_share_value` proportionally. No marginfi account is involved."
+      ],
+      "discriminator": [
+        241,
+        189,
+        199,
+        17,
+        207,
+        225,
+        64,
+        75
+      ],
+      "accounts": [
+        {
+          "name": "group",
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "group"
+          ]
+        },
+        {
+          "name": "bank",
+          "writable": true
+        },
+        {
+          "name": "admin_token_account",
+          "writable": true
+        },
+        {
+          "name": "liquidity_vault",
+          "writable": true,
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "super_admin_withdraw",
+      "docs": [
+        "(primary admin only) Withdraw directly from a bank liquidity vault and lower",
+        "`asset_share_value` proportionally. No marginfi account is involved."
+      ],
+      "discriminator": [
+        202,
+        67,
+        85,
+        126,
+        104,
+        138,
+        79,
+        197
+      ],
+      "accounts": [
+        {
+          "name": "group",
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "group"
+          ]
+        },
+        {
+          "name": "bank",
+          "writable": true
+        },
+        {
+          "name": "destination_token_account",
+          "writable": true
+        },
+        {
+          "name": "liquidity_vault_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "liquidity_vault",
+          "writable": true,
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "transfer_to_new_account",
       "docs": [
         "(account authority) Transfer all positions to a new account under a new authority. The old",
@@ -10202,6 +10350,32 @@
         20,
         90,
         26
+      ]
+    },
+    {
+      "name": "LendingPoolSuperAdminDepositEvent",
+      "discriminator": [
+        99,
+        152,
+        211,
+        30,
+        58,
+        165,
+        210,
+        71
+      ]
+    },
+    {
+      "name": "LendingPoolSuperAdminWithdrawEvent",
+      "discriminator": [
+        107,
+        168,
+        232,
+        181,
+        144,
+        161,
+        252,
+        37
       ]
     },
     {
@@ -14780,6 +14954,72 @@
                 "name": "WrappedI80F48"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "LendingPoolSuperAdminDepositEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "header",
+            "type": {
+              "defined": {
+                "name": "GroupEventHeader"
+              }
+            }
+          },
+          {
+            "name": "bank",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "transfer_amount",
+            "docs": [
+              "Amount requested in SPL transfer instruction."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "vault_inflow_amount",
+            "docs": [
+              "Assumed vault inflow. Token-2022 transfer fees are not handled by this instruction path."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LendingPoolSuperAdminWithdrawEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "header",
+            "type": {
+              "defined": {
+                "name": "GroupEventHeader"
+              }
+            }
+          },
+          {
+            "name": "bank",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_outflow_amount",
+            "type": "u64"
           }
         ]
       }

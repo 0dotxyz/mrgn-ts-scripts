@@ -5,7 +5,7 @@
 
 import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
-import { loadEnvFile } from "../utils";
+import { loadEnvFile } from "../utils/utils";
 
 async function main() {
   const base58Tx = process.argv[2];

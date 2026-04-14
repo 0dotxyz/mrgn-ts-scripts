@@ -15,7 +15,7 @@ import { Marginfi as MarginfiCurrent } from "../idl/marginfi";
 import marginfiIdlCurrent from "../idl/marginfi.json";
 
 import { loadKeypairFromFile, ReadOnlyWallet } from "../lib/utils";
-import { DEFAULT_API_URL, loadEnvFile } from "../scripts/utils";
+import { DEFAULT_API_URL, loadEnvFile } from "../scripts/utils/utils";
 
 /**
  * A user context containing the Anchor program, wallet, provider, and connection.

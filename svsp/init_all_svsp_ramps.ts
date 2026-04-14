@@ -10,7 +10,7 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
-import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile } from "../scripts/utils";
+import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile } from "../scripts/utils/utils";
 import { createPoolOnramp, deriveOnRampPool, deriveSVSPpool, replenishPool } from "./stake-utils";
 import fs from "fs";
 import path from "path";

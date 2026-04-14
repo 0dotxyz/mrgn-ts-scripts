@@ -10,7 +10,7 @@ import {
   DEFAULT_API_URL,
   loadEnvFile,
   loadKeypairFromFile,
-} from "../scripts/utils";
+} from "../scripts/utils/utils";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 /**
@@ -26,19 +26,15 @@ type Config = {
 };
 
 const config: Config = {
-  LUT: new PublicKey("3XpcTktgNzeMv2ATg4Y6yLgE5Wfxebcb8Tb9zj755PhH"),
+  LUT: new PublicKey("inzqinzgHh3muPvSWLqtabt9MJayhVVfTm2eE87RTfC"),
   KEYS: [
-    new PublicKey("FsqEotn7wcZvyMV214BbQRUJwbwLujDGHHBNrM5tzN6Z"),
-    new PublicKey("3vejrc7HzHszWjn5YpntjiQEtJNB4Yd1Fff2cs9Hh7JZ"),
-    new PublicKey("H24JXW3k7y8B8x2zBXhHyCtfVvZJZFYkKh7iV7hB47UF"),
-    new PublicKey("B8rYZr3vpN45fREYqZQ7brxvM6j4brH6D1JWT1FwqzLo"),
-    new PublicKey("5nmGjA4s7ATzpBQXC5RNceRpaJ7pYw2wKsNBWyuSAZV6"),
-    new PublicKey("GcV9tEj62VncGithz4o4N9x6HWXARxuRgEAYk9zahNA8"),
-    new PublicKey("3Q4kx6MUF6HrKUk6ryK28VaZkfTYfm8bwwWbaomEQTTm"),
-    new PublicKey("FGFqvYQis8sg8xEkPWcNxc4hsrMz6UAHSW4rWK3CSZGr"),
-    new PublicKey("EMCFG8nFXas42F26CR6KryWBTGvv2Tb1WjAhU6ASpWnt"),
-    new PublicKey("CYH54HYnAp3fPkWXJ1GNdCwHpCWPxY3oEJWussB7QhEb"),
-    new PublicKey("ATNeEjgUCkeRr11tx3SyRfejyKuqC8WyahfPtzFdA2dZ"),
+    new PublicKey("MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA"),
+    new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
+    new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"),
+    new PublicKey("ZtQEme6PSK9P6wNiMzjp6EE8SeiB7bBuT1yHLeS6BrZ"),
+    new PublicKey("3uxNepDbmkDNq6JhRja5Z8QwbTrfmkKP8AKZV5chYDGG"),
+    new PublicKey("7jaiZR5Sk8hdYN9MxTpczTcwbWpb5WEoxSANuUwveuat"),
+    new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
   ],
 };
 

@@ -118,6 +118,7 @@
 - WIF (swb) - 6B23K3tkb51vLZA14jcEQVCA1pfHptzEHFA93V5dYwbT
 - DUST (swb) - EmCZsrNqQEqsfafK4j4uRFjGvpUeMS5B2uDR9uc3wBMY
 - UXD (swb) - CoEDGeYda7Mi6c1BAsHE2LL6zEVcitX43wPABSLgQfpB
+- USD\* (swb) - 3xjjfYi2o2nN4w6Jhf3Cf66BgYzMtYqhXojYTgwJMCQq
 
 ## GLOBAL FEE STATE
 
@@ -176,6 +177,9 @@ particular organization.
   3XpcTktgNzeMv2ATg4Y6yLgE5Wfxebcb8Tb9zj755PhH (owned by
   FDr3iLdfyyzMmge9rN5sqQ38PgbrXY94VDW726EUN2kK) - mostly juplend accounts to init banks
 
+  inzqinzgHh3muPvSWLqtabt9MJayhVVfTm2eE87RTfC - (owned by
+  FDr3iLdfyyzMmge9rN5sqQ38PgbrXY94VDW726EUN2kK mostly Drift stuff)
+
 ## DESTROYED ACCOUNTS
 
 - Activating Cavey Cool Stake Account for Phantom Wallet that was deposited to the single pool: CBkEBnagcbmZrmbg9yV1d1gWxi6tmuR26616XXwVwus
@@ -187,7 +191,7 @@ Mrgn Account: E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt
 Bank(s) Lending: 3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL (Cavey Cool Staked Sol)
 Banks(s) Borrowed: 3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp (SOL with asset tag)
 
-
 ## Banks currently not being indexed by get-all
+
 RkSOL - GR9GNdjWf8kSf3b4REribKKSeVvkzjbAQJ1A8CDnFxLF
 LanternSOL - FvrTUfd3kimMfXvGrvcS1XC8NrtmSSurX8yP6XeUFt2s

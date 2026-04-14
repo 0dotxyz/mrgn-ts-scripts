@@ -9,7 +9,7 @@ import {
   SYSVAR_CLOCK_PUBKEY,
   SYSVAR_STAKE_HISTORY_PUBKEY,
 } from "@solana/web3.js";
-import { SINGLE_POOL_PROGRAM_ID } from "../scripts/utils";
+import { SINGLE_POOL_PROGRAM_ID } from "../scripts/utils/utils";
 import {
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,

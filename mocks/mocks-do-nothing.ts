@@ -3,7 +3,7 @@ import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Mocks } from "./mocks";
 import mocksIdl from "./mocks.json";
-import { loadKeypairFromFile } from "../scripts/utils";
+import { loadKeypairFromFile } from "../scripts/utils/utils";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 /**

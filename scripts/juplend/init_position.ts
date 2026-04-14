@@ -284,20 +284,21 @@ export async function initJuplendPosition(
   const initPositionIx = await program.methods
     .juplendInitPosition(amount)
     .accounts({
-      feePayer,
-      signerTokenAccount,
-      lendingAdmin,
-      supplyTokenReservesLiquidity,
-      lendingSupplyPositionOnLiquidity,
-      rateModel: juplendAccounts.rateModel,
-      vault: juplendAccounts.vault,
-      liquidity: juplendAccounts.liquidity,
-      liquidityProgram: juplendAccounts.liquidityProgram,
+      feePayer: feePayer,
+      signerTokenAccount: signerTokenAccount,
+      bank: config.BANK,
       rewardsRateModel: juplendAccounts.rewardsRateModel,
-      tokenProgram,
+      tokenProgram: tokenProgram,
+      vault: juplendAccounts.vault,
+      lendingAdmin: lendingAdmin,
+      supplyTokenReservesLiquidity: supplyTokenReservesLiquidity,
+      lendingSupplyPositionOnLiquidity: lendingSupplyPositionOnLiquidity,
+      rateModel: juplendAccounts.rateModel,
+      liquidity: juplendAccounts.liquidity,
+      liquidityProgram: juplendAccounts.liquidityProgram
     })
     .accountsPartial({
-      bank: config.BANK,
+      // bank: config.BANK,
       liquidityVault,
       mint,
       integrationAcc1: juplendLending,

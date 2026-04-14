@@ -15,7 +15,7 @@ import {
   VoteProgram,
 } from "@solana/web3.js";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { loadKeypairFromFile } from "../scripts/utils";
+import { loadKeypairFromFile } from "../scripts/utils/utils";
 import {
   createPoolOnramp,
   createStakeAccount,

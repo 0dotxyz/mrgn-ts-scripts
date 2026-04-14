@@ -1,7 +1,7 @@
 import bs58 from "bs58";
 import { clusterApiUrl, Connection, Transaction, VersionedMessage, VersionedTransaction } from "@solana/web3.js";
 import { loadEnvFile } from "process";
-import { DEFAULT_API_URL, loadKeypairFromFile } from "../scripts/utils";
+import { DEFAULT_API_URL, loadKeypairFromFile } from "../scripts/utils/utils";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.2.json";
 import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
