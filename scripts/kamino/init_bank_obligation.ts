@@ -45,11 +45,11 @@ const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
 
-  BANK: new PublicKey("HWSRiriCeJ8MZEWaQWb5dtztjEtLTinu5EfjcXyT8RPv"), // USDS Main
+  BANK: new PublicKey("6LoPoNHJKmQFE5ugVma19uGoM3kF1RsQUfGcem9UMLAk"), // USDC JLP
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
   RESERVE_ORACLE: new PublicKey("3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH"),
-  RESERVE: new PublicKey("BHUi32TrEsfN2U821G4FprKrR4hTeK4LCWtA3BFetuqA"),
+  RESERVE: new PublicKey("Ga4rZytCpq1unD4DbEJ5bkHeUz9g3oh9AAFEi6vSauXp"),
 
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
