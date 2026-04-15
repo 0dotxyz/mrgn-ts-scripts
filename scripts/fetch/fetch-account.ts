@@ -56,6 +56,7 @@ async function main() {
   const program = user.program;
 
   const acc = await program.account.marginfiAccount.fetch(config.ACCOUNT);
+  console.log("account: " + config.ACCOUNT);
   console.log("authority: " + acc.authority);
   const balances = acc.lendingAccount.balances as BalanceLike[];
   const activeBalanceSlots = balances.filter((b) => b.active !== 0);
@@ -118,9 +119,7 @@ async function main() {
         )
       : 0;
 
-    const liabilityUsd = bankMeta
-      ? liabilityTokens * bankMeta.cachedPrice
-      : 0;
+    const liabilityUsd = bankMeta ? liabilityTokens * bankMeta.cachedPrice : 0;
     const assetUsd = bankMeta ? assetTokens * bankMeta.cachedPrice : 0;
     totalLiabilityUsd += liabilityUsd;
     totalAssetUsd += assetUsd;
@@ -141,8 +140,12 @@ async function main() {
   console.table(activeBalances);
   const netAccountUsd = totalAssetUsd - totalLiabilityUsd;
   console.log(`net account value (usd): ${toFixedOrDash(netAccountUsd, 2)}`);
-  console.log("migrated from: " + acc.migratedFrom);
-  console.log("migrated to: " + acc.migratedTo);
+  if (!acc.migratedFrom.equals(PublicKey.default)) {
+    console.log("migrated from: " + acc.migratedFrom);
+  }
+  if (!acc.migratedTo.equals(PublicKey.default)) {
+    console.log("migrated to: " + acc.migratedFrom);
+  }
 }
 
 main().catch((err) => {

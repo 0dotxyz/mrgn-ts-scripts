@@ -167,20 +167,24 @@ export async function initKaminoObligation(
       requireAllSignatures: false,
       verifySignatures: false,
     });
+
+    const lutKeys = getUniqueInstructionPubkeys(initObligationTx);
     const base58Transaction = bs58.encode(serializedTransaction);
     console.log("bank key: " + config.BANK);
+    console.log("LUT keys (paste into update_lut.ts):");
+    lutKeys.forEach((key) =>
+      console.log(`    new PublicKey("${key.toString()}"),`),
+    );
+    console.log();
     console.log("Base58-encoded transaction:", base58Transaction);
-    console.log("ALL accounts:");
-    for (let ix of initObligationTx.instructions)
-    {
-      for (let account of ix.keys)
-      {
-        console.log(account.pubkey.toString());
-      }
-    }
   }
 
   return baseObligation;
+}
+
+function getUniqueInstructionPubkeys(tx: Transaction): PublicKey[] {
+  const keys = tx.instructions.flatMap((ix) => ix.keys.map((key) => key.pubkey));
+  return Array.from(new Map(keys.map((key) => [key.toString(), key])).values());
 }
 
 if (require.main === module) {

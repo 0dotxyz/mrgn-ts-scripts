@@ -180,6 +180,9 @@ particular organization.
   inzqinzgHh3muPvSWLqtabt9MJayhVVfTm2eE87RTfC - (owned by
   FDr3iLdfyyzMmge9rN5sqQ38PgbrXY94VDW726EUN2kK mostly Drift stuff)
 
+  C83sPjiLpUU5oGtEjYo5i1LoRagSsdPj62SaLsWWUN3T - (owned by
+  FDr3iLdfyyzMmge9rN5sqQ38PgbrXY94VDW726EUN2kK mostly Kamino stuff)
+
 ## DESTROYED ACCOUNTS
 
 - Activating Cavey Cool Stake Account for Phantom Wallet that was deposited to the single pool: CBkEBnagcbmZrmbg9yV1d1gWxi6tmuR26616XXwVwus

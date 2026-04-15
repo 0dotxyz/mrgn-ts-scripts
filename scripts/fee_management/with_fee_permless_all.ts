@@ -47,7 +47,7 @@ const skipUnset = true;
 /**
  * The maximum number of banks to batch into a single Transaction.
  */
-const CHUNK_SIZE = 10;
+const CHUNK_SIZE = 6;
 const JSON_URL =
   "https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json";
 
@@ -71,7 +71,7 @@ async function main() {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
-    "/keys/staging-deploy.json",
+    "/.keys/staging-deploy.json",
     config.MULTISIG_PAYER,
   );
   const program = user.program;
