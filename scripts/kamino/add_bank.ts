@@ -59,16 +59,16 @@ const config: Config = {
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
-  // PyUSD (Prime market)
-  ORACLE: new PublicKey("9zXQxpYH3kYhtoybmZfUNNCRVuud7fY9jswTg1hLyT8k"),
-  RESERVE_ORACLE: new PublicKey("3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH"),
-  ORACLE_TYPE: { kaminoPythPush: {} },
-  BANK_MINT: new PublicKey("2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"),
-  KAMINO_RESERVE: new PublicKey("3ZUAwhEtK8XWfK4fy98z4yoptm4GeyeAu21L11HPXaZ5"),
+  // CASH (Prime market)
+  ORACLE: new PublicKey("5QModpg2kw1EwWPZHHSAHc5wozGyhYuSQ5K544tsMvF8"),
+  RESERVE_ORACLE: new PublicKey("3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C"),
+  ORACLE_TYPE: { kaminoSwitchboardPull: {} },
+  BANK_MINT: new PublicKey("CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH"),
+  KAMINO_RESERVE: new PublicKey("GCRm26EuqzHtH8U3zTsXMEnq864qAGkkcAjMBL4dw9XC"),
   KAMINO_MARKET: new PublicKey("CqAoLuqWtavaVE8deBjMKe8ZfSt9ghR6Vb8nfsyabyHA"), // prime
   LUT: new PublicKey("C83sPjiLpUU5oGtEjYo5i1LoRagSsdPj62SaLsWWUN3T"),
 
-  SEED: 34,
+  SEED: 33,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
