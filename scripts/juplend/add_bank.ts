@@ -37,8 +37,8 @@ type Config = {
   SEED: BN;
   ADMIN: PublicKey;
   /** Pays flat sol fee to init and rent (generally the MS on mainnet) */
-  FEE_PAYER: PublicKey;
-  MULTISIG_PAYER: PublicKey;
+  FEE_PAYER?: PublicKey; // If omitted, defaults to ADMIN
+  MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
 
   ASSET_WEIGHT_INIT: string;
   ASSET_WEIGHT_MAINT: string;
@@ -237,7 +237,7 @@ export async function addJuplendBank(
   const [juplendFTokenVault] = deriveJuplendFTokenVault(program.programId, bank);
 
   // const admin = config.ADMIN;
-  const feePayer = config.FEE_PAYER;
+  const feePayer = config.FEE_PAYER ?? config.ADMIN;
 
   // Remaining accounts for oracle validation
   const oracleMeta: AccountMeta = {
