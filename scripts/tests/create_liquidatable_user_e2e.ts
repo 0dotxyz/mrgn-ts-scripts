@@ -10,7 +10,7 @@ import { addBank, ORACLE_TYPE_PYTH } from "../admin/add_bank";
 import { depositRegular } from "../user/deposit_regular";
 import { borrow } from "../user/borrow";
 import { composeRemainingAccounts } from "../../lib/utils";
-import { bankConfigOptDefault, configBank } from "../admin/config_bank";
+import { bankConfigOptDefault, BankConfigPair, configBank } from "../admin/config_bank";
 import { bigNumberToWrappedI80F48, sleep } from "@mrgnlabs/mrgn-common";
 import { pulseHealth } from "../user/health_pulse";
 import { writeFileSync } from "fs";
@@ -56,10 +56,22 @@ export type State = {
   juplendBanks: PublicKey[];
 };
 
+type SerializedState = {
+  marginfiGroup: string;
+  liquidator?: string;
+  liquidatee?: string;
+  debtBank?: string;
+  kaminoBanks?: string[];
+  kaminoObligations?: string[];
+  driftBanks?: string[];
+  juplendBanks?: string[];
+};
+
 // TODO: add fixed oracles
 // Once we lift the constraints on the program side, we can use up to 16 in total.
-const KAMINO_BANKS = 2;
-const DRIFT_BANKS = 2;
+const P0_BANKS = 1; // TODO: make fixed usdc
+const KAMINO_BANKS = 4;
+const DRIFT_BANKS = 0;
 const JUPLEND_BANKS = 4;
 
 // Note: current setup assumes you have ~1 USDC, ~1 USDS and ~1 USDT on your liquidatee's balances,
@@ -132,7 +144,7 @@ async function main() {
   // const marginfiGroup = new PublicKey(
   //   "B6bga2bbaVZ4mZaR6dKezvJRnvKb2WsrnNKwa6PMQLRE",
   // );
-  let state = {
+  let state: SerializedState = {
     marginfiGroup: pkToString(marginfiGroup),
   };
   writeJsonFile("liquidation_e2e_state.json", state);
@@ -152,7 +164,7 @@ async function main() {
   // const liquidator = new PublicKey(
   //   "Fn7cXZD74bMSVf8tKyVNNBoQCxSLv39FhsBXzVmS2ZB7",
   // );
-  state["liquidator"] = pkToString(liquidator);
+  state.liquidator = pkToString(liquidator);
   writeJsonFile("liquidation_e2e_state.json", state);
 
   const liquidatee = await initAccount(
@@ -169,7 +181,7 @@ async function main() {
   // const liquidatee = new PublicKey(
   //   "9nSThJznnwPEKxsfN6ZxMJHiDULaMbFWbfxfHrrB2tEa",
   // );
-  state["liquidatee"] = pkToString(liquidatee);
+  state.liquidatee = pkToString(liquidatee);
   writeJsonFile("liquidation_e2e_state.json", state);
 
   console.log("\n\n\n 3. ADD KAMINO (USDC) BANKS");
@@ -184,7 +196,7 @@ async function main() {
     KAMINO_MARKET: config.KAMINO_MARKET,
     SEED: 42,
   };
-  let kaminoBanks = [];
+  let kaminoBanks: PublicKey[] = [];
   for (let i = 0; i < KAMINO_BANKS; i++) {
     kaminoBankConfig.SEED = 42 + i;
     kaminoBanks.push(
@@ -200,7 +212,7 @@ async function main() {
   //   new PublicKey("AemvWQRnSoi2n8wHSvTfDQaM1jrTYVBmDjWsgjNexx1J"),
   //   new PublicKey("GQSkTStX5w976NvnVPYU3Gi5nh4oMruHvDm9kDzfRg3K"),
   // ];
-  state["kaminoBanks"] = kaminoBanks.map(pkToString);
+  state.kaminoBanks = kaminoBanks.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
 
   console.log("\n\n\n 4. INIT KAMINO OBLIGATIONS");
@@ -209,11 +221,12 @@ async function main() {
     GROUP_KEY: marginfiGroup,
     ADMIN: liquidatorWallet.publicKey,
     BANK: kaminoBanks[0],
+    ADD_COMPUTE_UNITS: true,
     KAMINO_MARKET: config.KAMINO_MARKET,
     RESERVE_ORACLE: config.KAMINO_RESERVE_ORACLE,
     FARM_STATE: config.KAMINO_FARM_STATE,
   };
-  let kaminoObligations = [];
+  let kaminoObligations: PublicKey[] = [];
   for (let i = 0; i < kaminoBanks.length; i++) {
     kaminoObligationConfig.BANK = kaminoBanks[i];
     kaminoObligations.push(
@@ -229,7 +242,7 @@ async function main() {
   //   new PublicKey("Fu61wCjXNGe5vQtHKcHcK8AZ4JVRZt2pFDbboX4TeZnC"),
   //   new PublicKey("HPmPJLDfX8bXRSatCxbofmZ5MJB4TeLijWVLkkGPWJ6N"),
   // ];
-  state["kaminoObligations"] = kaminoObligations.map(pkToString);
+  state.kaminoObligations = kaminoObligations.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
 
   console.log("\n\n\n 5. DEPOSIT TO ALL KAMINO BANKS BY LIQUIDATEE");
@@ -272,7 +285,7 @@ async function main() {
     ADMIN: liquidatorWallet.publicKey,
     SEED: new BN(0),
   };
-  let driftBanks = [];
+  let driftBanks: PublicKey[] = [];
   for (let i = 0; i < DRIFT_BANKS; i++) {
     driftBankConfig.SEED = new BN(i);
     driftBanks.push(
@@ -284,7 +297,7 @@ async function main() {
   //   new PublicKey("7n9nfzjP97rQaLd7SeWkHQzvoq1gTdgdYbRrxoqybY3J"),
   //   new PublicKey("8s5kpf86xERXw9D19i6fAQwe9kEfMJoPwAnPR6TYmY5u"),
   // ];
-  state["driftBanks"] = driftBanks.map(pkToString);
+  state.driftBanks = driftBanks.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
 
   console.log("\n\n\n 7. DEPOSIT TO ALL DRIFT BANKS BY LIQUIDATEE");
@@ -319,8 +332,15 @@ async function main() {
     ORACLE_SETUP: { juplendSwitchboardPull: {} },
     ADMIN: liquidatorWallet.publicKey,
     SEED: new BN(0),
+    ASSET_WEIGHT_INIT: "1.0",
+    ASSET_WEIGHT_MAINT: "1.0",
+    DEPOSIT_LIMIT: "1000000000000",
+    TOTAL_ASSET_VALUE_INIT_LIMIT: "1000000",
+    RISK_TIER: "collateral" as "isolated" | "collateral",
+    ORACLE_MAX_AGE: 300,
+    CONFIG_FLAGS: 0,
   };
-  let juplendBanks = [];
+  let juplendBanks: PublicKey[] = [];
   for (let i = 0; i < JUPLEND_BANKS; i++) {
     juplendBankConfig.SEED = new BN(i);
     juplendBanks.push(
@@ -338,13 +358,14 @@ async function main() {
   //   new PublicKey("FWqJFgwJQLM9ezskQxm5XcpRfsCCHFanix9CvMqVrA24"),
   //   new PublicKey("U7Qnu9biDCfiBnZfHhTePHtCuHSVF4juStMXctFMRBA"),
   // ];
-  state["juplendBanks"] = juplendBanks.map(pkToString);
+  state.juplendBanks = juplendBanks.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
 
   console.log("\n\n\n 9. INIT JUPLEND POSITIONS");
   let juplendPositionConfig = {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: juplendBanks[0],
+    BANK_MINT: config.JUPLEND_COLLATERAL_MINT,
   };
   for (let i = 0; i < juplendBanks.length; i++) {
     juplendPositionConfig.BANK = juplendBanks[i];
@@ -396,7 +417,7 @@ async function main() {
   );
   await sleep(1000);
   // const debtBank = new PublicKey("HWx9SUvp8px69zAe2hac4Ncq6L2PGYaM73u1kp7fKhh");
-  state["debtBank"] = pkToString(debtBank);
+  state.debtBank = pkToString(debtBank);
   writeJsonFile("liquidation_e2e_state.json", state);
 
   console.log("\n\n\n 12. DEPOSIT TO DEBT BANK BY LIQUIDATOR");
@@ -446,9 +467,9 @@ async function main() {
     AMOUNT: new BN(40000 * 10 ** 5), // 40k BONK
     MINT: config.DEBT_MINT,
     ADD_COMPUTE_UNITS: true,
-    KAMINO_RESERVES: [config.KAMINO_RESERVE],
-    DRIFT_MARKETS: [config.DRIFT_MARKET_INDEX],
-    JUPLEND_STATES: [config.JUPLEND_LENDING],
+    KAMINO_RESERVES: KAMINO_BANKS > 0 ? [config.KAMINO_RESERVE] : [],
+    DRIFT_MARKETS: DRIFT_BANKS > 0 ? [config.DRIFT_MARKET_INDEX] : [],
+    JUPLEND_STATES: JUPLEND_BANKS > 0 ? [config.JUPLEND_LENDING] : [],
     NEW_REMAINING: composeRemainingAccounts(remainingAccounts),
     LUT: config.LUT,
   };
@@ -485,7 +506,7 @@ async function main() {
     PROGRAM_ID: config.PROGRAM_ID,
     ADMIN: liquidatorWallet.publicKey,
     LUT: config.LUT, // copied from config_bank.ts
-    BANKS: [],
+    BANKS: [] as BankConfigPair[],
   };
 
   // config all banks in bulk

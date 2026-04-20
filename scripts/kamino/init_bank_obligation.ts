@@ -34,6 +34,8 @@ type Config = {
   FEE_PAYER?: PublicKey; // If omitted, defaults to ADMIN
   BANK: PublicKey;
 
+  ADD_COMPUTE_UNITS: boolean;
+
   /** Oracle address the Kamino Reserve uses. Typically read from reserve.config.tokenInfo.scope */
   RESERVE_ORACLE: PublicKey;
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
@@ -47,6 +49,8 @@ const config: Config = {
 
   BANK: new PublicKey("5wEJdDtCAVwPASNM2QfXAmLUnP8DCLy7D2piSgZxQ9xb"), // syrupUSDC Maple
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+
+  ADD_COMPUTE_UNITS: false,
 
   RESERVE_ORACLE: new PublicKey("3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH"),
   RESERVE: new PublicKey("AwCyCPZYJSZ93xcVKNK7jR8e1BHzJXq1D4bReNuh9woY"),
@@ -73,7 +77,9 @@ export async function initKaminoObligation(
   const program = user.program;
   const connection = user.connection;
 
-  const reserve = config.RESERVE ?? (await program.account.bank.fetch(config.BANK)).integrationAcc1;
+  const reserve =
+    config.RESERVE ??
+    (await program.account.bank.fetch(config.BANK)).integrationAcc1;
 
   const reserveAcc = await user.kaminoProgram.account.reserve.fetch(reserve);
   const mint = reserveAcc.liquidity.mintPubkey;
@@ -118,14 +124,19 @@ export async function initKaminoObligation(
     baseObligation,
   );
 
-  if (reserveFarmState.toString() == PublicKey.default.toString())
-  {
+  if (reserveFarmState.toString() == PublicKey.default.toString()) {
     reserveFarmState = null;
     userState = null;
   }
 
-  let initObligationTx = new Transaction().add(
-    // ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
+  let initObligationTx = new Transaction();
+  if (config.ADD_COMPUTE_UNITS) {
+    initObligationTx.add(
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
+    );
+  }
+
+  initObligationTx.add(
     await makeInitObligationIx(
       program,
       {
