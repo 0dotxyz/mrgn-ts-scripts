@@ -101,7 +101,7 @@ async function main() {
     RESERVE_ORACLE: config.KAMINO_RESERVE_ORACLE,
     FARM_STATE: config.KAMINO_FARM_STATE,
     LUT: config.LUT, // a liquidator-created LUT
-    NEW_REMAINING: [],
+    NEW_REMAINING: [] as PublicKey[],
     ADD_COMPUTE_UNITS: true,
   };
 
@@ -150,7 +150,7 @@ async function main() {
 
     LUT: config.LUT, // a liquidator-created LUT
 
-    NEW_REMAINING: [],
+    NEW_REMAINING: [] as PublicKey[],
     ADD_COMPUTE_UNITS: true,
   };
 
@@ -193,7 +193,7 @@ async function main() {
 
     LUT: config.LUT, // a liquidator-created LUT
 
-    NEW_REMAINING: [],
+    NEW_REMAINING: [] as PublicKey[],
     ADD_COMPUTE_UNITS: true,
   };
 
