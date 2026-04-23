@@ -1,0 +1,42 @@
+[
+  {
+    "bankAddress": "EQs18wjcya2x2CtwhqiWXGWu1frDzUjM2e2BSniBQoj4",
+    "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
+    "tokenAddress": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+    "tokenSymbol": "PYUSD",
+    "tokenName": "PayPal USD",
+    "venue": "Kamino",
+    "venueIdentifier": "PYUSD - Kamino Prime Market",
+    "riskTierName": "Collateral"
+  },
+  {
+    "bankAddress": "4VgNUPbdTNJ6a8NcLZDrjqtxpRk1fK7NDpMBSmvGVwHn",
+    "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
+    "tokenAddress": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+    "tokenSymbol": "USDS",
+    "tokenName": "USDS",
+    "venue": "Kamino",
+    "venueIdentifier": "USDS - Kamino Prime Market",
+    "riskTierName": "Collateral"
+  },
+  {
+    "bankAddress": "VnVjbrytWcxTi6nCASMryKm4vHwpVZvwJetE2W1w5gB",
+    "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
+    "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "tokenSymbol": "USDC",
+    "tokenName": "USD Coin",
+    "venue": "Kamino",
+    "venueIdentifier": "USDC - Kamino Prime Market",
+    "riskTierName": "Collateral"
+  },
+  {
+    "bankAddress": "6pSfmSLALBsTVCmoYLXs2auDSdU1TDcBWa81gCPzf8EX",
+    "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
+    "tokenAddress": "CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH",
+    "tokenSymbol": "CASH",
+    "tokenName": "CASH",
+    "venue": "Kamino",
+    "venueIdentifier": "CASH - Kamino Prime Market",
+    "riskTierName": "Collateral"
+  }
+]
