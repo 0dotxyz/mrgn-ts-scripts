@@ -7,3 +7,4 @@ node_modules
 .vscode*
 pnpm-lock.yaml
 *.DS_Store
+banks.json
