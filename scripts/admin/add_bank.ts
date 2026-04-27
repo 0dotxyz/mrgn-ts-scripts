@@ -52,10 +52,10 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE: new PublicKey("EP4n4PcRE5KWiMf1x44y6ey6E9RbzGANHKeKyTFvRz9d"),
+  ORACLE: new PublicKey("Ai1PZuTEfNjFib24GTBpAXRsVs62HkSYpw2sHUQiQ8Sr"),
   ORACLE_TYPE: ORACLE_TYPE_SWB,
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  BANK_MINT: new PublicKey("2jSne8C9vMkMZC5Wj1Q3SsD7T5RTZx7pzsgZrXPYoWoB"),
+  BANK_MINT: new PublicKey("5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E"),
   SEED: 0,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
@@ -81,17 +81,17 @@ const rate: InterestRateConfig1_7 = {
 };
 
 const bankConfig: BankConfig = {
-  assetWeightInit: bigNumberToWrappedI80F48(0),
-  assetWeightMaint: bigNumberToWrappedI80F48(0),
+  assetWeightInit: bigNumberToWrappedI80F48(0.55),
+  assetWeightMaint: bigNumberToWrappedI80F48(0.65),
   liabilityWeightInit: bigNumberToWrappedI80F48(1.15),
   liabilityWeightMaint: bigNumberToWrappedI80F48(1.1),
-  depositLimit: new BN(10_000 * 10 ** 9),
+  depositLimit: new BN(3_000_000 * 10 ** 6),
   interestRateConfig: rate,
   operationalState: { operational: {} },
   borrowLimit: new BN(0),
   riskTier: { collateral: {} },
   totalAssetValueInitLimit: new BN(3_000_000),
-  oracleMaxAge: 70,
+  oracleMaxAge: 300,
   assetTag: 0,
   oracleMaxConfidence: 0,
   configFlags: 0,
