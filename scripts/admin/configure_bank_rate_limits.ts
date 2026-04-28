@@ -312,6 +312,7 @@ function packInstructionsBySize(
   ixs: TransactionInstruction[],
   labels: string[],
   budgetBytes: number,
+  maxIxsPerTranche?: number,
 ): {
   batches: TransactionInstruction[][];
   byteCounts: number[];
@@ -328,8 +329,11 @@ function packInstructionsBySize(
     const ix = ixs[g];
     const trial = [...current, ix];
     const trialSize = measureTxBytes(payerKey, blockhash, lut, trial);
+    const fitsBytes = trialSize <= budgetBytes;
+    const fitsCount =
+      maxIxsPerTranche === undefined || trial.length <= maxIxsPerTranche;
 
-    if (trialSize <= budgetBytes) {
+    if (fitsBytes && fitsCount) {
       steps.push({
         globalIx: g,
         tranche,
@@ -555,6 +559,10 @@ async function main() {
   const ixLabels = ixs.map((_, i) =>
     i < selected.length ? `${selected[i].symbol} ${selected[i].pubkey.toBase58()}` : "GROUP configureGroupRateLimits",
   );
+  // Force the per-bank configureBankRateLimits ixs across 3 tranches even when
+  // they would byte-fit in fewer — keeps each multisig tx smaller for review.
+  const targetTranches = 3;
+  const maxIxsPerTranche = Math.ceil(selected.length / targetTranches);
   const { batches, byteCounts, steps } = packInstructionsBySize(
     payerKey,
     sizingBlockhash,
@@ -562,6 +570,7 @@ async function main() {
     ixs,
     ixLabels,
     packBudget,
+    maxIxsPerTranche,
   );
   console.log(
     `\nPacked ${ixs.length} ix(s) into ${batches.length} tranche(s) ` +
