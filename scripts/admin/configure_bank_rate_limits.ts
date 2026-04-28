@@ -4,6 +4,7 @@ import {
   AddressLookupTableProgram,
   Connection,
   Keypair,
+  PACKET_DATA_SIZE,
   PublicKey,
   Transaction,
   TransactionInstruction,
@@ -36,7 +37,10 @@ type Config = {
   USD_THRESHOLD: number;
   HOURLY_PCT: number;
   DAILY_PCT: number;
-  BATCH_SIZE: number;
+  // Bytes reserved off the 1232-byte tx limit. Covers the Squads execute-ix
+  // wrapper (extra program id + vault/PDA account metas) plus a comfort
+  // margin so we never pack right up against the hard limit.
+  TX_BYTE_RESERVE: number;
   MAX_TRANCHES: number;
   SKIP_ASSET_TAGS: number[];
 };
@@ -50,8 +54,8 @@ const config: Config = {
   USD_THRESHOLD: 100_000,
   HOURLY_PCT: 20,
   DAILY_PCT: 40,
-  BATCH_SIZE: 20,
-  MAX_TRANCHES: 5,
+  TX_BYTE_RESERVE: 200,
+  MAX_TRANCHES: 12,
   SKIP_ASSET_TAGS: [],
 };
 
@@ -73,6 +77,7 @@ type BankInfo = {
 
 type BankSnapshot = {
   pubkey: PublicKey;
+  mint: PublicKey;
   symbol: string;
   decimals: number;
   assetTag: number;
@@ -271,6 +276,106 @@ async function fetchGroupBanks(
   }));
 }
 
+function measureTxBytes(
+  payerKey: PublicKey,
+  blockhash: string,
+  lut: AddressLookupTableAccount,
+  ixs: TransactionInstruction[],
+): number {
+  const msg = new TransactionMessage({
+    payerKey,
+    recentBlockhash: blockhash,
+    instructions: ixs,
+  }).compileToV0Message([lut]);
+  return new VersionedTransaction(msg).serialize().length;
+}
+
+type PackStep = {
+  globalIx: number;
+  tranche: number;
+  posInTranche: number;
+  label: string;
+  bytesBefore: number;
+  bytesAfter: number;
+  delta: number;
+  startedNewTranche: boolean;
+};
+
+// Greedily pack ixs into as few v0 txs as possible without exceeding the
+// wire-format limit. Each candidate batch is actually compiled against the
+// live LUT so we measure real bytes — no guessing. Emits a per-ix step log
+// so the caller can render exactly how the tranches filled up.
+function packInstructionsBySize(
+  payerKey: PublicKey,
+  blockhash: string,
+  lut: AddressLookupTableAccount,
+  ixs: TransactionInstruction[],
+  labels: string[],
+  budgetBytes: number,
+): {
+  batches: TransactionInstruction[][];
+  byteCounts: number[];
+  steps: PackStep[];
+} {
+  const batches: TransactionInstruction[][] = [];
+  const byteCounts: number[] = [];
+  const steps: PackStep[] = [];
+  let tranche = 0;
+  let current: TransactionInstruction[] = [];
+  let currentSize = 0;
+
+  for (let g = 0; g < ixs.length; g++) {
+    const ix = ixs[g];
+    const trial = [...current, ix];
+    const trialSize = measureTxBytes(payerKey, blockhash, lut, trial);
+
+    if (trialSize <= budgetBytes) {
+      steps.push({
+        globalIx: g,
+        tranche,
+        posInTranche: current.length,
+        label: labels[g],
+        bytesBefore: currentSize,
+        bytesAfter: trialSize,
+        delta: trialSize - currentSize,
+        startedNewTranche: current.length === 0,
+      });
+      current = trial;
+      currentSize = trialSize;
+      continue;
+    }
+
+    if (current.length === 0) {
+      throw new Error(
+        `Single instruction serializes to ${trialSize} bytes, exceeds budget ${budgetBytes}. ` +
+          `Either increase LUT coverage or reduce TX_BYTE_RESERVE.`,
+      );
+    }
+
+    // Current tranche is full — flush and open a new one with this ix.
+    batches.push(current);
+    byteCounts.push(currentSize);
+    tranche++;
+    current = [ix];
+    currentSize = measureTxBytes(payerKey, blockhash, lut, current);
+    steps.push({
+      globalIx: g,
+      tranche,
+      posInTranche: 0,
+      label: labels[g],
+      bytesBefore: 0,
+      bytesAfter: currentSize,
+      delta: currentSize,
+      startedNewTranche: true,
+    });
+  }
+  if (current.length > 0) {
+    batches.push(current);
+    byteCounts.push(currentSize);
+  }
+  return { batches, byteCounts, steps };
+}
+
 async function main() {
   const user = commonSetup(
     sendTx,
@@ -320,6 +425,7 @@ async function main() {
 
     snapshots.push({
       pubkey: b.address,
+      mint: b.mint,
       symbol: b.address.toBase58().slice(0, 4),
       decimals: b.mintDecimals,
       assetTag: b.assetTag,
@@ -346,10 +452,54 @@ async function main() {
       "Deposits (token)": s.totalDepositsNative.shiftedBy(-s.decimals).toFormat(4),
       "Price ($)": s.priceUsd.toFormat(6),
       "Deposits ($)": s.totalDepositsUsd.toFormat(2),
-      "Hourly cap (native)": s.hourlyCap.toString(),
-      "Daily cap (native)": s.dailyCap.toString(),
+      "Hourly cap (token)": new BigNumber(s.hourlyCap.toString())
+        .shiftedBy(-s.decimals)
+        .toFormat(4),
+      "Daily cap (token)": new BigNumber(s.dailyCap.toString())
+        .shiftedBy(-s.decimals)
+        .toFormat(4),
+      "Hourly cap ($)": new BigNumber(s.hourlyCap.toString())
+        .shiftedBy(-s.decimals)
+        .multipliedBy(s.priceUsd)
+        .toFormat(2),
+      "Daily cap ($)": new BigNumber(s.dailyCap.toString())
+        .shiftedBy(-s.decimals)
+        .multipliedBy(s.priceUsd)
+        .toFormat(2),
     })),
   );
+
+  // Per-bank window caps — the actual policy: at most HOURLY_PCT of deposits
+  // can flow out in any 1h window, at most DAILY_PCT in any 24h window.
+  console.log(`\nPer-bank flow caps:`);
+  console.table(
+    selected.map((s) => ({
+      Bank: s.pubkey.toBase58(),
+      Mint: s.mint.toBase58(),
+      Hourly: new BigNumber(s.hourlyCap.toString())
+        .shiftedBy(-s.decimals)
+        .toFormat(4),
+      Daily: new BigNumber(s.dailyCap.toString())
+        .shiftedBy(-s.decimals)
+        .toFormat(4),
+    })),
+  );
+
+  const flowCapsJson = selected.map((s) => ({
+    bank: s.pubkey.toBase58(),
+    mint: s.mint.toBase58(),
+    decimals: s.decimals,
+    hourlyCapNative: s.hourlyCap.toString(),
+    dailyCapNative: s.dailyCap.toString(),
+    hourlyCapUi: new BigNumber(s.hourlyCap.toString())
+      .shiftedBy(-s.decimals)
+      .toString(),
+    dailyCapUi: new BigNumber(s.dailyCap.toString())
+      .shiftedBy(-s.decimals)
+      .toString(),
+  }));
+  console.log(`\nPer-bank flow caps (JSON):`);
+  console.log(JSON.stringify(flowCapsJson, null, 2));
 
   if (selected.length === 0) {
     console.log("No banks over threshold. Nothing to do.");
@@ -369,7 +519,7 @@ async function main() {
   }
 
 
-  const groupHourlyUsd = new BN(30_000_000);
+  const groupHourlyUsd = new BN(40_000_000);
   const groupDailyUsd = new BN(90_000_000);
   console.log(
     `\nGroup caps: hourly=$${groupHourlyUsd.toString()} daily=$${groupDailyUsd.toString()}`,
@@ -400,17 +550,57 @@ async function main() {
     missing,
   );
 
-  const batches = chunk(ixs, config.BATCH_SIZE);
-  console.log(
-    `\nPlanning ${batches.length} tranche(s) at BATCH_SIZE=${config.BATCH_SIZE} (budget: ${config.MAX_TRANCHES}).`,
+  const packBudget = PACKET_DATA_SIZE - config.TX_BYTE_RESERVE;
+  const sizingBlockhash = (await connection.getLatestBlockhash()).blockhash;
+  const ixLabels = ixs.map((_, i) =>
+    i < selected.length ? `${selected[i].symbol} ${selected[i].pubkey.toBase58()}` : "GROUP configureGroupRateLimits",
   );
-  if (batches.length > config.MAX_TRANCHES) {
-    throw new Error(
-      `Would emit ${batches.length} tranches, exceeds MAX_TRANCHES=${config.MAX_TRANCHES}. ` +
-        `Increase BATCH_SIZE (tx-size ceiling is ~32 ixs/tx with LUT) or raise MAX_TRANCHES.`,
+  const { batches, byteCounts, steps } = packInstructionsBySize(
+    payerKey,
+    sizingBlockhash,
+    lut,
+    ixs,
+    ixLabels,
+    packBudget,
+  );
+  console.log(
+    `\nPacked ${ixs.length} ix(s) into ${batches.length} tranche(s) ` +
+      `(limit ${PACKET_DATA_SIZE} bytes, reserve ${config.TX_BYTE_RESERVE}, budget ${packBudget}).`,
+  );
+
+  // Per-ix packing log — shows how each added ix grew the tranche and where
+  // the tranche boundary was forced.
+  console.log(`\nPer-ix packing log (budget ${packBudget} bytes):`);
+  for (const s of steps) {
+    const marker = s.startedNewTranche ? " [NEW TRANCHE]" : "";
+    const pct = ((s.bytesAfter / packBudget) * 100).toFixed(1);
+    console.log(
+      `  ix #${s.globalIx + 1} tranche ${s.tranche + 1} pos ${s.posInTranche + 1} | ` +
+        `${s.bytesBefore} → ${s.bytesAfter} bytes (+${s.delta}) | ` +
+        `remaining ${packBudget - s.bytesAfter} (${pct}% of budget) | ${s.label}${marker}`,
     );
   }
 
+  // Per-tranche summary: max ixs and bytes we reached before flushing.
+  console.log(`\nPer-tranche summary:`);
+  for (let i = 0; i < batches.length; i++) {
+    const bytes = byteCounts[i];
+    const pct = ((bytes / packBudget) * 100).toFixed(1);
+    console.log(
+      `  Tranche ${i + 1}: ${batches[i].length} ixs, ${bytes} bytes | ` +
+        `budget headroom ${packBudget - bytes} (${pct}% of budget) | ` +
+        `hard-limit headroom ${PACKET_DATA_SIZE - bytes}`,
+    );
+  }
+
+  if (batches.length > config.MAX_TRANCHES) {
+    throw new Error(
+      `Packed ${batches.length} tranches, exceeds MAX_TRANCHES=${config.MAX_TRANCHES}. ` +
+        `Verify the LUT covers all ix accounts or raise MAX_TRANCHES.`,
+    );
+  }
+
+  let ixCursor = 0;
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
     const { blockhash, lastValidBlockHeight } =
@@ -423,14 +613,20 @@ async function main() {
     }).compileToV0Message([lut]);
     const v0Tx = new VersionedTransaction(v0Message);
 
-    const banksInTranche = selected
-      .slice(i * config.BATCH_SIZE, i * config.BATCH_SIZE + batch.length)
-      .map((s, idx) => ({ idx, symbol: s.symbol, bank: s.pubkey.toBase58() }));
+    const banksInTranche = batch.map((_, idx) => {
+      const globalIdx = ixCursor + idx;
+      if (globalIdx < selected.length) {
+        const s = selected[globalIdx];
+        return { idx, symbol: s.symbol, bank: s.pubkey.toBase58() };
+      }
+      return { idx, symbol: "GROUP", bank: "configureGroupRateLimits" };
+    });
+    ixCursor += batch.length;
 
     console.log(
       `\n=== Tranche ${i + 1}/${batches.length} (${batch.length} ix${
         batch.length === 1 ? "" : "s"
-      }) ===`,
+      }, ${byteCounts[i]} bytes) ===`,
     );
     console.table(banksInTranche);
 
