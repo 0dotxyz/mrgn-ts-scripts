@@ -20,6 +20,10 @@ export const assetGroups = {
     USX: "6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG",
     eUSX: "3ThdFZQKM6kRyVGLG48kaPg5TRMhYMKY1iCRa9xop1WC",
     EURC: "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr",
+    "USD*": "star9agSpjiFe3M49B3RniVU4CMBBEK3Qnaqn3RGiFM",
+    syrupUSDC: "AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj",
+    USD1: "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
+    JupUSD: "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
   },
   "sol-lst": {
     SOL: "So11111111111111111111111111111111111111112",
@@ -43,6 +47,7 @@ export const assetGroups = {
     fwdSOL: "cPQPBN7WubB3zyQDpzTK2ormx1BMdAym9xkrYUJsctm",
     dSOL: "Dso1bDeDjCQxTrWHqUUi63oBvV7Mdm6WaobLbQ7gnPQ",
     STKESOL: "stke7uu3fXHsGqKVVjKnkmj65LRPVrqr4bLG2SJg7rh",
+    corvusSOL: "CorvuSSoLxPKLoXWXSfn8pFSMhCRHhe7Uwqe874cmwvg",
   },
   bitcoin: {
     cbBTC: "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
@@ -78,6 +83,9 @@ export const assetGroups = {
   memes: {
     Bonk: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
     $WIF: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+  },
+  RWA: {
+    PRIME: "3b8X44fLF9ooXaUm3hhSgjpmVs6rZZ3pPoGnGahc3Uu7",
   },
 } as const;
 
