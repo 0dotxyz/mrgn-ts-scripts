@@ -52,10 +52,10 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE: new PublicKey("DnNKEemtzfCg6wrCR1X5iiPyecKNTxozQW2dRQiY6GNu"),
+  ORACLE: new PublicKey("Ai1PZuTEfNjFib24GTBpAXRsVs62HkSYpw2sHUQiQ8Sr"),
   ORACLE_TYPE: ORACLE_TYPE_SWB,
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  BANK_MINT: new PublicKey("JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD"),
+  BANK_MINT: new PublicKey("5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E"),
   SEED: 0,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
@@ -64,34 +64,34 @@ const rate: InterestRateConfig1_7 = {
   insuranceFeeFixedApr: bigNumberToWrappedI80F48(0),
   insuranceIrFee: bigNumberToWrappedI80F48(0),
   protocolFixedFeeApr: bigNumberToWrappedI80F48(0.00001),
-  protocolIrFee: bigNumberToWrappedI80F48(0.05),
+  protocolIrFee: bigNumberToWrappedI80F48(0.06),
   protocolOriginationFee: bigNumberToWrappedI80F48(0),
 
   zeroUtilRate: 0,
-  hundredUtilRate: aprToU32(0.25),
+  hundredUtilRate: aprToU32(1),
   points: [
     { util: utilToU32(0.5), rate: aprToU32(0.03) },
-    { util: utilToU32(0.85), rate: aprToU32(0.06) },
-    { util: utilToU32(0.95), rate: aprToU32(0.10) },
-    { util: utilToU32(0.99), rate: aprToU32(0.15) },
+    { util: 0, rate: 0 },
+    { util: 0, rate: 0 },
+    { util: 0, rate: 0 },
     { util: 0, rate: 0 },
     { util: 0, rate: 0 },
   ],
-  curveType: 1
+  curveType: 1,
 };
 
 const bankConfig: BankConfig = {
-  assetWeightInit: bigNumberToWrappedI80F48(0.90),
-  assetWeightMaint: bigNumberToWrappedI80F48(0.95),
-  liabilityWeightInit: bigNumberToWrappedI80F48(1.1),
-  liabilityWeightMaint: bigNumberToWrappedI80F48(1.05),
+  assetWeightInit: bigNumberToWrappedI80F48(0.55),
+  assetWeightMaint: bigNumberToWrappedI80F48(0.65),
+  liabilityWeightInit: bigNumberToWrappedI80F48(1.15),
+  liabilityWeightMaint: bigNumberToWrappedI80F48(1.1),
   depositLimit: new BN(3_000_000 * 10 ** 6),
   interestRateConfig: rate,
   operationalState: { operational: {} },
-  borrowLimit: new BN(5_000_000 * 10 ** 6),
+  borrowLimit: new BN(0),
   riskTier: { collateral: {} },
-  totalAssetValueInitLimit: new BN(5_000_000),
-  oracleMaxAge: 70,
+  totalAssetValueInitLimit: new BN(3_000_000),
+  oracleMaxAge: 300,
   assetTag: 0,
   oracleMaxConfidence: 0,
   configFlags: 0,
@@ -111,7 +111,7 @@ export async function addBank(
     sendTx,
     config.PROGRAM_ID,
     walletPath,
-    config.MULTISIG_PAYER
+    config.MULTISIG_PAYER,
   );
   const program = user.program;
   const connection = user.connection;
@@ -193,11 +193,9 @@ export async function addBank(
     console.log("bank key: " + bankKey);
     console.log("Base58-encoded transaction:", base58Transaction);
     console.log("ALL accounts:");
-    for (let ix of tx.instructions)
-    {
-      for (let account of ix.keys)
-      {
-        console.log(account.pubkey.toString());
+    for (let ix of tx.instructions) {
+      for (let account of ix.keys) {
+        console.log(`    new PublicKey("${account.pubkey.toString()}"),`);
       }
     }
   }

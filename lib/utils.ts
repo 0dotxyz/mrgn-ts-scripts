@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import path from "path";
+import { homedir } from "os";
 import dotenv from "dotenv";
 import BigNumber from "bignumber.js";
 import {
@@ -42,8 +43,24 @@ export const u32_MAX: number = 4294967295;
 
 dotenv.config();
 
+/** Resolves `~` and relative paths for keypair paths from `.env`. */
+export function resolveUserPath(filePath: string): string {
+  const p = filePath.trim();
+  if (!p) {
+    throw new Error("Path is empty.");
+  }
+  if (p.startsWith("~/")) {
+    return path.join(homedir(), p.slice(2));
+  }
+  if (p === "~") {
+    return homedir();
+  }
+  return path.isAbsolute(p) ? p : path.resolve(process.cwd(), p);
+}
+
 export function loadKeypairFromFile(filePath: string): Keypair {
-  const keyData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  const resolved = resolveUserPath(filePath);
+  const keyData = JSON.parse(fs.readFileSync(resolved, "utf-8"));
   return Keypair.fromSecretKey(new Uint8Array(keyData));
 }
 
