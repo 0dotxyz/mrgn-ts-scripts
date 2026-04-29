@@ -25,8 +25,8 @@ async function main() {
   const accountPubkey = new PublicKey(argv.account);
   const program = getMarginfiProgram(argv.env as Environment);
 
-  // Fetch bank metadata
-  const bankMetadata = await getBankMetadata();
+  // Fetch bank metadata (must match --env so staging uses correct symbol cache)
+  const bankMetadata = await getBankMetadata(argv.env as Environment);
 
   let acc = await program.account.marginfiAccount.fetch(accountPubkey);
   let balances = acc.lendingAccount.balances;

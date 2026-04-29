@@ -55,7 +55,7 @@ async function main() {
     .parseSync();
 
   const program = getMarginfiProgram(argv.env as Environment);
-  const bankMetadata = await getBankMetadata();
+  const bankMetadata = await getBankMetadata(argv.env as Environment);
 
   let bankPubkey: PublicKey;
   if (argv.address) {
