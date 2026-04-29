@@ -12,16 +12,11 @@ type Config = {
   DEPLOY_KEYPAIR_PATH: string;
 };
 
-type BankEntry = {
-  bank_address: string;
-};
-
 const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  DEPLOY_KEYPAIR_PATH: "/keys/zerotrade_admin.json",
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  DEPLOY_KEYPAIR_PATH: "/.keys/staging-deploy.json",
 };
 
-const BANKS_URL = "https://app.0.xyz/api/banks/db";
 const CHUNK_SIZE = 10;
 
 async function main() {
@@ -33,15 +28,48 @@ async function main() {
   );
   const { program, connection, wallet } = user;
 
-  console.log(`Fetching banks from ${BANKS_URL}...`);
-  const response = await fetch(BANKS_URL);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch banks: ${response.statusText}`);
-  }
-  const banks: BankEntry[] = await response.json();
-  console.log(`Fetched ${banks.length} banks from API.`);
+  const group = new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8");
 
-  const bankPubkeys = banks.map((b) => new PublicKey(b.bank_address));
+  let notMigrated = 0;
+  let notMigratedKeys: PublicKey[] = [];
+  const allBanks = await program.account.bank.all([
+    {
+      memcmp: {
+        offset: 41,
+        bytes: group.toBase58(),
+      },
+    },
+  ]);
+  for (let i = 0; i < allBanks.length; i++) {
+    let acc = allBanks[i].account;
+    let key = allBanks[i].publicKey;
+    let migrated = acc.config.interestRateConfig.curveType;
+    if (acc.config.assetTag == 2) {
+      // console.log(" STAKED " + i + " " + key);
+      if (!migrated) {
+        console.error(
+          "Staked bank " + key + " not migrated this should never happen",
+        );
+      }
+      continue;
+    }
+    // Various legacy bank states are invalid due to state validation...
+    if (acc.config.oracleMaxAge < 10) {
+      console.log(" INELIGIBLE to migrate " + i + " " + key);
+      continue;
+    }
+    if (migrated == 0) {
+      console.log("NOT migrated " + i + " " + key);
+      notMigrated++;
+      notMigratedKeys.push(key);
+    } else {
+      // console.log(" migrated " + i + " " + key);
+    }
+  }
+
+  console.log("not migrated count: " + notMigrated);
+
+  const bankPubkeys = notMigratedKeys;
   console.log(
     `Processing ${bankPubkeys.length} banks in chunks of ${CHUNK_SIZE}...`,
   );
