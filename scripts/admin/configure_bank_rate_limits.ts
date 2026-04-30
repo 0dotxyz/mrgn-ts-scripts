@@ -523,8 +523,8 @@ async function main() {
   }
 
 
-  const groupHourlyUsd = new BN(40_000_000);
-  const groupDailyUsd = new BN(90_000_000);
+  const groupHourlyUsd = new BN(0);
+  const groupDailyUsd = new BN(0);
   console.log(
     `\nGroup caps: hourly=$${groupHourlyUsd.toString()} daily=$${groupDailyUsd.toString()}`,
   );

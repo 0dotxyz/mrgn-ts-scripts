@@ -50,22 +50,23 @@ type Config = {
 };
 
 const prodKaminoTestconfig: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  BANK: new PublicKey("AzAxeU7KzUGKr82TFJdpvpLBKRTpTtuWWfBLuxm7FtFo"),
-  ACCOUNT: new PublicKey("DeCbfDxCGc6gJetJNozNTL51u6JHGRp6HSKgxP8fhEd5"),
-  AMOUNT: new BN(40 * 10 ** 6), // 40 USDC
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  BANK: new PublicKey("24gdUT9SNqeizCD1dHXWgjpa6NnWSFD6TWPAnCFSJnAk"),
+  ACCOUNT: new PublicKey("EFW73epz7PWzhR3R5KjmKTfLoUAs8bKk59hWgSfndTfi"),
+  AMOUNT: new BN(0.0001 * 10 ** 9), // 0.0001 STKESOL
   WITHDRAW_ALL: true,
 
-  BANK_MINT: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
-  KAMINO_RESERVE: new PublicKey("D6q6wuQSrifJKZYpR1M8R4YawnLDtDsMmWM1NbBmgJ59"),
+  BANK_MINT: new PublicKey("stke7uu3fXHsGqKVVjKnkmj65LRPVrqr4bLG2SJg7rh"),
+  KAMINO_RESERVE: new PublicKey("2gFjdQLFaFqTKMv4nFGMAP4bX2F5KAsyiJn8yZQHPKSE"),
   KAMINO_MARKET: new PublicKey("7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF"),
   RESERVE_ORACLE: new PublicKey("3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH"),
 
   LUT: new PublicKey("FtQ5uKQvFoKQ27SWY15tgBeJQnGKmKGzWqDz7kGUbeiq"),
 
   NEW_REMAINING: [
-    new PublicKey("CVjHEnJWKELsbFt37znC2nq4KNrwTf7w42fcfySEifNu"),
-    new PublicKey("DBE3N8uNjhKPRHfANdwGvCZghWXyLPdqdSbEW2XFwBiX"),
+    new PublicKey("24gdUT9SNqeizCD1dHXWgjpa6NnWSFD6TWPAnCFSJnAk"),
+    new PublicKey("HaF6jK16UwZZt9iFXRUqpSMWUFzhUJaU8rmVtXcokoTZ"),
+    new PublicKey("2gFjdQLFaFqTKMv4nFGMAP4bX2F5KAsyiJn8yZQHPKSE"),
   ],
   ADD_COMPUTE_UNITS: true,
 };
@@ -73,7 +74,7 @@ const prodKaminoTestconfig: Config = {
 const config = prodKaminoTestconfig;
 
 async function main() {
-  await withdrawKamino(sendTx, config, "/.config/stage/id.json");
+  await withdrawKamino(sendTx, config, "/.keys/burner_01.json");
 }
 
 export async function withdrawKamino(
