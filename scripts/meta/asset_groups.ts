@@ -48,6 +48,7 @@ export const assetGroups = {
     dSOL: "Dso1bDeDjCQxTrWHqUUi63oBvV7Mdm6WaobLbQ7gnPQ",
     STKESOL: "stke7uu3fXHsGqKVVjKnkmj65LRPVrqr4bLG2SJg7rh",
     corvusSOL: "CorvuSSoLxPKLoXWXSfn8pFSMhCRHhe7Uwqe874cmwvg",
+    YIELD: "phaseZSfPxTDBpiVb96H4XFSD8xHeHxZre5HerehBJG",
   },
   bitcoin: {
     cbBTC: "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
@@ -61,6 +62,8 @@ export const assetGroups = {
     "PT-hyUSD": "GJ3CvAnawvxwReu7MhBfTQBLcfcs1awP5h55SzoBBNYq",
     "PT-BulkSOL": "Bw6zsBWadivcKo1n2wEyF79pSrKDGyggif4a7wv3dtVi",
     "PT-BulkSOL-2": "CepgNWfh7p4pBenHCsWGC7ZfPwhFkskwvKXqmQMLnRRM",
+    "PT-hyloSOL-2": "2jSne8C9vMkMZC5Wj1Q3SsD7T5RTZx7pzsgZrXPYoWoB",
+    "PT-hyUSD-2": "EgCjHHmF2SRGwoqjHCicoZkbzJbPgZRN7h3eeuNZWndK",
   },
   ecosystem: {
     JLP: "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4",
