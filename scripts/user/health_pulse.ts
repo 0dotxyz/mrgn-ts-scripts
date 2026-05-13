@@ -22,7 +22,7 @@ export type Config = {
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  ACCOUNT: new PublicKey("CqqeFwSJuzFCijtv3HLCZX8YNx6nJtrCQYHFQK1vsGg"),
+  ACCOUNT: new PublicKey("6EHFKDMWg3w5NHoFtg1TqwCZAXvpmHGdJKEUCFXVdhcG"),
 
   LUT: new PublicKey("CQ8omkUwDtsszuJLo9grtXCeEyDU4QqBLRv9AjRDaUZ3"),
 };

@@ -54,7 +54,7 @@ const prodKaminoTestconfig: Config = {
   BANK: new PublicKey("24gdUT9SNqeizCD1dHXWgjpa6NnWSFD6TWPAnCFSJnAk"),
   ACCOUNT: new PublicKey("EFW73epz7PWzhR3R5KjmKTfLoUAs8bKk59hWgSfndTfi"),
   AMOUNT: new BN(0.0001 * 10 ** 9), // 0.0001 STKESOL
-  WITHDRAW_ALL: true,
+  WITHDRAW_ALL: false,
 
   BANK_MINT: new PublicKey("stke7uu3fXHsGqKVVjKnkmj65LRPVrqr4bLG2SJg7rh"),
   KAMINO_RESERVE: new PublicKey("2gFjdQLFaFqTKMv4nFGMAP4bX2F5KAsyiJn8yZQHPKSE"),
