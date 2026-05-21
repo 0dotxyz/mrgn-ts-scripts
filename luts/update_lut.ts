@@ -28,25 +28,7 @@ type Config = {
 const config: Config = {
   LUT: new PublicKey("C83sPjiLpUU5oGtEjYo5i1LoRagSsdPj62SaLsWWUN3T"),
   KEYS: [
-    new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-    new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-    new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-    new PublicKey("HoMNdUF3RDZDPKAARYK1mxcPFfUnPjLmpKYibZzAijev"),
-    new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-    new PublicKey("EgCjHHmF2SRGwoqjHCicoZkbzJbPgZRN7h3eeuNZWndK"),
-    new PublicKey("6os7THfmjSXjxvZ488GNJAkTtTMY56vj1FfdDwocds6i"),
-    new PublicKey("2JpjFam7UcHr4Ya2PzibjNqtRogQ9YY1thxVBjsW8rgt"),
-    new PublicKey("4wVn5oHj8RHkMKaAPwC2m2kufszyqDTmDqc5fan5z4X7"),
-    new PublicKey("DiUe8eEdbpsXBZ9vEj9XeeyNJcqB1sXdCFj6X4579xGr"),
-    new PublicKey("3WRrTKiXkQw654HJx9rsTaSg5yAWhs5Bcj7NeQN8B5pk"),
-    new PublicKey("9jxKvR7KTSTTk9wiAWXqxinJ5pNrs9j4oCHaXuJQmsQz"),
-    new PublicKey("7ApYr9oQxTbtuh2cuU8jdPfUEg7LSQevjkYaRxku8cdN"),
-    new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-    new PublicKey("11111111111111111111111111111111"),
-    new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-    new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-    new PublicKey("6os7THfmjSXjxvZ488GNJAkTtTMY56vj1FfdDwocds6i"),
-    new PublicKey("Ai1PZuTEfNjFib24GTBpAXRsVs62HkSYpw2sHUQiQ8Sr"),
+    new PublicKey("4norQRo3p35j3XANBwDweNvTEWWnAXD5nu83SVtfA5XU"),
   ],
 };
 

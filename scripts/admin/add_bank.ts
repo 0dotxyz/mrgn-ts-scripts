@@ -52,10 +52,10 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE: new PublicKey("Ai1PZuTEfNjFib24GTBpAXRsVs62HkSYpw2sHUQiQ8Sr"),
+  ORACLE: new PublicKey("4norQRo3p35j3XANBwDweNvTEWWnAXD5nu83SVtfA5XU"),
   ORACLE_TYPE: ORACLE_TYPE_SWB,
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  BANK_MINT: new PublicKey("EgCjHHmF2SRGwoqjHCicoZkbzJbPgZRN7h3eeuNZWndK"),
+  BANK_MINT: new PublicKey("CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE"),
   SEED: 0,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
@@ -68,9 +68,9 @@ const rate: InterestRateConfig1_7 = {
   protocolOriginationFee: bigNumberToWrappedI80F48(0),
 
   zeroUtilRate: 0,
-  hundredUtilRate: aprToU32(1),
+  hundredUtilRate: aprToU32(0.56),
   points: [
-    { util: utilToU32(0.5), rate: aprToU32(0.03) },
+    { util: utilToU32(0.8), rate: aprToU32(0.1) },
     { util: 0, rate: 0 },
     { util: 0, rate: 0 },
     { util: 0, rate: 0 },
@@ -81,17 +81,17 @@ const rate: InterestRateConfig1_7 = {
 };
 
 const bankConfig: BankConfig = {
-  assetWeightInit: bigNumberToWrappedI80F48(0.55),
-  assetWeightMaint: bigNumberToWrappedI80F48(0.65),
-  liabilityWeightInit: bigNumberToWrappedI80F48(1.15),
-  liabilityWeightMaint: bigNumberToWrappedI80F48(1.1),
-  depositLimit: new BN(3_000_000 * 10 ** 6),
+  assetWeightInit: bigNumberToWrappedI80F48(0.65),
+  assetWeightMaint: bigNumberToWrappedI80F48(0.80),
+  liabilityWeightInit: bigNumberToWrappedI80F48(1.3),
+  liabilityWeightMaint: bigNumberToWrappedI80F48(1.2),
+  depositLimit: new BN(20_000 * 10 ** 9),
   interestRateConfig: rate,
   operationalState: { operational: {} },
-  borrowLimit: new BN(0),
+  borrowLimit: new BN(2_500 * 10 ** 9),
   riskTier: { collateral: {} },
-  totalAssetValueInitLimit: new BN(3_000_000),
-  oracleMaxAge: 300,
+  totalAssetValueInitLimit: new BN(5_000_000),
+  oracleMaxAge: 30,
   assetTag: 0,
   oracleMaxConfidence: 0,
   configFlags: 0,
