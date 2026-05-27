@@ -48,17 +48,17 @@ const config: Config = {
   // One tx per entry in this array:
   BANKS: [
     {
-      bank: new PublicKey("5KjGKr7pKBG7DLcPdZTiSji7cwNYJ5ERj2pPSNLTejoZ"), // PY hyusd april 2026
+      bank: new PublicKey("3Gm3ZbbPE7JnC5FxAgCj2i6pK22kjePa4y5NDVVENnjr"), // cgntSOL
       config: {
         assetWeightInit: null,
         assetWeightMaint: null,
         liabilityWeightInit: null,
         liabilityWeightMaint: null,
-        depositLimit: null,
-        borrowLimit: null,
+        depositLimit: new BN(40_000 * 10 ** 9),
+        borrowLimit: new BN(5_000 * 10 ** 9),
         riskTier: null, // { isolated: {} },
         assetTag: null,
-        totalAssetValueInitLimit: null,
+        totalAssetValueInitLimit: new BN(10_000_000),
         interestRateConfig: {
           protocolOriginationFee: null,
           protocolIrFee: null,
@@ -69,37 +69,7 @@ const config: Config = {
           hundredUtilRate: null,
           points: null,
         },
-        operationalState: { reduceOnly: {} },
-        oracleMaxAge: null,
-        oracleMaxConfidence: null,
-        permissionlessBadDebtSettlement: null,
-        freezeSettings: null,
-        tokenlessRepaymentsAllowed: null,
-      },
-    },
-    {
-      bank: new PublicKey("2VmE6PMRWLRxjMkoK2sWu3WyNGGdXFK1G38ZAaQu3r5Y"), // PY hylsol april 2026
-      config: {
-        assetWeightInit: null,
-        assetWeightMaint: null,
-        liabilityWeightInit: null,
-        liabilityWeightMaint: null,
-        depositLimit: null,
-        borrowLimit: null,
-        riskTier: null, // { isolated: {} },
-        assetTag: null,
-        totalAssetValueInitLimit: null,
-        interestRateConfig: {
-          protocolOriginationFee: null,
-          protocolIrFee: null,
-          protocolFixedFeeApr: null,
-          insuranceIrFee: null,
-          insuranceFeeFixedApr: null,
-          zeroUtilRate: null,
-          hundredUtilRate: null,
-          points: null,
-        },
-        operationalState: { reduceOnly: {} },
+        operationalState: null,
         oracleMaxAge: null,
         oracleMaxConfidence: null,
         permissionlessBadDebtSettlement: null,

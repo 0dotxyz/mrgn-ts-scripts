@@ -15,7 +15,7 @@ type Config = {
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  ACCOUNT: new PublicKey("Fi11eNtkYTCvqm3U8qZ4c5peZ71zMFjqJGswyuyQ7DeX"),
+  ACCOUNT: new PublicKey("DjJdLK5yGQn1ExuDqj9fdNTexR5u2WDA9jaC1t4gko1h"),
 };
 
 type BankConversionMeta = {
