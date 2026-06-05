@@ -52,7 +52,9 @@ const makeRatePoints = (utilPct: number[], aprPct: number[]): RatePoint[] => {
     }
   }
 
-  const points: RatePoint[] = utilPct.map((u, i) => makeRatePoint(u, aprPct[i]));
+  const points: RatePoint[] = utilPct.map((u, i) =>
+    makeRatePoint(u, aprPct[i]),
+  );
   while (points.length < 5) {
     points.push(makeRatePoint(0, 0));
   }
@@ -62,9 +64,9 @@ const makeRatePoints = (utilPct: number[], aprPct: number[]): RatePoint[] => {
 
 // ---- List your (BANK, intConfig) pairs here ----
 const ITEMS: Array<{ bank: PublicKey; int: InterestRateConfigOpt1_6 }> = [
-  // SOL
+  // USDS
   {
-    bank: new PublicKey("CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"),
+    bank: new PublicKey("FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV"),
     int: {
       protocolOriginationFee: null,
       protocolIrFee: null,
@@ -74,12 +76,12 @@ const ITEMS: Array<{ bank: PublicKey; int: InterestRateConfigOpt1_6 }> = [
 
       zeroUtilRate: aprPctToU32(0),
       hundredUtilRate: aprPctToU32(20),
-      points: makeRatePoints([90, 98, 99], [5, 7, 10]),
+      points: makeRatePoints([50, 80, 90, 95, 98], [2, 4, 5, 7.5, 15]),
     },
   },
-  // USDC
+  // USDG
   {
-    bank: new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"),
+    bank: new PublicKey("Dj2CwMF3GM7mMT5hcyGXKuYSQ2kQ5zaVCkA1zX1qaTva"),
     int: {
       protocolOriginationFee: null,
       protocolIrFee: null,
@@ -88,13 +90,13 @@ const ITEMS: Array<{ bank: PublicKey; int: InterestRateConfigOpt1_6 }> = [
       insuranceFeeFixedApr: null,
 
       zeroUtilRate: aprPctToU32(0),
-      hundredUtilRate: aprPctToU32(15),
-      points: makeRatePoints([50, 80, 90, 95, 98], [2, 4, 5, 7.5, 10]),
+      hundredUtilRate: aprPctToU32(20),
+      points: makeRatePoints([50, 80, 90, 95, 98], [2, 4, 5, 7.5, 15]),
     },
   },
-  // USDT
+  // JupUSD
   {
-    bank: new PublicKey("HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV"),
+    bank: new PublicKey("3xn7strvpinirQ5KxEgVFemb6qYeHG39krohoeRHRrRt"),
     int: {
       protocolOriginationFee: null,
       protocolIrFee: null,
@@ -103,8 +105,68 @@ const ITEMS: Array<{ bank: PublicKey; int: InterestRateConfigOpt1_6 }> = [
       insuranceFeeFixedApr: null,
 
       zeroUtilRate: aprPctToU32(0),
-      hundredUtilRate: aprPctToU32(15),
-      points: makeRatePoints([50, 80, 90, 95, 98], [2, 4, 5, 7.5, 10]),
+      hundredUtilRate: aprPctToU32(20),
+      points: makeRatePoints([50, 80, 90, 95, 98], [2, 4, 5, 7.5, 15]),
+    },
+  },
+  // CASH
+  {
+    bank: new PublicKey("F4brCRJHx8epWah7p8Ace4ehutphxYZ1ctRq2LS3iiBh"),
+    int: {
+      protocolOriginationFee: null,
+      protocolIrFee: null,
+      protocolFixedFeeApr: null,
+      insuranceIrFee: null,
+      insuranceFeeFixedApr: null,
+
+      zeroUtilRate: aprPctToU32(0),
+      hundredUtilRate: aprPctToU32(20),
+      points: makeRatePoints([50, 80, 90, 95, 98], [2, 4, 5, 7.5, 15]),
+    },
+  },
+  // PyUSD
+  {
+    bank: new PublicKey("8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu"),
+    int: {
+      protocolOriginationFee: null,
+      protocolIrFee: null,
+      protocolFixedFeeApr: null,
+      insuranceIrFee: null,
+      insuranceFeeFixedApr: null,
+
+      zeroUtilRate: aprPctToU32(0),
+      hundredUtilRate: aprPctToU32(20),
+      points: makeRatePoints([50, 80, 90, 95, 98], [2, 4, 5, 7.5, 15]),
+    },
+  },
+  // HyUSD
+  {
+    bank: new PublicKey("5syijTAMBBmdjwUgYYBvvv26zTS6YX1bYV9EdXkgYqLa"),
+    int: {
+      protocolOriginationFee: null,
+      protocolIrFee: null,
+      protocolFixedFeeApr: null,
+      insuranceIrFee: null,
+      insuranceFeeFixedApr: null,
+
+      zeroUtilRate: aprPctToU32(0),
+      hundredUtilRate: aprPctToU32(20),
+      points: makeRatePoints([50, 80, 90, 95, 98], [2, 4, 5, 7.5, 15]),
+    },
+  },
+  // USD1
+  {
+    bank: new PublicKey("8efP4VoKDo3SqxoVCUcgxpN9S7boDWtPmeFwahRZ4ukg"),
+    int: {
+      protocolOriginationFee: null,
+      protocolIrFee: null,
+      protocolFixedFeeApr: null,
+      insuranceIrFee: null,
+      insuranceFeeFixedApr: null,
+
+      zeroUtilRate: aprPctToU32(0),
+      hundredUtilRate: aprPctToU32(20),
+      points: makeRatePoints([50, 80, 90, 95, 98], [2, 4, 5, 7.5, 15]),
     },
   },
 ];
@@ -141,7 +203,7 @@ async function main() {
       const signature = await sendAndConfirmTransaction(
         connection,
         transaction,
-        [user.wallet.payer]
+        [user.wallet.payer],
       );
       console.log("Transaction signature:", signature);
     } catch (error) {
@@ -161,6 +223,12 @@ async function main() {
     });
     const base58Transaction = bs58.encode(serializedTransaction);
     console.log("Base58-encoded transaction:", base58Transaction);
+    console.log("ALL accounts:");
+    for (const ix of transaction.instructions) {
+      for (const account of ix.keys) {
+        console.log(`    new PublicKey("${account.pubkey.toString()}"),`);
+      }
+    }
   }
 }
 
