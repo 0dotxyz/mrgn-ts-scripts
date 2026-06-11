@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -19,6 +20,10 @@ import { DEFAULT_API_URL, loadEnvFile } from "../utils/utils";
  *
  * Emits the on-chain-verified missing list for the write command to consume,
  * and flags any discrepancies between bankMeta and on-chain state.
+ *
+ * Staked-collateral banks with a curated entry in data/native-stake.json are
+ * always included, even when their metadata PDA exists, so stale metadata can
+ * be refreshed (the write command skips banks that are already up to date).
  */
 
 const BANK_CACHE_URL = "https://api.0.xyz/v0/bankCache";
@@ -42,11 +47,35 @@ export type MissingMetadataBank = {
   mint: string;
   group: string;
   symbol: string;
+  name?: string;
+  assetGroup?: string;
   venue: string;
   riskTier: string;
   oracleSetup: string;
   assetTag: number;
 };
+
+type NativeStakeEntry = {
+  bankAddress: string;
+  validatorVoteAccount: string;
+  tokenAddress: string;
+  tokenName: string;
+  tokenSymbol: string;
+};
+
+const NATIVE_STAKE_PATH = path.resolve(__dirname, "data/native-stake.json");
+
+let nativeStakeByBank: Map<string, NativeStakeEntry> | null = null;
+
+function nativeStakeMeta(bank: string): NativeStakeEntry | undefined {
+  if (!nativeStakeByBank) {
+    const rows = JSON.parse(
+      fs.readFileSync(NATIVE_STAKE_PATH, "utf8"),
+    ) as NativeStakeEntry[];
+    nativeStakeByBank = new Map(rows.map((r) => [r.bankAddress, r]));
+  }
+  return nativeStakeByBank.get(bank);
+}
 
 function deriveVenue(oracleSetup: string): string {
   const s = oracleSetup.toLowerCase();
@@ -68,11 +97,18 @@ function deriveBankMetadataPda(
 }
 
 function toMissingBank(b: CachedBank): MissingMetadataBank {
+  // Staked-collateral banks carry a truncated validator symbol in the cache;
+  // prefer the curated entry in native-stake.json when one exists.
+  const staked = b.config.oracleSetup.includes("StakedWith")
+    ? nativeStakeMeta(b.address)
+    : undefined;
   return {
     bank: b.address,
     mint: b.mint,
     group: b.group,
-    symbol: b.tokenSymbol,
+    symbol: staked?.tokenSymbol ?? b.tokenSymbol,
+    name: staked?.tokenName,
+    assetGroup: staked ? "native-stake" : undefined,
     venue: deriveVenue(b.config.oracleSetup),
     riskTier: b.config.riskTier,
     oracleSetup: b.config.oracleSetup,
@@ -107,6 +143,7 @@ export async function findBanksWithoutMetadata(
   missing: MissingMetadataBank[];
   endpointOnly: string[];
   onChainOnly: string[];
+  stakedRefresh: string[];
   totalActive: number;
 }> {
   const [cacheResp, metaResp] = await Promise.all([
@@ -140,6 +177,7 @@ export async function findBanksWithoutMetadata(
   const missing: MissingMetadataBank[] = [];
   const endpointOnly: string[] = []; // reported missing but PDA exists
   const onChainOnly: string[] = []; // not reported missing but PDA absent
+  const stakedRefresh: string[] = []; // PDA exists but native-stake entry may be stale
 
   for (let i = 0; i < active.length; i++) {
     const b = active[i];
@@ -149,12 +187,25 @@ export async function findBanksWithoutMetadata(
     if (!pdaExists) {
       missing.push(toMissingBank(b));
       if (!reportedMissing) onChainOnly.push(b.address);
-    } else if (reportedMissing) {
-      endpointOnly.push(b.address);
+    } else {
+      if (reportedMissing) endpointOnly.push(b.address);
+      if (
+        b.config.oracleSetup.includes("StakedWith") &&
+        nativeStakeMeta(b.address)
+      ) {
+        missing.push(toMissingBank(b));
+        stakedRefresh.push(b.address);
+      }
     }
   }
 
-  return { missing, endpointOnly, onChainOnly, totalActive: active.length };
+  return {
+    missing,
+    endpointOnly,
+    onChainOnly,
+    stakedRefresh,
+    totalActive: active.length,
+  };
 }
 
 async function main() {
@@ -169,7 +220,8 @@ async function main() {
     })
     .option("group", {
       type: "string",
-      description: "Override group address (defaults to env's configured group)",
+      description:
+        "Override group address (defaults to env's configured group)",
     })
     .option("out", {
       type: "string",
@@ -194,11 +246,14 @@ async function main() {
   console.log(`  bankMeta:  ${BANK_META_URL}`);
   console.log(`  on-chain:  ${connection.rpcEndpoint}\n`);
 
-  const { missing, endpointOnly, onChainOnly, totalActive } =
+  const { missing, endpointOnly, onChainOnly, stakedRefresh, totalActive } =
     await findBanksWithoutMetadata(connection, programId, group);
 
   console.log(`Active banks in group:           ${totalActive}`);
-  console.log(`Missing metadata (on-chain PDA): ${missing.length}`);
+  console.log(
+    `Missing metadata (on-chain PDA): ${missing.length - stakedRefresh.length}`,
+  );
+  console.log(`Native-stake refresh candidates: ${stakedRefresh.length}`);
   if (onChainOnly.length > 0) {
     console.log(
       `  [!] ${onChainOnly.length} bank(s) bankMeta says are covered, but PDA is NOT on-chain:`,
@@ -219,6 +274,7 @@ async function main() {
         Bank: m.bank,
         Mint: m.mint,
         Symbol: m.symbol,
+        Name: m.name ?? "-",
         Venue: m.venue,
         RiskTier: m.riskTier,
         Oracle: m.oracleSetup,
