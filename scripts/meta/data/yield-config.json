@@ -1,0 +1,11 @@
+[
+  {
+    "bankAddress": "5Tj1B7bT8PSyKjUCBxiUNe5C2Pn59NhA2ohmdj3RPpE5",
+    "group": "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
+    "tokenAddress": "phaseZSfPxTDBpiVb96H4XFSD8xHeHxZre5HerehBJG",
+    "tokenSymbol": "YIELD",
+    "tokenName": "Yield",
+    "venue": "P0",
+    "riskTierName": "Collateral"
+  }
+]

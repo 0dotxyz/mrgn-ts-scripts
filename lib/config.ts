@@ -42,7 +42,7 @@ export const getMarginfiProgram = (env: Environment = "production") => {
   const connection = new Connection(rpc, "confirmed");
   const wallet = loadKeypairFromFile(walletPath);
 
-  MARGINFI_IDL.address = config.PROGRAM_ID;
+  (MARGINFI_IDL as any).address = config.PROGRAM_ID;
 
   const provider = new AnchorProvider(connection, wallet as any, {
     preflightCommitment: "confirmed",

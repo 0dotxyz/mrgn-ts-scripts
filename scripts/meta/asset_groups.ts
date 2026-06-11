@@ -6,7 +6,7 @@ export const assetGroups = {
     zenBTC: "9hX59xHHnaZXLU6quvm5uGY2iDiT3jczaReHy6A6TYKw",
     zBTC: "zBTCug3er3tLyffELcvDNrKkCymbPWysGcWihESYfLg",
     WBTC: "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
-    WETH: "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+    ETH: "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
   },
   stablecoins: {
     USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
@@ -24,6 +24,7 @@ export const assetGroups = {
     syrupUSDC: "AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj",
     USD1: "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
     JupUSD: "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+    USDE: "DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT",
   },
   "sol-lst": {
     SOL: "So11111111111111111111111111111111111111112",
@@ -48,6 +49,8 @@ export const assetGroups = {
     dSOL: "Dso1bDeDjCQxTrWHqUUi63oBvV7Mdm6WaobLbQ7gnPQ",
     STKESOL: "stke7uu3fXHsGqKVVjKnkmj65LRPVrqr4bLG2SJg7rh",
     corvusSOL: "CorvuSSoLxPKLoXWXSfn8pFSMhCRHhe7Uwqe874cmwvg",
+    YIELD: "phaseZSfPxTDBpiVb96H4XFSD8xHeHxZre5HerehBJG",
+    cgntSOL: "CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE",
   },
   bitcoin: {
     cbBTC: "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
@@ -59,13 +62,19 @@ export const assetGroups = {
   "rate-products": {
     "PT-hyloSOL": "CZCg4Euwif2h2LpctMpRaR2wU2eKaLGRueVfR8oyq28G",
     "PT-hyUSD": "GJ3CvAnawvxwReu7MhBfTQBLcfcs1awP5h55SzoBBNYq",
-    "PT-BulkSOL": "Bw6zsBWadivcKo1n2wEyF79pSrKDGyggif4a7wv3dtVi",
-    "PT-BulkSOL-2": "CepgNWfh7p4pBenHCsWGC7ZfPwhFkskwvKXqmQMLnRRM",
+    "PT-bulkSOL": "Bw6zsBWadivcKo1n2wEyF79pSrKDGyggif4a7wv3dtVi",
+    "PT-bulkSOL-2": "CepgNWfh7p4pBenHCsWGC7ZfPwhFkskwvKXqmQMLnRRM",
+    "PT-hyloSOL-2": "2jSne8C9vMkMZC5Wj1Q3SsD7T5RTZx7pzsgZrXPYoWoB",
+    "PT-hyUSD-2": "EgCjHHmF2SRGwoqjHCicoZkbzJbPgZRN7h3eeuNZWndK",
   },
   ecosystem: {
     JLP: "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4",
     ORE: "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp",
     ZEC: "A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS",
+    SUI: "suifhC9gU1VbJAPYPTBkHJyyyStKGLLYPVDTmPoqbvA",
+    AAVE: "AavE1kKKnesPw4MuRJmJ9jZs9QzEE8CPxQ3ViczUDfc1",
+    MON: "CrAr4RRJMBVwRsZtT62pEhfA9H5utymC2mVx8e7FreP2",
+    HYPE: "98sMhvDwXj1RQi5c5Mndm3vPe9cBqPrbLaufMXFNMh5g",
   },
   governance: {
     JTO: "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",

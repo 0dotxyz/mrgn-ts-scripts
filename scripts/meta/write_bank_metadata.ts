@@ -75,7 +75,7 @@ type BankMetadataInput = {
   riskTierName?: string;
 };
 
-type BankMetadataEntry = {
+export type BankMetadataEntry = {
   bank: PublicKey;
   group: PublicKey;
   mint: PublicKey;
@@ -222,9 +222,13 @@ async function resolveInput(
   };
 }
 
-type ApplyStatus = "UpToDate" | "Updated" | "CreatedAndUpdated" | "Prepared";
+export type ApplyStatus =
+  | "UpToDate"
+  | "Updated"
+  | "CreatedAndUpdated"
+  | "Prepared";
 
-async function applyEntry(
+export async function applyEntry(
   user: ReturnType<typeof commonSetup>,
   entry: BankMetadataEntry,
   sendTx: boolean,
