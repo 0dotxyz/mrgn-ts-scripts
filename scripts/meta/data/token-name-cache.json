@@ -904,5 +904,35 @@
     "symbol": "HNT",
     "source": "jupiter",
     "cachedAt": 1778681959588
+  },
+  "2pMCRTPxF355vC56r6mL8vfnqa24up5CfZmcX1HkFj7i": {
+    "name": "SPL Single Pool FKsC411dik9ktS6",
+    "symbol": "stFKsC411",
+    "source": "jupiter",
+    "cachedAt": 1779389107837
+  },
+  "CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE": {
+    "name": "Cogent SOL",
+    "symbol": "cgntSOL",
+    "source": "jupiter",
+    "cachedAt": 1779389293223
+  },
+  "AavE1kKKnesPw4MuRJmJ9jZs9QzEE8CPxQ3ViczUDfc1": {
+    "name": "Aave",
+    "symbol": "AAVE",
+    "source": "jupiter",
+    "cachedAt": 1780663972325
+  },
+  "DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT": {
+    "name": "USDe",
+    "symbol": "USDe",
+    "source": "jupiter",
+    "cachedAt": 1780663973518
+  },
+  "98sMhvDwXj1RQi5c5Mndm3vPe9cBqPrbLaufMXFNMh5g": {
+    "name": "HYPE",
+    "symbol": "HYPE",
+    "source": "jupiter",
+    "cachedAt": 1780663974822
   }
 }

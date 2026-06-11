@@ -34,8 +34,8 @@ import {
  * keyed by mint, so subsequent runs do no Jupiter calls for unchanged mints.
  * Pass --refresh-cache to ignore the cache for this run.
  *
- * Venue is derived from the on-chain assetTag:
- *   3 Kamino, 4 Drift, 5 Solend, 6 JupLend, everything else P0.
+  * Venue is derived from the on-chain assetTag:
+  *   3 Kamino, 4 Drift, 5 Solend, 6 JupLend, everything else P0.
  *
  * Asset group is the mint's bucket in asset_groups.ts; Isolated risk-tier
  * banks force W/E (matches the convention in write_bank_metadata.ts).
@@ -397,11 +397,13 @@ async function main() {
   } | null>;
 
   const currentByBank = new Map<string, CurrentMetadata | null>();
+  const pdaByBank = new Map<string, string>();
   for (let i = 0; i < active.length; i++) {
     currentByBank.set(
       active[i].address,
       fetched[i] ? decodeMetadataChars(fetched[i]!) : null,
     );
+    pdaByBank.set(active[i].address, pdas[i].toBase58());
   }
   const withMeta = [...currentByBank.values()].filter((c) => c !== null).length;
   console.log(
@@ -417,6 +419,7 @@ async function main() {
 
   const mintToGroup = buildMintToGroupMap();
   const classifications: Classification[] = [];
+  const tableRows: Record<string, string>[] = [];
   let cacheHits = 0;
   let cacheMisses = 0;
 
@@ -424,7 +427,7 @@ async function main() {
   for (let i = 0; i < active.length; i++) {
     const bank = active[i];
     process.stdout.write(
-      `  [${i + 1}/${active.length}] ${bank.address} (${bank.tokenSymbol})... `,
+      `  [${i + 1}/${active.length}] ${bank.address} (${bank.tokenSymbol}) mint=${bank.mint}... `,
     );
 
     const { info: resolved, hit } = await resolveWithCache(
@@ -437,6 +440,8 @@ async function main() {
 
     const current = currentByBank.get(bank.address) ?? null;
 
+    const metadataPda = pdaByBank.get(bank.address) ?? "";
+
     if (!resolved) {
       classifications.push({
         bank,
@@ -446,6 +451,15 @@ async function main() {
         kind: "unresolved",
       });
       console.log("UNRESOLVED");
+      tableRows.push({
+        symbol: bank.tokenSymbol,
+        bank: bank.address,
+        mint: bank.mint,
+        metadataPda,
+        kind: "unresolved",
+        ticker: "",
+        description: "",
+      });
       continue;
     }
 
@@ -465,6 +479,15 @@ async function main() {
 
     classifications.push({ bank, resolved, current, target, kind });
     console.log(`${hit ? "cached" : resolved.source} → ${kind}`);
+    tableRows.push({
+      symbol: bank.tokenSymbol,
+      bank: bank.address,
+      mint: bank.mint,
+      metadataPda,
+      kind,
+      ticker: target.ticker,
+      description: target.description,
+    });
 
     // Only pace on real network calls.
     if (!hit && i < active.length - 1 && argv.delay > 0) {
@@ -473,6 +496,16 @@ async function main() {
   }
 
   saveCache(cache);
+
+  console.log("\n=== Banks ===");
+  for (const [i, r] of tableRows.entries()) {
+    console.log(`\n[${i + 1}] ${r.symbol} (${r.kind})`);
+    console.log(`    bank:        ${r.bank}`);
+    console.log(`    mint:        ${r.mint}`);
+    console.log(`    metadataPda: ${r.metadataPda}`);
+    console.log(`    ticker:      ${r.ticker}`);
+    console.log(`    description: ${r.description}`);
+  }
 
   // ----- Phase 4: print classification summary
   const initActions = classifications.filter((c) => c.kind === "init");
