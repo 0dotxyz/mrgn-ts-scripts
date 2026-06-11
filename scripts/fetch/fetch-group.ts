@@ -33,6 +33,7 @@ async function main() {
   console.log("emissions admin:. " + group.delegateEmissionsAdmin);
   console.log("risk admin:...... " + group.riskAdmin);
   console.log("metadata admin:.. " + group.metadataAdmin);
+  console.log("flow admin:...... " + group.delegateFlowAdmin);
 
   console.log("flags: " + group.groupFlags.toNumber());
   console.log("fee wallet: " + group.feeStateCache.globalFeeWallet);
@@ -47,6 +48,12 @@ async function main() {
 
   console.log("emode max init lev: " + u32ToUtil(group.emodeMaxInitLeverage));
   console.log("emode max maint lev: " + u32ToUtil(group.emodeMaxMaintLeverage));
+
+  let limiter = group.rateLimiter;
+  console.log("hourly flow lim: $" + limiter.hourly.maxOutflow.toString());
+  console.log(" flow cur: $" + limiter.hourly.curWindowOutflow.toString());
+  console.log("daily flow lim:. $" + limiter.daily.maxOutflow.toString());
+  console.log(" flow cur:.. $" + limiter.daily.curWindowOutflow.toString());
 
   let cache = group.feeStateCache;
   console.log("cache values: ");

@@ -44,6 +44,7 @@ async function main() {
   console.log("deposit limit: " + settings.depositLimit.toNumber());
   console.log("oracle: " + settings.oracle);
   console.log("oracle age: " + settings.oracleMaxAge);
+  // console.log("curve: " + settings.); //.....
   console.log("init limit: " + settings.totalAssetValueInitLimit);
   console.log("risk tier: " + JSON.stringify(settings.riskTier));
 }

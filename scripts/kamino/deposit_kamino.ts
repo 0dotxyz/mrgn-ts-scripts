@@ -42,7 +42,7 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   BANK: new PublicKey("24gdUT9SNqeizCD1dHXWgjpa6NnWSFD6TWPAnCFSJnAk"),
-  ACCOUNT: new PublicKey("985eLETmzwJB14K6EpVZ3V33xqxBQBX7zCTLgMamfuwq"),
+  ACCOUNT: new PublicKey("EFW73epz7PWzhR3R5KjmKTfLoUAs8bKk59hWgSfndTfi"),
   AMOUNT: new BN(0.001 * 10 ** 9), // 0.001 STKESOL
 
   KAMINO_MARKET: new PublicKey("7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF"),
@@ -50,7 +50,7 @@ const config: Config = {
 };
 
 async function main() {
-  await depositKamino(sendTx, config, "/.config/stage/id.json");
+  await depositKamino(sendTx, config, "/.keys/burner_01.json");
 }
 
 export async function depositKamino(sendTx: boolean, config: Config, walletPath: string) {
@@ -64,6 +64,7 @@ export async function depositKamino(sendTx: boolean, config: Config, walletPath:
   const program = user.program;
   const connection = user.connection;
 
+  // @ts-ignore
   const bank = await program.account.bank.fetch(config.BANK);
   const mint = bank.mint;
   const reserve = bank.integrationAcc1;

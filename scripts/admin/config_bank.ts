@@ -48,17 +48,17 @@ const config: Config = {
   // One tx per entry in this array:
   BANKS: [
     {
-      bank: new PublicKey("Gj72XAUuNxNeDnW4tUh3H1U2Jbzshz27vtH8KvB972gi"), // zenbtc
+      bank: new PublicKey("3Gm3ZbbPE7JnC5FxAgCj2i6pK22kjePa4y5NDVVENnjr"), // cgntSOL
       config: {
         assetWeightInit: null,
         assetWeightMaint: null,
         liabilityWeightInit: null,
         liabilityWeightMaint: null,
-        depositLimit: null,
-        borrowLimit: null,
+        depositLimit: new BN(40_000 * 10 ** 9),
+        borrowLimit: new BN(5_000 * 10 ** 9),
         riskTier: null, // { isolated: {} },
         assetTag: null,
-        totalAssetValueInitLimit: null,
+        totalAssetValueInitLimit: new BN(10_000_000),
         interestRateConfig: {
           protocolOriginationFee: null,
           protocolIrFee: null,
@@ -69,7 +69,7 @@ const config: Config = {
           hundredUtilRate: null,
           points: null,
         },
-        operationalState: { reduceOnly: {} },
+        operationalState: null,
         oracleMaxAge: null,
         oracleMaxConfidence: null,
         permissionlessBadDebtSettlement: null,
