@@ -32,40 +32,80 @@ type BankOracleConfig = {
 
 /** One entry per bank to update */
 const configs: BankOracleConfig[] = [
-  // ORCA
+  // GUAC
   {
-    bank: new PublicKey("3Hd1VzDCd8xEzcqj6CHqqjeKdzKQPMczGnkSbpaubf3W"),
-    price: 1,
-  },
-  // NOS
-  {
-    bank: new PublicKey("G1pNtooUWPad3zCJLGAtjD3Zu9K56PrRpmvVB6AED1Tr"),
-    price: 0.35,
-  },
-  // BONKsol
-  {
-    bank: new PublicKey("4ujXMjmbw5nJBmBYVSfQj5ATjRwCitcrsFQaYo7UqNRY"),
-    price: 80,
-  },
-  // CompassSOL
-  {
-    bank: new PublicKey("F541dsSsc6xYzHfvLfyEuLfM6a8JdwGaVpyWm2GxcJsA"),
-    price: 80,
-  },
-  // SAMO
-  {
-    bank: new PublicKey("5HSLxQN34V9jLihfBDwNLguDKWEPDBL7QBG5JKcAQ7ne"),
+    bank: new PublicKey("44digRwKFeyiqDaxJRE6iag4cbXECKjG54v5ozxdu5mu"),
     price: 0.0001,
   },
-  // DRIFT
+  // TBTC
   {
-    bank: new PublicKey("DcpTd5URXYj77dxgCRouVJ71E6gBE32rk1ofW2M9boju"),
+    bank: new PublicKey("AyeEyCiBU2CzZmxz3f3o3vk2hvMsM5G3t3D6vhLsiFkf"),
+    price: 63000,
+  },
+  // USDY
+  {
+    bank: new PublicKey("5WL5CnjWT71NPgj8iQR2FU5H3FsVci9cnsHSNJzxj788"),
+    price: 1.1,
+  },
+  // LFG
+  {
+    bank: new PublicKey("9ojzV5xFHtx2h2GhKRSgCwJK3BLswczdiiLW3hsyRE5c"),
     price: 0.0001,
   },
-  // wstETH
+  // KIN
   {
-    bank: new PublicKey("9g3Tug2WbDwekghbPn2u3V84tvikAMBZiFbPUfkjwKNH"),
-    price: 2000,
+    bank: new PublicKey("GZK3yC3Kfn1ykFhLryzeKqemRNZ3wpZgWhbh5b5ygGML"),
+    price: 0.0001,
+  },
+  // boden
+  {
+    bank: new PublicKey("5xVGr3pAWDtWPLcf6YsQTjKm6pGqLnJrENQXGajdP2wZ"),
+    price: 0.0001,
+  },
+  // SNS
+  {
+    bank: new PublicKey("Emb5g6cEbRU2Yq9ZQnKhRDQLNRLSMWdgYRvJrBHzH6yB"),
+    price: 0.0001,
+  },
+  // SHDW
+  {
+    bank: new PublicKey("2Ux4yKTTxQf14MzxRPUyybw9akqHC5jnViF1iKWZRxMb"),
+    price: 0.0001,
+  },
+  // RLB
+  {
+    bank: new PublicKey("BsrjGaXJNmzXBK855wXev2Jb846AbyRCoA6R8TnpfrNM"),
+    price: 0.0001,
+  },
+  // DITH
+  {
+    bank: new PublicKey("9cizJpitym7CGL2QauvgG4BtTvSeADvppUpwGTPRc6De"),
+    price: 0.0001,
+  },
+  // Neiro
+  {
+    bank: new PublicKey("GpNuWCghujQQNyyX1qv2p2r7WpX2hD6UyPnN8rRDGLs"),
+    price: 0.0001,
+  },
+  // OPOS
+  {
+    bank: new PublicKey("4TBA2upbfULV5ryM8LxSqreztonu5xLYxN6qBEzHXR5f"),
+    price: 0.0001,
+  },
+  // ISC
+  {
+    bank: new PublicKey("BDo6z3urnxkMBPWP1PTcPDMNnvgTtEqtKtf219exvA87"),
+    price: 0.0001,
+  },
+  // META
+  {
+    bank: new PublicKey("H6bfRmfZPoxDDs8eoVBgouTPowwyv7opfBbHd5KUmuUz"),
+    price: 0.0001,
+  },
+  // ORE
+  {
+    bank: new PublicKey("CQVtZK8rpL4M6JQzXxkPhadkVDFChfmdyw9MAXM3oFZT"),
+    price: 0.0001,
   },
   // ...More entries here as needed. The limit even without using LUTs is fairly high (at least 6)
 ];
