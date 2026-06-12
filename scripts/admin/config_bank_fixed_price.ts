@@ -32,9 +32,40 @@ type BankOracleConfig = {
 
 /** One entry per bank to update */
 const configs: BankOracleConfig[] = [
+  // ORCA
   {
-    bank: new PublicKey("EKwXy2ui2jtJnvH4A2XufyqMyeSFecJE8xAKWpZEtDwd"),
+    bank: new PublicKey("3Hd1VzDCd8xEzcqj6CHqqjeKdzKQPMczGnkSbpaubf3W"),
     price: 1,
+  },
+  // NOS
+  {
+    bank: new PublicKey("G1pNtooUWPad3zCJLGAtjD3Zu9K56PrRpmvVB6AED1Tr"),
+    price: 0.35,
+  },
+  // BONKsol
+  {
+    bank: new PublicKey("4ujXMjmbw5nJBmBYVSfQj5ATjRwCitcrsFQaYo7UqNRY"),
+    price: 80,
+  },
+  // CompassSOL
+  {
+    bank: new PublicKey("F541dsSsc6xYzHfvLfyEuLfM6a8JdwGaVpyWm2GxcJsA"),
+    price: 80,
+  },
+  // SAMO
+  {
+    bank: new PublicKey("5HSLxQN34V9jLihfBDwNLguDKWEPDBL7QBG5JKcAQ7ne"),
+    price: 0.0001,
+  },
+  // DRIFT
+  {
+    bank: new PublicKey("DcpTd5URXYj77dxgCRouVJ71E6gBE32rk1ofW2M9boju"),
+    price: 0.0001,
+  },
+  // wstETH
+  {
+    bank: new PublicKey("9g3Tug2WbDwekghbPn2u3V84tvikAMBZiFbPUfkjwKNH"),
+    price: 2000,
   },
   // ...More entries here as needed. The limit even without using LUTs is fairly high (at least 6)
 ];

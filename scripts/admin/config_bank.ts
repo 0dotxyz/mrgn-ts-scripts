@@ -1,5 +1,6 @@
 import {
   PublicKey,
+  TransactionInstruction,
   VersionedTransaction,
   TransactionMessage,
   AddressLookupTableAccount,
@@ -15,6 +16,11 @@ import { InterestRateConfigOpt1_6 } from "../common/types";
  * If true, send the txs. If false, output the unsigned b58 v0 txs to console.
  */
 const sendTx = false;
+/**
+ * If true, outputs/sends one v0 tx with all the config instructions.
+ * If false, preserves the existing one-tx-per-bank behavior.
+ */
+const collate = true;
 
 export type BankConfigPair = {
   bank: PublicKey;
@@ -47,18 +53,48 @@ const config: Config = {
 
   // One tx per entry in this array:
   BANKS: [
+    // {
+    //   bank: new PublicKey("3Gm3ZbbPE7JnC5FxAgCj2i6pK22kjePa4y5NDVVENnjr"), // cgntSOL
+    //   config: {
+    //     assetWeightInit: null,
+    //     assetWeightMaint: null,
+    //     liabilityWeightInit: null,
+    //     liabilityWeightMaint: null,
+    //     depositLimit: new BN(40_000 * 10 ** 9),
+    //     borrowLimit: new BN(5_000 * 10 ** 9),
+    //     riskTier: null, // { isolated: {} },
+    //     assetTag: null,
+    //     totalAssetValueInitLimit: new BN(10_000_000),
+    //     interestRateConfig: {
+    //       protocolOriginationFee: null,
+    //       protocolIrFee: null,
+    //       protocolFixedFeeApr: null,
+    //       insuranceIrFee: null,
+    //       insuranceFeeFixedApr: null,
+    //       zeroUtilRate: null,
+    //       hundredUtilRate: null,
+    //       points: null,
+    //     },
+    //     operationalState: null,
+    //     oracleMaxAge: null,
+    //     oracleMaxConfidence: null,
+    //     permissionlessBadDebtSettlement: null,
+    //     freezeSettings: null,
+    //     tokenlessRepaymentsAllowed: null,
+    //   },
+    // },
     {
-      bank: new PublicKey("3Gm3ZbbPE7JnC5FxAgCj2i6pK22kjePa4y5NDVVENnjr"), // cgntSOL
+      bank: new PublicKey("3Hd1VzDCd8xEzcqj6CHqqjeKdzKQPMczGnkSbpaubf3W"),
       config: {
         assetWeightInit: null,
         assetWeightMaint: null,
         liabilityWeightInit: null,
         liabilityWeightMaint: null,
-        depositLimit: new BN(40_000 * 10 ** 9),
-        borrowLimit: new BN(5_000 * 10 ** 9),
+        depositLimit: new BN(1),
+        borrowLimit: new BN(1),
         riskTier: null, // { isolated: {} },
         assetTag: null,
-        totalAssetValueInitLimit: new BN(10_000_000),
+        totalAssetValueInitLimit: null,
         interestRateConfig: {
           protocolOriginationFee: null,
           protocolIrFee: null,
@@ -69,7 +105,187 @@ const config: Config = {
           hundredUtilRate: null,
           points: null,
         },
-        operationalState: null,
+        operationalState: { reduceOnly: {} },
+        oracleMaxAge: null,
+        oracleMaxConfidence: null,
+        permissionlessBadDebtSettlement: null,
+        freezeSettings: null,
+        tokenlessRepaymentsAllowed: null,
+      },
+    },
+    {
+      bank: new PublicKey("G1pNtooUWPad3zCJLGAtjD3Zu9K56PrRpmvVB6AED1Tr"),
+      config: {
+        assetWeightInit: null,
+        assetWeightMaint: null,
+        liabilityWeightInit: null,
+        liabilityWeightMaint: null,
+        depositLimit: new BN(1),
+        borrowLimit: new BN(1),
+        riskTier: null, // { isolated: {} },
+        assetTag: null,
+        totalAssetValueInitLimit: null,
+        interestRateConfig: {
+          protocolOriginationFee: null,
+          protocolIrFee: null,
+          protocolFixedFeeApr: null,
+          insuranceIrFee: null,
+          insuranceFeeFixedApr: null,
+          zeroUtilRate: null,
+          hundredUtilRate: null,
+          points: null,
+        },
+        operationalState: { reduceOnly: {} },
+        oracleMaxAge: null,
+        oracleMaxConfidence: null,
+        permissionlessBadDebtSettlement: null,
+        freezeSettings: null,
+        tokenlessRepaymentsAllowed: null,
+      },
+    },
+    {
+      bank: new PublicKey("4ujXMjmbw5nJBmBYVSfQj5ATjRwCitcrsFQaYo7UqNRY"),
+      config: {
+        assetWeightInit: null,
+        assetWeightMaint: null,
+        liabilityWeightInit: null,
+        liabilityWeightMaint: null,
+        depositLimit: new BN(1),
+        borrowLimit: new BN(1),
+        riskTier: null, // { isolated: {} },
+        assetTag: null,
+        totalAssetValueInitLimit: null,
+        interestRateConfig: {
+          protocolOriginationFee: null,
+          protocolIrFee: null,
+          protocolFixedFeeApr: null,
+          insuranceIrFee: null,
+          insuranceFeeFixedApr: null,
+          zeroUtilRate: null,
+          hundredUtilRate: null,
+          points: null,
+        },
+        operationalState: { reduceOnly: {} },
+        oracleMaxAge: null,
+        oracleMaxConfidence: null,
+        permissionlessBadDebtSettlement: null,
+        freezeSettings: null,
+        tokenlessRepaymentsAllowed: null,
+      },
+    },
+    {
+      bank: new PublicKey("F541dsSsc6xYzHfvLfyEuLfM6a8JdwGaVpyWm2GxcJsA"),
+      config: {
+        assetWeightInit: null,
+        assetWeightMaint: null,
+        liabilityWeightInit: null,
+        liabilityWeightMaint: null,
+        depositLimit: new BN(1),
+        borrowLimit: new BN(1),
+        riskTier: null, // { isolated: {} },
+        assetTag: null,
+        totalAssetValueInitLimit: null,
+        interestRateConfig: {
+          protocolOriginationFee: null,
+          protocolIrFee: null,
+          protocolFixedFeeApr: null,
+          insuranceIrFee: null,
+          insuranceFeeFixedApr: null,
+          zeroUtilRate: null,
+          hundredUtilRate: null,
+          points: null,
+        },
+        operationalState: { reduceOnly: {} },
+        oracleMaxAge: null,
+        oracleMaxConfidence: null,
+        permissionlessBadDebtSettlement: null,
+        freezeSettings: null,
+        tokenlessRepaymentsAllowed: null,
+      },
+    },
+    {
+      bank: new PublicKey("5HSLxQN34V9jLihfBDwNLguDKWEPDBL7QBG5JKcAQ7ne"),
+      config: {
+        assetWeightInit: null,
+        assetWeightMaint: null,
+        liabilityWeightInit: null,
+        liabilityWeightMaint: null,
+        depositLimit: new BN(1),
+        borrowLimit: new BN(1),
+        riskTier: null, // { isolated: {} },
+        assetTag: null,
+        totalAssetValueInitLimit: null,
+        interestRateConfig: {
+          protocolOriginationFee: null,
+          protocolIrFee: null,
+          protocolFixedFeeApr: null,
+          insuranceIrFee: null,
+          insuranceFeeFixedApr: null,
+          zeroUtilRate: null,
+          hundredUtilRate: null,
+          points: null,
+        },
+        operationalState: { reduceOnly: {} },
+        oracleMaxAge: null,
+        oracleMaxConfidence: null,
+        permissionlessBadDebtSettlement: null,
+        freezeSettings: null,
+        tokenlessRepaymentsAllowed: null,
+      },
+    },
+    {
+      bank: new PublicKey("DcpTd5URXYj77dxgCRouVJ71E6gBE32rk1ofW2M9boju"),
+      config: {
+        assetWeightInit: null,
+        assetWeightMaint: null,
+        liabilityWeightInit: null,
+        liabilityWeightMaint: null,
+        depositLimit: new BN(1),
+        borrowLimit: new BN(1),
+        riskTier: null, // { isolated: {} },
+        assetTag: null,
+        totalAssetValueInitLimit: null,
+        interestRateConfig: {
+          protocolOriginationFee: null,
+          protocolIrFee: null,
+          protocolFixedFeeApr: null,
+          insuranceIrFee: null,
+          insuranceFeeFixedApr: null,
+          zeroUtilRate: null,
+          hundredUtilRate: null,
+          points: null,
+        },
+        operationalState: { reduceOnly: {} },
+        oracleMaxAge: null,
+        oracleMaxConfidence: null,
+        permissionlessBadDebtSettlement: null,
+        freezeSettings: null,
+        tokenlessRepaymentsAllowed: null,
+      },
+    },
+    {
+      bank: new PublicKey("9g3Tug2WbDwekghbPn2u3V84tvikAMBZiFbPUfkjwKNH"),
+      config: {
+        assetWeightInit: null,
+        assetWeightMaint: null,
+        liabilityWeightInit: null,
+        liabilityWeightMaint: null,
+        depositLimit: new BN(1),
+        borrowLimit: new BN(1),
+        riskTier: null, // { isolated: {} },
+        assetTag: null,
+        totalAssetValueInitLimit: null,
+        interestRateConfig: {
+          protocolOriginationFee: null,
+          protocolIrFee: null,
+          protocolFixedFeeApr: null,
+          insuranceIrFee: null,
+          insuranceFeeFixedApr: null,
+          zeroUtilRate: null,
+          hundredUtilRate: null,
+          points: null,
+        },
+        operationalState: { reduceOnly: {} },
         oracleMaxAge: null,
         oracleMaxConfidence: null,
         permissionlessBadDebtSettlement: null,
@@ -112,13 +328,14 @@ export function bankConfigOptDefault(): BankConfigOptRaw {
 }
 
 async function main() {
-  await configBank(sendTx, config, "/.keys/staging-deploy.json");
+  await configBank(sendTx, config, "/.keys/staging-deploy.json", collate);
 }
 
 export async function configBank(
   sendTx: boolean,
   config: Config,
   walletPath: string,
+  collateTx = false,
 ) {
   if (config.BANKS.length === 0) {
     throw new Error("Config.BANKS is empty - nothing to do.");
@@ -146,19 +363,19 @@ export async function configBank(
     luts = [lutLookup.value];
   }
 
+  // Choose payer: if broadcasting now, use the local wallet; otherwise, use multisig payer.
+  let payerKey = user.wallet.publicKey;
+  if (!sendTx) {
+    if (!config.MULTISIG_PAYER) {
+      throw new Error("MULTISIG_PAYER must be set when sendTx = false");
+    }
+    payerKey = config.MULTISIG_PAYER;
+  }
+
+  const instructions: TransactionInstruction[] = [];
+
   for (let i = 0; i < config.BANKS.length; i++) {
     const entry = config.BANKS[i];
-
-    // Choose payer: if broadcasting now, use the local wallet; otherwise, use multisig payer.
-    const payerKey = sendTx
-      ? user.wallet.publicKey
-      : (config.MULTISIG_PAYER ??
-        (() => {
-          throw new Error("MULTISIG_PAYER must be set when sendTx = false");
-        })());
-
-    const { blockhash, lastValidBlockHeight } =
-      await connection.getLatestBlockhash();
 
     const ix = await program.methods
       .lendingPoolConfigureBank(entry.config)
@@ -169,6 +386,43 @@ export async function configBank(
         admin: config.ADMIN,
       })
       .instruction();
+
+    instructions.push(ix);
+  }
+
+  if (collateTx) {
+    const { blockhash, lastValidBlockHeight } =
+      await connection.getLatestBlockhash();
+
+    const v0Message = new TransactionMessage({
+      payerKey,
+      recentBlockhash: blockhash,
+      instructions,
+    }).compileToV0Message(luts);
+    const v0Tx = new VersionedTransaction(v0Message);
+
+    if (sendTx) {
+      v0Tx.sign([user.wallet.payer]);
+      const signature = await connection.sendTransaction(v0Tx, {
+        maxRetries: 2,
+      });
+      await connection.confirmTransaction(
+        { signature, blockhash, lastValidBlockHeight },
+        "confirmed",
+      );
+
+      console.log("tx signature:", signature);
+    } else {
+      const base58Transaction = bs58.encode(v0Tx.serialize());
+      console.log("Base58-encoded transaction:", base58Transaction);
+    }
+
+    return;
+  }
+
+  for (const ix of instructions) {
+    const { blockhash, lastValidBlockHeight } =
+      await connection.getLatestBlockhash();
 
     if (sendTx) {
       const v0Message = new TransactionMessage({
@@ -189,10 +443,9 @@ export async function configBank(
 
       console.log("tx signature:", signature);
     } else {
-      // No versioned tx for squads (yet)
-      let transaction = new Transaction().add(ix);
-      transaction.feePayer = config.MULTISIG_PAYER; // Set the fee payer to Squads wallet
-      const { blockhash } = await connection.getLatestBlockhash();
+      // Legacy transaction output for existing Squads/offline split flow.
+      const transaction = new Transaction().add(ix);
+      transaction.feePayer = payerKey;
       transaction.recentBlockhash = blockhash;
       const serializedTransaction = transaction.serialize({
         requireAllSignatures: false,
