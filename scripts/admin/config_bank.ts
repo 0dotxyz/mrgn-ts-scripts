@@ -84,7 +84,7 @@ const config: Config = {
     //   },
     // },
     {
-      bank: new PublicKey("3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq"),
+      bank: new PublicKey("9ThXmfwhNzc6qbkRLuSGHwKS7mxjn6QcuRD644Pjn4F"),
       config: {
         assetWeightInit: null,
         assetWeightMaint: null,

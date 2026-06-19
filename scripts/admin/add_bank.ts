@@ -21,6 +21,7 @@ import { I80F48_ONE } from "../utils/utils";
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
 const sendTx = false;
+const cloneEmode = false;
 
 const ASSET_TAG_DEFAULT = 0;
 
@@ -47,17 +48,20 @@ type Config = {
   SEED: number;
   TOKEN_PROGRAM?: PublicKey; // If omitted, defaults to TOKEN_PROGRAM_ID
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
+  CLONE_FROM?: PublicKey; // Required when cloneEmode = true
 };
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE: new PublicKey("DsrRnQVhZ8Bd5JRP4X6TJptmcjBfPhqBZCMa4DBATMjo"),
+  ORACLE: new PublicKey("ACPSJmxeTutJ9H4Eknk1E9wuCafyLkMvb5o6qu4Ek4uP"),
   ORACLE_TYPE: ORACLE_TYPE_SWB,
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  BANK_MINT: new PublicKey("DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT"),
+  BANK_MINT: new PublicKey("HgyWqTZ6JdGYF5TfrYmScTyvsyuopwYRJXwqA2LzCrz6"),
   SEED: 0,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+
+  CLONE_FROM: new PublicKey("4PtX5fLM5JwujjHmSyzbh5XLasKx9kiPxPfygi57jAov"),
 };
 
 const rate: InterestRateConfig1_7 = {
@@ -68,43 +72,43 @@ const rate: InterestRateConfig1_7 = {
   protocolOriginationFee: bigNumberToWrappedI80F48(0),
 
   zeroUtilRate: 0,
-  hundredUtilRate: aprToU32(0.15),
+  hundredUtilRate: aprToU32(1),
   points: [
-    { util: utilToU32(0.5), rate: aprToU32(0.02) },
-    { util: utilToU32(0.8), rate: aprToU32(0.04) },
-    { util: utilToU32(0.9), rate: aprToU32(0.05) },
-    { util: utilToU32(0.95), rate: aprToU32(0.075) },
-    { util: utilToU32(0.98), rate: aprToU32(0.1) },
+    { util: utilToU32(0.5), rate: aprToU32(0.03) },
+    { util: 0, rate: 0 },
+    { util: 0, rate: 0 },
+    { util: 0, rate: 0 },
     { util: 0, rate: 0 },
   ],
   curveType: 1,
 };
 
 const bankConfig: BankConfig = {
-  assetWeightInit: bigNumberToWrappedI80F48(0.90),
-  assetWeightMaint: bigNumberToWrappedI80F48(0.95),
-  liabilityWeightInit: bigNumberToWrappedI80F48(1.5),
-  liabilityWeightMaint: bigNumberToWrappedI80F48(1.25),
-  depositLimit: new BN(3_000_000 * 10 ** 9),
+  assetWeightInit: bigNumberToWrappedI80F48(0),
+  assetWeightMaint: bigNumberToWrappedI80F48(0),
+  liabilityWeightInit: bigNumberToWrappedI80F48(1.15),
+  liabilityWeightMaint: bigNumberToWrappedI80F48(1.1),
+  depositLimit: new BN(10000000000000),
   interestRateConfig: rate,
   operationalState: { operational: {} },
-  borrowLimit: new BN(3_000_000 * 10 ** 9),
+  borrowLimit: new BN(0),
   riskTier: { collateral: {} },
-  totalAssetValueInitLimit: new BN(3_000_000),
-  oracleMaxAge: 300,
+  totalAssetValueInitLimit: new BN(3000000),
+  oracleMaxAge: 70,
   assetTag: 0,
   oracleMaxConfidence: 0,
   configFlags: 0,
 };
 
 async function main() {
-  await addBank(sendTx, config, "/.keys/staging-deploy.json");
+  await addBank(sendTx, config, "/.keys/staging-deploy.json", cloneEmode);
 }
 
 export async function addBank(
   sendTx: boolean,
   config: Config,
   walletPath: string,
+  cloneEmode = false,
 ): Promise<PublicKey> {
   console.log("adding bank to group: " + config.GROUP_KEY);
   const user = commonSetup(
@@ -123,6 +127,10 @@ export async function addBank(
     new BN(config.SEED),
   );
 
+  if (cloneEmode && !config.CLONE_FROM) {
+    throw new Error("CLONE_FROM must be set when cloneEmode = true");
+  }
+
   let oracleMeta: AccountMeta;
   oracleMeta = {
     pubkey: config.ORACLE,
@@ -130,7 +138,9 @@ export async function addBank(
     isWritable: false,
   };
 
-  const tx = new Transaction().add(
+  const tx = new Transaction();
+
+  tx.add(
     await program.methods
       .lendingPoolAddBankWithSeed(
         {
@@ -147,7 +157,7 @@ export async function addBank(
           pad0: [0, 0, 0, 0, 0, 0],
           totalAssetValueInitLimit: bankConfig.totalAssetValueInitLimit,
           oracleMaxAge: bankConfig.oracleMaxAge,
-          configFlags: 0,
+          configFlags: bankConfig.configFlags,
           oracleMaxConfidence: bankConfig.oracleMaxConfidence,
         },
         new BN(config.SEED),
@@ -170,6 +180,21 @@ export async function addBank(
       .remainingAccounts([oracleMeta])
       .instruction(),
   );
+
+  if (cloneEmode) {
+    tx.add(
+      await program.methods
+        .lendingPoolCloneEmode()
+        .accounts({
+          copyFromBank: config.CLONE_FROM!,
+          copyToBank: bankKey,
+        })
+        .accountsPartial({
+          signer: config.ADMIN,
+        })
+        .instruction(),
+    );
+  }
 
   if (sendTx) {
     try {
