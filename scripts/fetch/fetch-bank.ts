@@ -16,7 +16,7 @@ import {
 import { ORACLE_TYPE_FIXED } from "../../lib/constants";
 
 // If true, prints this bank's settings in a format to be copy-pasted into add_bank
-const printForCopy = false;
+const printForCopy = true;
 
 type Config = {
   PROGRAM_ID: string;
@@ -30,7 +30,7 @@ const config: Config = {
     // new PublicKey("HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV"), // usdt
     // new PublicKey("8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu"), // py
     // new PublicKey("FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV"), // usds
-    new PublicKey("24gdUT9SNqeizCD1dHXWgjpa6NnWSFD6TWPAnCFSJnAk"),
+    new PublicKey("9ThXmfwhNzc6qbkRLuSGHwKS7mxjn6QcuRD644Pjn4F"),
   ],
 };
 
@@ -45,7 +45,7 @@ async function printBankInfo(bankKey: PublicKey) {
   const program = user.program;
   const bank = await program.account.bank.fetch(bankKey);
   const mintInfo = await program.provider.connection.getAccountInfo(bank.mint);
-  const isT22 = mintInfo.owner.toString() === TOKEN_2022_PROGRAM_ID.toString();
+  const isT22 = mintInfo!.owner.toString() === TOKEN_2022_PROGRAM_ID.toString();
   const decimals = bank.mintDecimals;
   const scale = new BigNumber(10).pow(decimals);
 
@@ -423,6 +423,17 @@ const deriveFeeVault = (programId: PublicKey, bank: PublicKey) =>
 const formatI80F48 = (x: WrappedI80F48): string =>
   wrappedI80F48toBigNumber(x).toString();
 
+const formatNumberLiteral = (value: number, decimals = 10): string =>
+  value
+    .toFixed(decimals)
+    .replace(/\.?0+$/, "");
+
+const formatAprU32ForCopy = (value: number): string =>
+  value === 0 ? "0" : `aprToU32(${formatNumberLiteral(u32ToApr(value))})`;
+
+const formatUtilU32ForCopy = (value: number): string =>
+  value === 0 ? "0" : `utilToU32(${formatNumberLiteral(u32ToUtil(value))})`;
+
 const ORACLE_TYPE_PYTH = 3;
 const ORACLE_TYPE_SWB = 4;
 
@@ -437,10 +448,7 @@ function unwrapVariant(v: any): string {
   return k ?? "unknown";
 }
 
-// prettier-ignore
 /**
- * AI slop
- *
  * Print the banks' settings in a way that can be copy-pasted into the add_bank script.
  * @param program
  * @param bankKey
@@ -474,15 +482,15 @@ async function printCopyConfigSnippet(program: any, bankKey: PublicKey) {
   const riskTierVariant = unwrapVariant(cfg.riskTier); // "collateral" | "isolated" | unknown
   const opStateVariant  = unwrapVariant(cfg.operationalState); // "operational" | "paused" | "reduceOnly" | unknown
 
-  // oracleMaxConfidence is new in v1_4; default to 0 if not present on-chain
   const oracleMaxConfidence =
     typeof (cfg as any).oracleMaxConfidence === "number"
       ? (cfg as any).oracleMaxConfidence
       : 0;
+  const configFlags =
+    typeof (cfg as any).configFlags === "number" ? (cfg as any).configFlags : 0;
 
-  console.log("\n// ===== Copy the following into your addBank script (v1_4) =====\n");
+  console.log("\n// ===== Copy the following into your add_bank script =====\n");
 
-  // ---- Top-level Config (matches your new addBank.ts) ----
   console.log("const config: Config = {");
   console.log(`  PROGRAM_ID: "${program.programId.toString()}",`);
   console.log(`  GROUP_KEY: new PublicKey("${bank.group.toString()}"),`);
@@ -500,28 +508,39 @@ async function printCopyConfigSnippet(program: any, bankKey: PublicKey) {
   console.log(`  MULTISIG_PAYER: new PublicKey("PLACEHOLDER_MULTISIG_PAYER"),`);
   console.log("};\n");
 
-  // ---- InterestRateConfigRaw ----
-  console.log("const rate: InterestRateConfigRaw = {");
-  console.log(`  optimalUtilizationRate: bigNumberToWrappedI80F48(${formatI80F48(irc.optimalUtilizationRate)}),`);
-  console.log(`  plateauInterestRate:   bigNumberToWrappedI80F48(${formatI80F48(irc.plateauInterestRate)}),`);
-  console.log(`  maxInterestRate:       bigNumberToWrappedI80F48(${formatI80F48(irc.maxInterestRate)}),`);
-  console.log(`  insuranceFeeFixedApr:  bigNumberToWrappedI80F48(${formatI80F48(irc.insuranceFeeFixedApr)}),`);
-  console.log(`  insuranceIrFee:        bigNumberToWrappedI80F48(${formatI80F48(irc.insuranceIrFee)}),`);
-  console.log(`  protocolFixedFeeApr:   bigNumberToWrappedI80F48(${formatI80F48(irc.protocolFixedFeeApr)}),`);
-  console.log(`  protocolIrFee:         bigNumberToWrappedI80F48(${formatI80F48(irc.protocolIrFee)}),`);
-  console.log(`  protocolOriginationFee:bigNumberToWrappedI80F48(${formatI80F48(irc.protocolOriginationFee)}),`);
+  console.log("const rate: InterestRateConfig1_7 = {");
+  console.log(`  insuranceFeeFixedApr: bigNumberToWrappedI80F48(${formatI80F48(irc.insuranceFeeFixedApr)}),`);
+  console.log(`  insuranceIrFee: bigNumberToWrappedI80F48(${formatI80F48(irc.insuranceIrFee)}),`);
+  console.log(`  protocolFixedFeeApr: bigNumberToWrappedI80F48(${formatI80F48(irc.protocolFixedFeeApr)}),`);
+  console.log(`  protocolIrFee: bigNumberToWrappedI80F48(${formatI80F48(irc.protocolIrFee)}),`);
+  console.log(`  protocolOriginationFee: bigNumberToWrappedI80F48(${formatI80F48(irc.protocolOriginationFee)}),`);
+  console.log("");
+  console.log(`  zeroUtilRate: ${formatAprU32ForCopy(Number(irc.zeroUtilRate))},`);
+  console.log(`  hundredUtilRate: ${formatAprU32ForCopy(Number(irc.hundredUtilRate))},`);
+  console.log("  points: [");
+  const points = Array.isArray((irc as any).points) ? (irc as any).points : [];
+  for (const point of points) {
+    const util = Number(point?.util ?? 0);
+    const rate = Number(point?.rate ?? 0);
+    if (util === 0 && rate === 0) {
+      console.log("    { util: 0, rate: 0 },");
+    } else {
+      console.log(
+        `    { util: ${formatUtilU32ForCopy(util)}, rate: ${formatAprU32ForCopy(rate)} },`,
+      );
+    }
+  }
+  console.log("  ],");
+  console.log(`  curveType: ${Number((irc as any).curveType ?? 1)},`);
   console.log("};\n");
 
-  // ---- BankConfigRaw_v1_4 ----
-  // Note: we preserve your on-chain values instead of hardcoding.
-  // depositLimit / borrowLimit / totalAssetValueInitLimit are already BN on-chain.
   const riskTierPrint =
     riskTierVariant === "isolated" ? "{ isolated: {} }" : "{ collateral: {} }";
   let opStatePrint = "{ operational: {} }";
   if (opStateVariant === "paused") opStatePrint = "{ paused: {} }";
   else if (opStateVariant === "reduceOnly") opStatePrint = "{ reduceOnly: {} }";
 
-  console.log("const bankConfig: BankConfigRaw_v1_4 = {");
+  console.log("const bankConfig: BankConfig = {");
   console.log(`  assetWeightInit:          bigNumberToWrappedI80F48(${formatI80F48(cfg.assetWeightInit)}),`);
   console.log(`  assetWeightMaint:         bigNumberToWrappedI80F48(${formatI80F48(cfg.assetWeightMaint)}),`);
   console.log(`  liabilityWeightInit:      bigNumberToWrappedI80F48(${formatI80F48(cfg.liabilityWeightInit)}),`);
@@ -535,6 +554,7 @@ async function printCopyConfigSnippet(program: any, bankKey: PublicKey) {
   console.log(`  oracleMaxAge:             ${cfg.oracleMaxAge},`);
   console.log(`  assetTag:                 ${cfg.assetTag ?? 0},`);
   console.log(`  oracleMaxConfidence:      ${oracleMaxConfidence},`);
+  console.log(`  configFlags:              ${configFlags},`);
   console.log("};\n");
 }
 
