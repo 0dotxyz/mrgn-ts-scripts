@@ -32,9 +32,10 @@ type BankOracleConfig = {
 
 /** One entry per bank to update */
 const configs: BankOracleConfig[] = [
+  // GUAC
   {
-    bank: new PublicKey("EKwXy2ui2jtJnvH4A2XufyqMyeSFecJE8xAKWpZEtDwd"),
-    price: 1,
+    bank: new PublicKey("44digRwKFeyiqDaxJRE6iag4cbXECKjG54v5ozxdu5mu"),
+    price: 0.000000001,
   },
   // ...More entries here as needed. The limit even without using LUTs is fairly high (at least 6)
 ];
