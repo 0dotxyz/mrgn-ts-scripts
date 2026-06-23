@@ -112,7 +112,7 @@ function pctOfNative(totalNative: BigNumber, pct: number): BN {
   return new BN(atoms.toFixed(0));
 }
 
-function addLutKeysFromIx(
+export function addLutKeysFromIx(
   ix: TransactionInstruction,
   keyMap: Map<string, PublicKey>,
 ) {
@@ -125,7 +125,7 @@ function addLutKeysFromIx(
   }
 }
 
-async function ensureLutHasKeys(
+export async function ensureLutHasKeys(
   connection: Connection,
   lut: AddressLookupTableAccount,
   authority: Keypair,
@@ -337,7 +337,7 @@ async function resolvePrices(
   return prices;
 }
 
-async function fetchGroupBanks(
+export async function fetchGroupBanks(
   program: ReturnType<typeof commonSetup>["program"],
   group: PublicKey,
 ): Promise<BankInfo[]> {
@@ -389,7 +389,7 @@ type PackStep = {
 // wire-format limit. Each candidate batch is actually compiled against the
 // live LUT so we measure real bytes — no guessing. Emits a per-ix step log
 // so the caller can render exactly how the tranches filled up.
-function packInstructionsBySize(
+export function packInstructionsBySize(
   payerKey: PublicKey,
   blockhash: string,
   lut: AddressLookupTableAccount,
