@@ -10,7 +10,6 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 import { commonSetup } from "../../lib/common-setup";
 import { loadKeypairFromFile } from "../utils/utils";
-import { assetGroups } from "../meta/asset_groups";
 import {
   addLutKeysFromIx,
   ensureLutHasKeys,
@@ -18,9 +17,9 @@ import {
   packInstructionsBySize,
 } from "./configure_bank_rate_limits";
 
-const sendTx = false;
+export const sendTx = false;
 
-type Config = {
+export type Config = {
   PROGRAM_ID: string;
   GROUP: PublicKey;
   MULTISIG: PublicKey;
@@ -31,7 +30,7 @@ type Config = {
   MAX_TRANCHES: number;
 };
 
-const config: Config = {
+export const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
   MULTISIG: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
@@ -42,16 +41,15 @@ const config: Config = {
   MAX_TRANCHES: 12,
 };
 
-const DEFAULT_WALLET_PATH = "/keys/staging-deploy.json";
+export const DEFAULT_WALLET_PATH = "/keys/staging-deploy.json";
 
-// CASH plus every Pendle PT mint. Banks in GROUP holding one of these mints get
-// their hourly/daily flow caps zeroed (rate limit removed).
-const TARGET_MINTS = new Set<string>([
-  assetGroups.stablecoins.CASH,
-  ...Object.values(assetGroups["rate-products"]),
-]);
-
-async function main() {
+/**
+ * Zeroes the hourly/daily flow caps (removes the rate limit) on every bank in
+ * `config.GROUP` whose mint is in `targetMints`, packing the instructions into
+ * as few Squads transactions as possible. `label` tags the log output and tx
+ * headers so separate runs (e.g. PT vs CASH) are easy to tell apart.
+ */
+export async function removeRateLimits(label: string, targetMints: Set<string>) {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
@@ -64,14 +62,14 @@ async function main() {
 
   const onChainBanks = await fetchGroupBanks(program, config.GROUP);
   const matched = onChainBanks.filter((b) =>
-    TARGET_MINTS.has(b.mint.toBase58()),
+    targetMints.has(b.mint.toBase58()),
   );
 
   const matchedMints = new Set(matched.map((b) => b.mint.toBase58()));
-  const missingMints = [...TARGET_MINTS].filter((m) => !matchedMints.has(m));
+  const missingMints = [...targetMints].filter((m) => !matchedMints.has(m));
   if (missingMints.length > 0) {
     console.warn(
-      `\n[warn] ${missingMints.length} target mint(s) have no bank in group ${config.GROUP.toBase58()}:`,
+      `\n[warn] ${missingMints.length} ${label} target mint(s) have no bank in group ${config.GROUP.toBase58()}:`,
     );
     for (const m of missingMints) console.warn(`  - ${m}`);
   }
@@ -82,7 +80,7 @@ async function main() {
   );
   const alreadyZero = matched.length - toRemove.length;
   console.log(
-    `\nMatched ${matched.length} CASH/PT bank(s) in group; ${toRemove.length} have a ` +
+    `\nMatched ${matched.length} ${label} bank(s) in group; ${toRemove.length} have a ` +
       `rate limit to remove${alreadyZero ? `, ${alreadyZero} already zero (skipped)` : ""}.`,
   );
 
@@ -154,7 +152,7 @@ async function main() {
     );
   }
   console.log(
-    `\nPacked ${ixs.length} removal ix(s) into ${packed.batches.length} tranche(s) ` +
+    `\nPacked ${ixs.length} ${label} removal ix(s) into ${packed.batches.length} tranche(s) ` +
       `(limit ${PACKET_DATA_SIZE} bytes, reserve ${config.TX_BYTE_RESERVE}, budget ${packBudget}, ` +
       `max ${config.MAX_IXS_PER_TRANCHE} ixs/tranche).`,
   );
@@ -174,11 +172,11 @@ async function main() {
 
     const banksInTranche = labels
       .slice(cursor, cursor + batch.length)
-      .map((label, idx) => ({ idx, label }));
+      .map((l, idx) => ({ idx, label: l }));
     cursor += batch.length;
 
     console.log(
-      `\n=== REMOVE Tranche ${i + 1}/${packed.batches.length} (${batch.length} ix${
+      `\n=== ${label} REMOVE Tranche ${i + 1}/${packed.batches.length} (${batch.length} ix${
         batch.length === 1 ? "" : "s"
       }, ${packed.byteCounts[i]} bytes) ===`,
     );
@@ -199,30 +197,23 @@ async function main() {
       });
       if (sim.value.err) {
         console.error(
-          `[sim] tranche ${i + 1}/${packed.batches.length} FAILED: ` +
+          `[sim] ${label} tranche ${i + 1}/${packed.batches.length} FAILED: ` +
             JSON.stringify(sim.value.err),
         );
         for (const l of sim.value.logs ?? []) console.error(`    ${l}`);
       } else {
         console.log(
-          `[sim] tranche ${i + 1}/${packed.batches.length} OK ` +
+          `[sim] ${label} tranche ${i + 1}/${packed.batches.length} OK ` +
             `(CU: ${sim.value.unitsConsumed ?? "?"})`,
         );
       }
       console.log(
-        `\n---- BEGIN MULTISIG TX REMOVE ${i + 1}/${packed.batches.length} (base58) ----`,
+        `\n---- BEGIN MULTISIG TX ${label} ${i + 1}/${packed.batches.length} (base58) ----`,
       );
       console.log(bs58.encode(v0Tx.serialize()));
       console.log(
-        `---- END MULTISIG TX REMOVE ${i + 1}/${packed.batches.length} ----\n`,
+        `---- END MULTISIG TX ${label} ${i + 1}/${packed.batches.length} ----\n`,
       );
     }
   }
-}
-
-if (require.main === module) {
-  main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
 }
