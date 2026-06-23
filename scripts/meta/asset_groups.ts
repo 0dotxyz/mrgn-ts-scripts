@@ -64,6 +64,7 @@ export const assetGroups = {
     "PT-hyUSD": "GJ3CvAnawvxwReu7MhBfTQBLcfcs1awP5h55SzoBBNYq",
     "PT-bulkSOL": "Bw6zsBWadivcKo1n2wEyF79pSrKDGyggif4a7wv3dtVi",
     "PT-bulkSOL-2": "CepgNWfh7p4pBenHCsWGC7ZfPwhFkskwvKXqmQMLnRRM",
+    "PT-bulkSOL-3": "HgyWqTZ6JdGYF5TfrYmScTyvsyuopwYRJXwqA2LzCrz6",
     "PT-hyloSOL-2": "2jSne8C9vMkMZC5Wj1Q3SsD7T5RTZx7pzsgZrXPYoWoB",
     "PT-hyUSD-2": "EgCjHHmF2SRGwoqjHCicoZkbzJbPgZRN7h3eeuNZWndK",
   },
