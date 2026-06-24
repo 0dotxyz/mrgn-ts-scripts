@@ -54,14 +54,14 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE: new PublicKey("EdHL5vFMEqrS2nw2gukYcp16DxQEmDR8hy1kLjpdoB2J"),
+  ORACLE: new PublicKey("HxZN9wAUXHpkUpLeH3x3UtCPhdsJP2EkVN4umvny4hBw"),
   ORACLE_TYPE: ORACLE_TYPE_SWB,
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  BANK_MINT: new PublicKey("58XmRhDKVsCEt6dD3zxqHth8uzMY8BHhEyeAiUa5UPw9"),
+  BANK_MINT: new PublicKey("rkubjTrZYioRSeXwDnhwGQzvW3qkcin72JSxUt3WMVp"),
   SEED: 0,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
-  CLONE_FROM: new PublicKey("4PtX5fLM5JwujjHmSyzbh5XLasKx9kiPxPfygi57jAov"),
+  CLONE_FROM: new PublicKey("9p1TiAeTc6FSiNHhnR6BgmwRq49zywczAY4m77BbKGer"),
 };
 
 const rate: InterestRateConfig1_7 = {
@@ -72,9 +72,9 @@ const rate: InterestRateConfig1_7 = {
   protocolOriginationFee: bigNumberToWrappedI80F48(0),
 
   zeroUtilRate: 0,
-  hundredUtilRate: aprToU32(1),
+  hundredUtilRate: aprToU32(0.56),
   points: [
-    { util: utilToU32(0.5), rate: aprToU32(0.03) },
+    { util: utilToU32(0.8), rate: aprToU32(0.1) },
     { util: 0, rate: 0 },
     { util: 0, rate: 0 },
     { util: 0, rate: 0 },
@@ -84,16 +84,16 @@ const rate: InterestRateConfig1_7 = {
 };
 
 const bankConfig: BankConfig = {
-  assetWeightInit: bigNumberToWrappedI80F48(0),
-  assetWeightMaint: bigNumberToWrappedI80F48(0),
-  liabilityWeightInit: bigNumberToWrappedI80F48(1.15),
-  liabilityWeightMaint: bigNumberToWrappedI80F48(1.1),
-  depositLimit: new BN(10000000000000),
+  assetWeightInit: bigNumberToWrappedI80F48(0.65),
+  assetWeightMaint: bigNumberToWrappedI80F48(0.8),
+  liabilityWeightInit: bigNumberToWrappedI80F48(1.3),
+  liabilityWeightMaint: bigNumberToWrappedI80F48(1.2),
+  depositLimit: new BN(20000000000000),
   interestRateConfig: rate,
   operationalState: { operational: {} },
-  borrowLimit: new BN(0),
+  borrowLimit: new BN(2500000000000),
   riskTier: { collateral: {} },
-  totalAssetValueInitLimit: new BN(3000000),
+  totalAssetValueInitLimit: new BN(10000000),
   oracleMaxAge: 70,
   assetTag: 0,
   oracleMaxConfidence: 0,

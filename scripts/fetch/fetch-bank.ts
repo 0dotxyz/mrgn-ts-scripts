@@ -30,7 +30,7 @@ const config: Config = {
     // new PublicKey("HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV"), // usdt
     // new PublicKey("8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu"), // py
     // new PublicKey("FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV"), // usds
-    new PublicKey("9ThXmfwhNzc6qbkRLuSGHwKS7mxjn6QcuRD644Pjn4F"),
+    new PublicKey("9p1TiAeTc6FSiNHhnR6BgmwRq49zywczAY4m77BbKGer"),
   ],
 };
 
