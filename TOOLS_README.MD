@@ -25,13 +25,18 @@ MARGINFI_ENV="production"
 ## Requirements
 
 * Node
-* ts-node (`npm install -g ts-node`)
+* Repo dependencies installed (`npm install` or `yarn install`)
 * A wallet (with SOL) at  ~/keys/wallet.json
 * (Optional) create a .env.api and add API_URL=https://rpc.ironforge.network/mainnet?apiKey=WHATEVER
 
 ## Run the Scripts
-* `cd packages/tools`
-* ts-node path_to_script
+* `cd scripts-ts`
+* Run directly through Yarn's repo-local binary resolution:
+  * `yarn ts-node path_to_script.ts`
+* Or load the repo-local CLI binaries for bare `ts-node` commands:
+  * with direnv: `direnv allow`
+  * without direnv: `source .envrc`
+* `ts-node path_to_script.ts`
 
 ## Disclaimer
 One-off scripts are exactly that: meant to be ran once. Edit them to fit your immediate needs.

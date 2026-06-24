@@ -21,7 +21,7 @@ import { I80F48_ONE } from "../utils/utils";
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
 const sendTx = false;
-const cloneEmode = false;
+const cloneEmode = true;
 
 const ASSET_TAG_DEFAULT = 0;
 
@@ -54,10 +54,10 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE: new PublicKey("ACPSJmxeTutJ9H4Eknk1E9wuCafyLkMvb5o6qu4Ek4uP"),
+  ORACLE: new PublicKey("EdHL5vFMEqrS2nw2gukYcp16DxQEmDR8hy1kLjpdoB2J"),
   ORACLE_TYPE: ORACLE_TYPE_SWB,
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  BANK_MINT: new PublicKey("HgyWqTZ6JdGYF5TfrYmScTyvsyuopwYRJXwqA2LzCrz6"),
+  BANK_MINT: new PublicKey("58XmRhDKVsCEt6dD3zxqHth8uzMY8BHhEyeAiUa5UPw9"),
   SEED: 0,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 

@@ -1,6 +1,7 @@
 account-cache.json
 activity-cache.json
 .env*
+!.envrc
 node_modules
 *.csv
 *.out
