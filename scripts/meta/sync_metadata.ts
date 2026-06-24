@@ -68,7 +68,7 @@ type CachedBank = {
   };
 };
 
-type TokenInfoSource = "jupiter" | "metaplex" | "token2022";
+type TokenInfoSource = "jupiter" | "metaplex" | "token2022" | "native-stake";
 type TokenInfo = { name: string; symbol: string; source: TokenInfoSource };
 type JupTokenHit = { id: string; name?: string; symbol?: string };
 
@@ -76,6 +76,33 @@ type TokenNameCacheEntry = TokenInfo & { cachedAt: number };
 type TokenNameCache = Record<string, TokenNameCacheEntry>;
 
 type CurrentMetadata = { ticker: string; description: string };
+
+type NativeStakeEntry = {
+  bankAddress: string;
+  validatorVoteAccount: string;
+  tokenAddress: string;
+  tokenName: string;
+  tokenSymbol: string;
+};
+
+const NATIVE_STAKE_PATH = path.resolve(__dirname, "data/native-stake.json");
+
+let nativeStakeByBank: Map<string, NativeStakeEntry> | null = null;
+
+// Staked-collateral banks carry a truncated validator name in every external
+// token source (Jupiter/Metaplex/Token-2022), so they are resolved from this
+// curated file instead, with assetGroup forced to "native-stake". Keyed by bank
+// address; silently falls back to normal resolution when a staked bank is
+// absent from the file.
+function nativeStakeMeta(bank: string): NativeStakeEntry | undefined {
+  if (!nativeStakeByBank) {
+    const rows = JSON.parse(
+      fs.readFileSync(NATIVE_STAKE_PATH, "utf8"),
+    ) as NativeStakeEntry[];
+    nativeStakeByBank = new Map(rows.map((r) => [r.bankAddress, r]));
+  }
+  return nativeStakeByBank.get(bank);
+}
 
 type ActionKind = "init" | "update" | "skip" | "unresolved";
 
@@ -235,13 +262,12 @@ function buildEntry(
   bank: CachedBank,
   resolved: TokenInfo,
   mintToGroup: Record<string, string>,
+  assetGroupOverride?: string,
 ): BankMetadataEntry {
   const venue = deriveVenueFromAssetTag(bank.config.assetTag);
-  const assetGroup = resolveAssetGroup(
-    bank.mint,
-    bank.config.riskTier,
-    mintToGroup,
-  );
+  const assetGroup =
+    assetGroupOverride ??
+    resolveAssetGroup(bank.mint, bank.config.riskTier, mintToGroup);
   return {
     bank: new PublicKey(bank.address),
     group: new PublicKey(bank.group),
@@ -430,13 +456,30 @@ async function main() {
       `  [${i + 1}/${active.length}] ${bank.address} (${bank.tokenSymbol}) mint=${bank.mint}... `,
     );
 
-    const { info: resolved, hit } = await resolveWithCache(
-      user.connection,
-      bank.mint,
-      cache,
-    );
-    if (hit) cacheHits++;
-    else cacheMisses++;
+    // Staked-collateral banks are resolved from the curated native-stake file
+    // and never touch the cache / external token sources.
+    const staked = bank.config.oracleSetup.includes("StakedWith")
+      ? nativeStakeMeta(bank.address)
+      : undefined;
+
+    let resolved: TokenInfo | null;
+    let originLabel: string;
+    let networkCall = false;
+    if (staked) {
+      resolved = {
+        name: staked.tokenName,
+        symbol: staked.tokenSymbol,
+        source: "native-stake",
+      };
+      originLabel = "native-stake";
+    } else {
+      const r = await resolveWithCache(user.connection, bank.mint, cache);
+      resolved = r.info;
+      if (r.hit) cacheHits++;
+      else cacheMisses++;
+      networkCall = !r.hit;
+      originLabel = r.hit ? "cached" : (resolved?.source ?? "unresolved");
+    }
 
     const current = currentByBank.get(bank.address) ?? null;
 
@@ -463,7 +506,12 @@ async function main() {
       continue;
     }
 
-    const target = buildEntry(bank, resolved, mintToGroup);
+    const target = buildEntry(
+      bank,
+      resolved,
+      mintToGroup,
+      staked ? "native-stake" : undefined,
+    );
 
     let kind: ActionKind;
     if (!current) {
@@ -478,7 +526,7 @@ async function main() {
     }
 
     classifications.push({ bank, resolved, current, target, kind });
-    console.log(`${hit ? "cached" : resolved.source} → ${kind}`);
+    console.log(`${originLabel} → ${kind}`);
     tableRows.push({
       symbol: bank.tokenSymbol,
       bank: bank.address,
@@ -490,7 +538,7 @@ async function main() {
     });
 
     // Only pace on real network calls.
-    if (!hit && i < active.length - 1 && argv.delay > 0) {
+    if (networkCall && i < active.length - 1 && argv.delay > 0) {
       await new Promise((r) => setTimeout(r, argv.delay));
     }
   }
