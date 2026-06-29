@@ -940,5 +940,17 @@
     "symbol": "PT-bulkSOL",
     "source": "jupiter",
     "cachedAt": 1782196331341
+  },
+  "58XmRhDKVsCEt6dD3zxqHth8uzMY8BHhEyeAiUa5UPw9": {
+    "name": "Exponent PT-rkuSOL-31OCT26",
+    "symbol": "PT-rkuSOL",
+    "source": "jupiter",
+    "cachedAt": 1782545873183
+  },
+  "rkubjTrZYioRSeXwDnhwGQzvW3qkcin72JSxUt3WMVp": {
+    "name": "Raiku Staked SOL",
+    "symbol": "rkuSOL",
+    "source": "jupiter",
+    "cachedAt": 1782545874253
   }
 }
