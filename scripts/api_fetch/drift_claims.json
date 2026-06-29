@@ -1,0 +1,65 @@
+[
+  {
+    "claimant": "F4fhPfqcufv2KBWX1ZpPu99uqhCgPNxt9KsQsePJC8eC",
+    "mint": "dfxKL8VLUjLMCnFiJ57ZjrjGDiDMLRX8tHmg8biUV39",
+    "symbol": "DFX",
+    "amount_unlocked": "291168141",
+    "amount_locked": "0"
+  },
+  {
+    "claimant": "Cr4Lsmx2CrhV2knKJSK4m9xmwGjKuo3x8Hh2TUTJYwLa",
+    "mint": "dfxKL8VLUjLMCnFiJ57ZjrjGDiDMLRX8tHmg8biUV39",
+    "symbol": "DFX",
+    "amount_unlocked": "127651184429",
+    "amount_locked": "0"
+  },
+  {
+    "claimant": "FNvbf7QPKPrdspkpJVgheG7Yp8zAnjhYZtZyLcY4pQHD",
+    "mint": "dfxKL8VLUjLMCnFiJ57ZjrjGDiDMLRX8tHmg8biUV39",
+    "symbol": "DFX",
+    "amount_unlocked": "274974718797",
+    "amount_locked": "0"
+  },
+  {
+    "claimant": "2JkPXkY6LKf7ztiwxqvLx8MX1uQdG23f58vzoav9R8kn",
+    "mint": "dfxKL8VLUjLMCnFiJ57ZjrjGDiDMLRX8tHmg8biUV39",
+    "symbol": "DFX",
+    "amount_unlocked": "54396382597",
+    "amount_locked": "0"
+  },
+  {
+    "claimant": "CHA11XYkPvxd6eDaxrGYjtgngat64k4hcSwVk2EKaKC2",
+    "mint": "dfxKL8VLUjLMCnFiJ57ZjrjGDiDMLRX8tHmg8biUV39",
+    "symbol": "DFX",
+    "amount_unlocked": "200067347",
+    "amount_locked": "0"
+  },
+  {
+    "claimant": "EADW8iFEsyfuXuBjETVE27kK5yrpfJNqJ5usgm3ehinH",
+    "mint": "dfxKL8VLUjLMCnFiJ57ZjrjGDiDMLRX8tHmg8biUV39",
+    "symbol": "DFX",
+    "amount_unlocked": "4127119040036",
+    "amount_locked": "0"
+  },
+  {
+    "claimant": "6KzBZoiZy4KDhBCrjyjykHqEu7KYwGCwpSaLumzCLfdz",
+    "mint": "dfxKL8VLUjLMCnFiJ57ZjrjGDiDMLRX8tHmg8biUV39",
+    "symbol": "DFX",
+    "amount_unlocked": "307900523",
+    "amount_locked": "0"
+  },
+  {
+    "claimant": "Awokz4fLdsvR7NY3Sp1wh7iRJ1hVhEWLkk65ux1ZpfrG",
+    "mint": "dfxKL8VLUjLMCnFiJ57ZjrjGDiDMLRX8tHmg8biUV39",
+    "symbol": "DFX",
+    "amount_unlocked": "461895958612",
+    "amount_locked": "0"
+  },
+  {
+    "claimant": "CnuuiYrEKd5R6yRuJ1cEBu6WzC4GpfcPXW68xP54ATzB",
+    "mint": "dfxKL8VLUjLMCnFiJ57ZjrjGDiDMLRX8tHmg8biUV39",
+    "symbol": "DFX",
+    "amount_unlocked": "8043442157",
+    "amount_locked": "0"
+  }
+]
