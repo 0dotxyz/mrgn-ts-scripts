@@ -21,7 +21,27 @@ import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { commonSetup } from "../../lib/common-setup";
 import { chunk, loadEnvFile, loadKeypairFromFile } from "../utils/utils";
 import { decodePriceUpdateV2 } from "../utils/utils_oracle";
-
+import {
+  BASE_DAILY_PCT,
+  BASE_HOURLY_PCT,
+  BankTier,
+  CLOSE_FACTOR,
+  EXCLUDED_MINTS,
+  HISTORY_CONCURRENCY,
+  LOOKBACK_DAYS,
+  OutflowStats,
+  RAISED_DAILY_PCT,
+  RAISED_HOURLY_PCT,
+  USD_THRESHOLD,
+  classifyTier,
+  computeOutflowStats,
+  fetchHistory,
+  fetchRealPrices,
+  isSuspectPt,
+  mapWithConcurrency,
+  tierPcts,
+  writeDatedDump,
+} from "../utils/rate_limits";
 
 const sendTx = false;
 
@@ -34,9 +54,6 @@ type Config = {
   MULTISIG: PublicKey;
   LUT: PublicKey;
   LUT_AUTHORITY_WALLET: string;
-  USD_THRESHOLD: number;
-  HOURLY_PCT: number;
-  DAILY_PCT: number;
   // Bytes reserved off the 1232-byte tx limit. Covers the Squads execute-ix
   // wrapper (extra program id + vault/PDA account metas) plus a comfort
   // margin so we never pack right up against the hard limit.
@@ -48,11 +65,18 @@ type Config = {
   SKIP_ASSET_TAGS: number[];
   /**
    * When non-empty, emit SET ixs for exactly these banks (no USD threshold
-   * filter) and skip the REMOVE/GROUP txs. Use to re-emit a subset of a
+   * filter) and skip the REMOVE txs. Use to re-emit a subset of a
    * previous run, e.g. re-splitting a tranche that was too large for the
    * multisig, without disturbing already-created proposals.
    */
   ONLY_BANKS: string[];
+  // When false, abort if any selected bank ends up without outflow history —
+  // a partial-data run must not be signable unnoticed. When true, such banks
+  // fall back to base caps.
+  ALLOW_MISSING_HISTORY: boolean;
+  // When false, abort if a selected bank has a PT-style symbol whose mint is
+  // not registered in assetGroups["rate-products"].
+  ALLOW_SUSPECT_PT: boolean;
 };
 
 const config: Config = {
@@ -61,18 +85,16 @@ const config: Config = {
   MULTISIG: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
   LUT: new PublicKey("2b8UjpA3bAe7f8gcXd1gA3rFe6WuGZiKRNUXsS6tghEk"),
   LUT_AUTHORITY_WALLET: "/.config/solana/id.json",
-  USD_THRESHOLD: 100_000,
-  HOURLY_PCT: 20,
-  DAILY_PCT: 40,
   TX_BYTE_RESERVE: 200,
   MAX_IXS_PER_TRANCHE: 15,
   MAX_TRANCHES: 12,
   SKIP_ASSET_TAGS: [],
   ONLY_BANKS: [],
+  ALLOW_MISSING_HISTORY: false,
+  ALLOW_SUSPECT_PT: false,
 };
 
 const DEFAULT_WALLET_PATH = "/keys/staging-deploy.json";
-
 
 type BankInfo = {
   address: PublicKey;
@@ -98,10 +120,15 @@ type BankSnapshot = {
   totalDepositsNative: BigNumber;
   priceUsd: BigNumber;
   totalDepositsUsd: BigNumber;
-  hourlyCap: BN;
-  dailyCap: BN;
   currentHourlyCap: BN;
   currentDailyCap: BN;
+};
+
+type ClassifiedBank = BankSnapshot & {
+  tier: BankTier;
+  stats: OutflowStats | null;
+  hourlyCap: BN;
+  dailyCap: BN;
 };
 
 function pctOfNative(totalNative: BigNumber, pct: number): BN {
@@ -207,57 +234,31 @@ async function fetchAccountsBatched(
   return out;
 }
 
-const JUP_PRICE_URL = "https://api.jup.ag/price/v3";
-const JUP_IDS_PER_CALL = 50;
-
-async function fetchJupPrices(
-  mints: string[],
-): Promise<Map<string, BigNumber>> {
-  const prices = new Map<string, BigNumber>();
-  const apiKey = process.env.JUP_API_KEY;
-  if (!apiKey) {
-    console.warn(
-      "[warn] JUP_API_KEY not set — skipping Jup prices, falling back to on-chain oracles only",
-    );
-    return prices;
-  }
-
-  for (const ids of chunk(mints, JUP_IDS_PER_CALL)) {
-    const resp = await fetch(`${JUP_PRICE_URL}?ids=${ids.join(",")}`, {
-      headers: { "x-api-key": apiKey },
-    });
-    if (!resp.ok) {
-      console.warn(
-        `[warn] Jup price request failed (${resp.status} ${resp.statusText}) — ` +
-          `falling back to on-chain oracles for this batch`,
-      );
-      continue;
-    }
-    const body = (await resp.json()) as Record<
-      string,
-      { usdPrice?: number } | undefined
-    >;
-    for (const mint of ids) {
-      const usdPrice = body[mint]?.usdPrice;
-      if (usdPrice && usdPrice > 0) {
-        prices.set(mint, new BigNumber(usdPrice));
-      }
-    }
-  }
-  return prices;
-}
+type ResolvedPrices = {
+  prices: Map<string, BigNumber>;
+  symbols: Map<string, string>;
+  // Banks priced by the raw on-chain oracle fallback instead of realprice.
+  // The raw feed lacks the per-share / pool-ratio conversion, so USD values
+  // for these banks are unreliable — they must never drive a cap REMOVAL.
+  fallbackPriced: Set<string>;
+};
 
 async function resolvePrices(
   connection: Connection,
   banks: BankInfo[],
-): Promise<Map<string, BigNumber>> {
+): Promise<ResolvedPrices> {
   const prices = new Map<string, BigNumber>();
+  const symbols = new Map<string, string>();
+  const fallbackPriced = new Set<string>();
   const pyth: BankInfo[] = [];
   const swb: BankInfo[] = [];
 
-  // Fixed-price banks use the price stored in bank config; everything else is
-  // priced by mint via the Jup API, with on-chain oracles as fallback for any
-  // mint Jup doesn't cover.
+  // Fixed-price banks use the price stored in bank config; everything else
+  // is priced per bank by the api.0.xyz realprice resolver, with on-chain
+  // oracles as fallback for individual banks the resolver doesn't cover.
+  // A total realprice failure aborts the run instead: silently repricing
+  // every bank with wrong-convention oracle fallbacks could zero caps or
+  // misclassify tiers protocol-wide.
   const nonFixed: BankInfo[] = [];
   for (const b of banks) {
     if (classifyOracle(b.oracleSetup) === "fixed") {
@@ -267,25 +268,29 @@ async function resolvePrices(
     }
   }
 
-  const mints = Array.from(new Set(nonFixed.map((b) => b.mint.toBase58())));
-  const jupPrices = await fetchJupPrices(mints);
-  console.log(`Jup priced ${jupPrices.size}/${mints.length} mint(s)`);
+  const apiPrices = await fetchRealPrices();
 
   const unpriced: BankInfo[] = [];
   for (const b of nonFixed) {
-    const p = jupPrices.get(b.mint.toBase58());
-    if (p) {
-      prices.set(b.address.toBase58(), p);
+    const addr = b.address.toBase58();
+    const entry = apiPrices.get(addr);
+    if (entry) {
+      prices.set(addr, entry.price);
+      if (entry.symbol) symbols.set(addr, entry.symbol);
     } else {
       unpriced.push(b);
     }
   }
+  console.log(
+    `realprice priced ${nonFixed.length - unpriced.length}/${nonFixed.length} bank(s)`,
+  );
 
   for (const b of unpriced) {
     console.warn(
-      `[warn] no Jup price for mint ${b.mint.toBase58()} ` +
-        `(bank ${b.address.toBase58()}) — falling back to ${b.oracleSetup} oracle`,
+      `[warn] no realprice for bank ${b.address.toBase58()} ` +
+        `(mint ${b.mint.toBase58()}) — falling back to ${b.oracleSetup} oracle`,
     );
+    fallbackPriced.add(b.address.toBase58());
     switch (classifyOracle(b.oracleSetup)) {
       case "pyth":
         pyth.push(b);
@@ -334,7 +339,7 @@ async function resolvePrices(
     }
   }
 
-  return prices;
+  return { prices, symbols, fallbackPriced };
 }
 
 export async function fetchGroupBanks(
@@ -464,8 +469,53 @@ export function packInstructionsBySize(
   return { batches, byteCounts, steps };
 }
 
+/**
+ * Fresh outflow stats per selected bank from live bankHistory. Aborts when a
+ * bank ends up with no stats unless ALLOW_MISSING_HISTORY is set — tiers
+ * must not be silently decided on partial data.
+ */
+async function collectOutflowStats(
+  selected: BankSnapshot[],
+): Promise<Map<string, OutflowStats>> {
+  const statsByBank = new Map<string, OutflowStats>();
+
+  console.log(
+    `Fetching ${LOOKBACK_DAYS}d of outflow history for ${selected.length} bank(s)...`,
+  );
+  await mapWithConcurrency(selected, HISTORY_CONCURRENCY, async (s) => {
+    try {
+      const stats = computeOutflowStats(
+        await fetchHistory(s.pubkey.toBase58()),
+      );
+      if (stats) statsByBank.set(s.pubkey.toBase58(), stats);
+    } catch (err) {
+      console.warn(
+        `[warn] bankHistory failed for ${s.pubkey.toBase58()}: ${err}`,
+      );
+    }
+  });
+
+  const missing = selected.filter((s) => !statsByBank.has(s.pubkey.toBase58()));
+  if (missing.length > 0) {
+    const list = missing
+      .map((s) => `${s.symbol} ${s.pubkey.toBase58()}`)
+      .join(", ");
+    if (!config.ALLOW_MISSING_HISTORY) {
+      throw new Error(
+        `${missing.length} selected bank(s) have no outflow history: ${list}. ` +
+          `Refusing to classify tiers on partial data — retry when bankHistory ` +
+          `is healthy, or set ALLOW_MISSING_HISTORY to proceed with base caps.`,
+      );
+    }
+    console.warn(
+      `[warn] ${missing.length} bank(s) have no outflow history — using base caps: ${list}`,
+    );
+  }
+  return statsByBank;
+}
+
 async function main() {
-  loadEnvFile(".env"); // JUP_API_KEY
+  loadEnvFile(".env"); // API_URL for commonSetup
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
@@ -490,21 +540,24 @@ async function main() {
       })`,
   );
 
-  const priceMap = await resolvePrices(connection, operationalBanks);
+  const { prices: priceMap, symbols, fallbackPriced } = await resolvePrices(
+    connection,
+    operationalBanks,
+  );
 
   const snapshots: BankSnapshot[] = [];
   for (const b of operationalBanks) {
     if (config.SKIP_ASSET_TAGS.includes(b.assetTag)) continue;
+    if (EXCLUDED_MINTS.has(b.mint.toBase58())) continue;
 
     const totalDepositsNative = b.totalAssetShares.multipliedBy(
       b.assetShareValue,
     );
 
-    const priceUsd = priceMap.get(b.address.toBase58());
+    const addr = b.address.toBase58();
+    const priceUsd = priceMap.get(addr);
     if (!priceUsd || priceUsd.isZero()) {
-      console.warn(
-        `[skip] no price for ${b.address.toBase58()} (${b.oracleSetup})`,
-      );
+      console.warn(`[skip] no price for ${addr} (${b.oracleSetup})`);
       continue;
     }
 
@@ -515,14 +568,12 @@ async function main() {
     snapshots.push({
       pubkey: b.address,
       mint: b.mint,
-      symbol: b.address.toBase58().slice(0, 4),
+      symbol: symbols.get(addr) ?? addr.slice(0, 4),
       decimals: b.mintDecimals,
       assetTag: b.assetTag,
       totalDepositsNative,
       priceUsd,
       totalDepositsUsd,
-      hourlyCap: pctOfNative(totalDepositsNative, config.HOURLY_PCT),
-      dailyCap: pctOfNative(totalDepositsNative, config.DAILY_PCT),
       currentHourlyCap: b.currentHourlyCap,
       currentDailyCap: b.currentDailyCap,
     });
@@ -540,27 +591,75 @@ async function main() {
       } else {
         throw new Error(
           `ONLY_BANKS entry ${addr} not found among priced operational banks — ` +
-            `refusing to emit a partial set. Check the address or clear ONLY_BANKS.`,
+            `refusing to emit a partial set. Check the address, note that ` +
+            `PT/CASH banks are excluded from rate limiting, or clear ONLY_BANKS.`,
         );
       }
     }
     console.log(
       `\nONLY_BANKS mode: rate-limiting exactly ${selected.length} pinned bank(s) ` +
-        `(threshold filter bypassed; REMOVE/GROUP txs skipped):`,
+        `(threshold filter bypassed; REMOVE txs skipped):`,
     );
   } else {
     selected = snapshots
-      .filter((s) => s.totalDepositsUsd.gt(config.USD_THRESHOLD))
+      .filter((s) => s.totalDepositsUsd.gte(USD_THRESHOLD))
       .sort((a, b) => b.totalDepositsUsd.comparedTo(a.totalDepositsUsd) ?? 0);
     console.log(
-      `\n${selected.length} bank(s) meet the $${config.USD_THRESHOLD.toLocaleString()} USD deposits threshold — rate-limiting these:`,
+      `\n${selected.length} bank(s) meet the $${USD_THRESHOLD.toLocaleString()} USD deposits threshold — rate-limiting these:`,
     );
   }
+
+  const suspects = selected.filter((s) =>
+    isSuspectPt(s.symbol, s.mint.toBase58()),
+  );
+  if (suspects.length > 0) {
+    const list = suspects
+      .map((s) => `${s.symbol} ${s.pubkey.toBase58()} (mint ${s.mint.toBase58()})`)
+      .join(", ");
+    if (!config.ALLOW_SUSPECT_PT) {
+      throw new Error(
+        `${suspects.length} selected bank(s) look like unregistered PT tokens: ${list}. ` +
+          `PT banks must never be rate-limited — add the mint(s) to ` +
+          `assetGroups["rate-products"], or set ALLOW_SUSPECT_PT if the ` +
+          `symbol match is a false positive.`,
+      );
+    }
+    console.warn(`[warn] rate-limiting PT-style symbol bank(s): ${list}`);
+  }
+
+  const statsByBank = await collectOutflowStats(selected);
+
+  const classified: ClassifiedBank[] = selected.map((s) => {
+    const stats = statsByBank.get(s.pubkey.toBase58()) ?? null;
+    const tier: BankTier = stats
+      ? classifyTier(stats, s.totalDepositsNative)
+      : "base";
+    const { hourlyPct, dailyPct } = tierPcts(tier);
+    return {
+      ...s,
+      tier,
+      stats,
+      hourlyCap: pctOfNative(s.totalDepositsNative, hourlyPct),
+      dailyCap: pctOfNative(s.totalDepositsNative, dailyPct),
+    };
+  });
+
+  const outflowPct = (s: ClassifiedBank, outflow: number | undefined) =>
+    outflow === undefined
+      ? "-"
+      : new BigNumber(outflow)
+          .dividedBy(s.totalDepositsNative)
+          .multipliedBy(100)
+          .toFixed(1) + "%";
+
   console.table(
-    selected.map((s) => ({
+    classified.map((s) => ({
       Symbol: s.symbol,
       Bank: s.pubkey.toBase58(),
       AssetTag: s.assetTag,
+      Tier: s.tier,
+      "Max 1h out": outflowPct(s, s.stats?.maxOutflow1h),
+      "Max 24h out": outflowPct(s, s.stats?.maxOutflow24h),
       "Deposits (token)": s.totalDepositsNative.shiftedBy(-s.decimals).toFormat(4),
       "Price ($)": s.priceUsd.toFormat(6),
       "Deposits ($)": s.totalDepositsUsd.toFormat(2),
@@ -581,54 +680,77 @@ async function main() {
     })),
   );
 
-  // Per-bank window caps — the actual policy: at most HOURLY_PCT of deposits
-  // can flow out in any 1h window, at most DAILY_PCT in any 24h window.
-  console.log(`\nPer-bank flow caps:`);
-  console.table(
-    selected.map((s) => ({
-      Bank: s.pubkey.toBase58(),
-      Mint: s.mint.toBase58(),
-      Hourly: new BigNumber(s.hourlyCap.toString())
-        .shiftedBy(-s.decimals)
-        .toFormat(4),
-      Daily: new BigNumber(s.dailyCap.toString())
-        .shiftedBy(-s.decimals)
-        .toFormat(4),
-    })),
-  );
-
-  const flowCapsJson = selected.map((s) => ({
-    bank: s.pubkey.toBase58(),
-    mint: s.mint.toBase58(),
-    decimals: s.decimals,
-    hourlyCapNative: s.hourlyCap.toString(),
-    dailyCapNative: s.dailyCap.toString(),
-    hourlyCapUi: new BigNumber(s.hourlyCap.toString())
-      .shiftedBy(-s.decimals)
-      .toString(),
-    dailyCapUi: new BigNumber(s.dailyCap.toString())
-      .shiftedBy(-s.decimals)
-      .toString(),
-  }));
-  console.log(`\nPer-bank flow caps (JSON):`);
-  console.log(JSON.stringify(flowCapsJson, null, 2));
-
-  // Banks that currently have a rate limit set on-chain but no longer meet the
-  // USD threshold. Only banks we successfully priced (i.e. in `snapshots`) are
-  // eligible — we never clear a limit based on a missing price. These get their
-  // caps zeroed out in a *separate* set of instructions/tranches.
+  // Banks that currently have a rate limit set on-chain but no longer meet
+  // the requirements: operational excluded-mint banks (PT/CASH) and banks
+  // below the USD threshold. Only banks we could evaluate are touched: no
+  // removal for paused/reduce-only banks, missing prices, or prices that
+  // came from the raw-oracle fallback (whose USD values are unreliable).
+  // These get their caps zeroed out in a *separate* set of tranches.
   const ZERO = new BN(0);
-  const toRemove = pinned
-    ? []
-    : snapshots.filter(
-        (s) =>
-          s.totalDepositsUsd.lte(config.USD_THRESHOLD) &&
-          (!s.currentHourlyCap.isZero() || !s.currentDailyCap.isZero()),
-      );
+  type RemoveTarget = {
+    pubkey: PublicKey;
+    symbol: string;
+    reason: string;
+    depositsUsd: string;
+    currentHourlyCap: BN;
+    currentDailyCap: BN;
+  };
+  const toRemove: RemoveTarget[] = [];
+  const fallbackSkipped: BankSnapshot[] = [];
+  if (!pinned) {
+    for (const b of operationalBanks) {
+      const addr = b.address.toBase58();
+      if (!EXCLUDED_MINTS.has(b.mint.toBase58())) continue;
+      if (b.currentHourlyCap.isZero() && b.currentDailyCap.isZero()) continue;
+      toRemove.push({
+        pubkey: b.address,
+        symbol: symbols.get(addr) ?? addr.slice(0, 4),
+        reason: "PT/CASH",
+        depositsUsd: "-",
+        currentHourlyCap: b.currentHourlyCap,
+        currentDailyCap: b.currentDailyCap,
+      });
+    }
+    for (const s of snapshots) {
+      if (s.totalDepositsUsd.gte(USD_THRESHOLD)) continue;
+      if (s.currentHourlyCap.isZero() && s.currentDailyCap.isZero()) continue;
+      if (fallbackPriced.has(s.pubkey.toBase58())) {
+        fallbackSkipped.push(s);
+        continue;
+      }
+      toRemove.push({
+        pubkey: s.pubkey,
+        symbol: s.symbol,
+        reason: `deposits < $${USD_THRESHOLD.toLocaleString()}`,
+        depositsUsd: s.totalDepositsUsd.toFormat(2),
+        currentHourlyCap: s.currentHourlyCap,
+        currentDailyCap: s.currentDailyCap,
+      });
+    }
+  }
+
+  if (fallbackSkipped.length > 0) {
+    console.warn(
+      `\n[warn] ${fallbackSkipped.length} bank(s) read below the threshold but were priced ` +
+        `by the raw-oracle fallback — leaving their limits as-is:`,
+    );
+    console.table(
+      fallbackSkipped.map((s) => ({
+        Symbol: s.symbol,
+        Bank: s.pubkey.toBase58(),
+        "Deposits ($, unreliable)": s.totalDepositsUsd.toFormat(2),
+      })),
+    );
+  }
 
   // Banks holding a limit that we could NOT evaluate (paused/reduce-only,
   // skipped asset tag, or no price). Left untouched — flag them for review.
-  const evaluatedSet = new Set(snapshots.map((s) => s.pubkey.toBase58()));
+  const evaluatedSet = new Set([
+    ...snapshots.map((s) => s.pubkey.toBase58()),
+    ...operationalBanks
+      .filter((b) => EXCLUDED_MINTS.has(b.mint.toBase58()))
+      .map((b) => b.address.toBase58()),
+  ]);
   const unevaluatedWithCaps = onChainBanks.filter(
     (b) =>
       !evaluatedSet.has(b.address.toBase58()) &&
@@ -651,55 +773,120 @@ async function main() {
 
   if (toRemove.length > 0) {
     console.log(
-      `\n${toRemove.length} bank(s) have an existing rate limit but are now below the ` +
-        `$${config.USD_THRESHOLD.toLocaleString()} threshold — removing their limits:`,
+      `\n${toRemove.length} bank(s) have an existing rate limit but no longer meet the ` +
+        `requirements — removing their limits:`,
     );
     console.table(
       toRemove.map((s) => ({
         Symbol: s.symbol,
         Bank: s.pubkey.toBase58(),
-        "Deposits ($)": s.totalDepositsUsd.toFormat(2),
+        "Deposits ($)": s.depositsUsd,
+        Reason: s.reason,
         "Current hourly cap": s.currentHourlyCap.toString(),
         "Current daily cap": s.currentDailyCap.toString(),
       })),
     );
   }
 
-  const ixs: TransactionInstruction[] = [];
+  const baseBanks = classified.filter((s) => s.tier === "base");
+  const raisedBanks = classified.filter((s) => s.tier === "raised");
+  console.log(
+    `\nTiers: ${baseBanks.length} base (${BASE_HOURLY_PCT}%/${BASE_DAILY_PCT}%), ` +
+      `${raisedBanks.length} raised (${RAISED_HOURLY_PCT}%/${RAISED_DAILY_PCT}%).`,
+  );
+
+  // Record of exactly what this run emits, for team review alongside the
+  // analysis script's rate_limit_outflows_<date>.json preview.
+  const now = new Date();
+  const capsDump = {
+    generatedAt: now.toISOString(),
+    sendTx,
+    policy: {
+      usdThreshold: USD_THRESHOLD,
+      lookbackDays: LOOKBACK_DAYS,
+      baseHourlyPct: BASE_HOURLY_PCT,
+      baseDailyPct: BASE_DAILY_PCT,
+      raisedHourlyPct: RAISED_HOURLY_PCT,
+      raisedDailyPct: RAISED_DAILY_PCT,
+      closeFactor: CLOSE_FACTOR,
+    },
+    qualifying: classified.map((s) => ({
+      symbol: s.symbol,
+      bank: s.pubkey.toBase58(),
+      mint: s.mint.toBase58(),
+      decimals: s.decimals,
+      priceUsd: s.priceUsd.toNumber(),
+      depositedNative: s.totalDepositsNative.toNumber(),
+      depositedUsd: s.totalDepositsUsd.toNumber(),
+      tier: s.tier,
+      hourlyCapNative: s.hourlyCap.toString(),
+      dailyCapNative: s.dailyCap.toString(),
+      hourlyCapUi: new BigNumber(s.hourlyCap.toString())
+        .shiftedBy(-s.decimals)
+        .toString(),
+      dailyCapUi: new BigNumber(s.dailyCap.toString())
+        .shiftedBy(-s.decimals)
+        .toString(),
+      stats: s.stats,
+    })),
+    removed: toRemove.map((r) => ({
+      symbol: r.symbol,
+      bank: r.pubkey.toBase58(),
+      reason: r.reason,
+      depositsUsd: r.depositsUsd,
+      currentHourlyCapNative: r.currentHourlyCap.toString(),
+      currentDailyCapNative: r.currentDailyCap.toString(),
+    })),
+  };
+  const capsDumpPath = writeDatedDump("rate_limit_caps", now, capsDump);
+  console.log(`Caps dump written to ${capsDumpPath}`);
+
+  type EmitItem = {
+    pubkey: PublicKey;
+    label: string;
+    hourlyCap: BN;
+    dailyCap: BN;
+  };
+  const toEmitItem = (s: {
+    pubkey: PublicKey;
+    symbol: string;
+    hourlyCap: BN;
+    dailyCap: BN;
+  }): EmitItem => ({
+    pubkey: s.pubkey,
+    label: `${s.symbol} ${s.pubkey.toBase58()}`,
+    hourlyCap: s.hourlyCap,
+    dailyCap: s.dailyCap,
+  });
+  const emitGroups: { tag: string; items: EmitItem[] }[] = [
+    { tag: "SET-BASE", items: baseBanks.map(toEmitItem) },
+    { tag: "SET-RAISED", items: raisedBanks.map(toEmitItem) },
+    {
+      tag: "REMOVE",
+      items: toRemove.map((r) =>
+        toEmitItem({ ...r, hourlyCap: ZERO, dailyCap: ZERO }),
+      ),
+    },
+  ];
+
   const lutKeys = new Map<string, PublicKey>();
-  for (const s of selected) {
-    const ix = await program.methods
-      .configureBankRateLimits(s.hourlyCap, s.dailyCap)
-      .accounts({ bank: s.pubkey })
-      .accountsPartial({ group: config.GROUP, admin: adminKey })
-      .instruction();
-    ixs.push(ix);
-    addLutKeysFromIx(ix, lutKeys);
-  }
-
-  const removeIxs: TransactionInstruction[] = [];
-  for (const s of toRemove) {
-    const ix = await program.methods
-      .configureBankRateLimits(ZERO, ZERO)
-      .accounts({ bank: s.pubkey })
-      .accountsPartial({ group: config.GROUP, admin: adminKey })
-      .instruction();
-    removeIxs.push(ix);
-    addLutKeysFromIx(ix, lutKeys);
-  }
-
-  let groupIx: TransactionInstruction | null = null;
-  if (!pinned) {
-    const groupHourlyUsd = new BN(40_000_000);
-    const groupDailyUsd = new BN(90_000_000);
-    console.log(
-      `\nGroup caps: hourly=$${groupHourlyUsd.toString()} daily=$${groupDailyUsd.toString()}`,
-    );
-    groupIx = await program.methods
-      .configureGroupRateLimits(groupHourlyUsd, groupDailyUsd)
-      .accountsPartial({ marginfiGroup: config.GROUP, admin: adminKey })
-      .instruction();
-    addLutKeysFromIx(groupIx, lutKeys);
+  const builtGroups: {
+    tag: string;
+    ixs: TransactionInstruction[];
+    labels: string[];
+  }[] = [];
+  for (const g of emitGroups) {
+    const ixs: TransactionInstruction[] = [];
+    for (const item of g.items) {
+      const ix = await program.methods
+        .configureBankRateLimits(item.hourlyCap, item.dailyCap)
+        .accounts({ bank: item.pubkey })
+        .accountsPartial({ group: config.GROUP, admin: adminKey })
+        .instruction();
+      ixs.push(ix);
+      addLutKeysFromIx(ix, lutKeys);
+    }
+    builtGroups.push({ tag: g.tag, ixs, labels: g.items.map((i) => i.label) });
   }
 
   const lutResp = await connection.getAddressLookupTable(config.LUT);
@@ -725,34 +912,30 @@ async function main() {
   const packBudget = PACKET_DATA_SIZE - config.TX_BYTE_RESERVE;
   const sizingBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
-  const setLabels = selected.map((s) => `${s.symbol} ${s.pubkey.toBase58()}`);
-  const removeLabels = toRemove.map((s) => `${s.symbol} ${s.pubkey.toBase58()}`);
+  const packedGroups = builtGroups.map((g) => ({
+    ...g,
+    packed: packInstructionsBySize(
+      payerKey,
+      sizingBlockhash,
+      lut,
+      g.ixs,
+      g.labels,
+      packBudget,
+      config.MAX_IXS_PER_TRANCHE,
+    ),
+  }));
 
-  const packedSet = packInstructionsBySize(
-    payerKey,
-    sizingBlockhash,
-    lut,
-    ixs,
-    setLabels,
-    packBudget,
-    config.MAX_IXS_PER_TRANCHE,
+  const totalIxs = packedGroups.reduce((n, g) => n + g.ixs.length, 0);
+  const totalTranches = packedGroups.reduce(
+    (n, g) => n + g.packed.batches.length,
+    0,
   );
-  const packedRemove = packInstructionsBySize(
-    payerKey,
-    sizingBlockhash,
-    lut,
-    removeIxs,
-    removeLabels,
-    packBudget,
-    config.MAX_IXS_PER_TRANCHE,
-  );
-
-  const totalTranches =
-    packedSet.batches.length + packedRemove.batches.length + (groupIx ? 1 : 0);
   console.log(
-    `\nPacked ${ixs.length + removeIxs.length} bank ix(s) into ` +
-      `${packedSet.batches.length} SET + ${packedRemove.batches.length} REMOVE tranche(s)` +
-      `${groupIx ? " (+1 GROUP)" : ""} ` +
+    `\nPacked ${totalIxs} bank ix(s) into ` +
+      packedGroups
+        .map((g) => `${g.packed.batches.length} ${g.tag}`)
+        .join(" + ") +
+      ` tranche(s) ` +
       `(limit ${PACKET_DATA_SIZE} bytes, reserve ${config.TX_BYTE_RESERVE}, budget ${packBudget}, ` +
       `max ${config.MAX_IXS_PER_TRANCHE} ixs/tranche).`,
   );
@@ -791,8 +974,7 @@ async function main() {
       );
     }
   };
-  logPacking("SET", packedSet);
-  logPacking("REMOVE", packedRemove);
+  for (const g of packedGroups) logPacking(g.tag, g.packed);
 
   const emitTranches = async (
     batches: TransactionInstruction[][],
@@ -860,20 +1042,8 @@ async function main() {
     }
   };
 
-  await emitTranches(packedSet.batches, packedSet.byteCounts, setLabels, "SET");
-  await emitTranches(
-    packedRemove.batches,
-    packedRemove.byteCounts,
-    removeLabels,
-    "REMOVE",
-  );
-  if (groupIx) {
-    await emitTranches(
-      [[groupIx]],
-      [measureTxBytes(payerKey, sizingBlockhash, lut, [groupIx])],
-      [`GROUP ${config.GROUP.toBase58()}`],
-      "GROUP",
-    );
+  for (const g of packedGroups) {
+    await emitTranches(g.packed.batches, g.packed.byteCounts, g.labels, g.tag);
   }
 }
 
