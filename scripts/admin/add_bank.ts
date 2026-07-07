@@ -54,21 +54,22 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE: new PublicKey("HxZN9wAUXHpkUpLeH3x3UtCPhdsJP2EkVN4umvny4hBw"),
+  ORACLE: new PublicKey("72YkTPm85biJcS5F5NmRTXvMiJSgEZGgWUtDCEwF5eSJ"),
   ORACLE_TYPE: ORACLE_TYPE_SWB,
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  BANK_MINT: new PublicKey("rkubjTrZYioRSeXwDnhwGQzvW3qkcin72JSxUt3WMVp"),
+  BANK_MINT: new PublicKey("HUBsveNpjo5pWqNkH57QzxjQASdTVXcSK7bVKTSZtcSX"),
   SEED: 0,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
-  CLONE_FROM: new PublicKey("9p1TiAeTc6FSiNHhnR6BgmwRq49zywczAY4m77BbKGer"),
+  // clone rkSOL emode config
+  CLONE_FROM: new PublicKey("GR9GNdjWf8kSf3b4REribKKSeVvkzjbAQJ1A8CDnFxLF"),
 };
 
 const rate: InterestRateConfig1_7 = {
   insuranceFeeFixedApr: bigNumberToWrappedI80F48(0),
   insuranceIrFee: bigNumberToWrappedI80F48(0),
-  protocolFixedFeeApr: bigNumberToWrappedI80F48(0.00001),
-  protocolIrFee: bigNumberToWrappedI80F48(0.06),
+  protocolFixedFeeApr: bigNumberToWrappedI80F48(0.0001),
+  protocolIrFee: bigNumberToWrappedI80F48(0.135),
   protocolOriginationFee: bigNumberToWrappedI80F48(0),
 
   zeroUtilRate: 0,
@@ -91,7 +92,7 @@ const bankConfig: BankConfig = {
   depositLimit: new BN(20000000000000),
   interestRateConfig: rate,
   operationalState: { operational: {} },
-  borrowLimit: new BN(2500000000000),
+  borrowLimit: new BN(5000000000000),
   riskTier: { collateral: {} },
   totalAssetValueInitLimit: new BN(10000000),
   oracleMaxAge: 70,

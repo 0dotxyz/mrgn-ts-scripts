@@ -26,36 +26,36 @@ type Config = {
 };
 
 const config: Config = {
-  LUT: new PublicKey("C83sPjiLpUU5oGtEjYo5i1LoRagSsdPj62SaLsWWUN3T"),
+  LUT: new PublicKey("EaR4e6VunhfxmLWLRoxiMWKHEStvsbsvTEQjxNjhyWJ"),
   KEYS: [
     new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
     new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
     new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
     new PublicKey("HoMNdUF3RDZDPKAARYK1mxcPFfUnPjLmpKYibZzAijev"),
     new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-    new PublicKey("rkubjTrZYioRSeXwDnhwGQzvW3qkcin72JSxUt3WMVp"),
-    new PublicKey("CMaeX9mWbwYDeknxHCUiz2UXtyyBbpXSCVcoYs4KWJ5Z"),
-    new PublicKey("FTAnaRJFEC2T1DPZn7mrPenTrzREuTjKN1ZFVEXhXTXv"),
-    new PublicKey("3cuAx7vcuNPiMGMyu4TGX5FcxuyRKZYmbuNc3yvNDDCo"),
-    new PublicKey("HNV1EFjFfSKqzFr3sEjFSqm95d7JEaAN7LbayseYdNX7"),
-    new PublicKey("26K1Q3A3nxeg8RJDWUkk3kTSfcrqwSFESAMyoegQ6rQU"),
-    new PublicKey("5JhfQaMwNLDWwAdQNs7qw3pBcdoFARkDsr4m9r4xGNR6"),
-    new PublicKey("2RtbRE63km95SbwkL931hWWxfE5skKX8S6EVK2oP8KB5"),
+    new PublicKey("HUBsveNpjo5pWqNkH57QzxjQASdTVXcSK7bVKTSZtcSX"),
+    new PublicKey("55qgcf6jqG1DfXT9DDbhwVaTLesH9S6fCgfds1BkL3tE"),
+    new PublicKey("BJFSMx8zSSKp7MHHMx8TUmvJSk7dSdSjSg3KJAbJs5b5"),
+    new PublicKey("2JwdYn23FMvyFaqJgPNf58Ufon5R171yVyzUZmB5HV1n"),
+    new PublicKey("AVe1kky7YeiPdo5HkQGsLpDfe574MZeVQeJZw8hZJUou"),
+    new PublicKey("5HpnogPEpBj6Y6Yfw2LvzgNB2vjE1uwAs2nzn1fCH5qz"),
+    new PublicKey("4tkES3Z7yUSoCA4qXp6QT2d5C6yNtSd7t26fLQGD6inn"),
+    new PublicKey("7Kv2xBqsudqVDm8cbbQXDL4j5q2FdVJ6j36puL3hVHaJ"),
     new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
     new PublicKey("11111111111111111111111111111111"),
     new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
     new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-    new PublicKey("CMaeX9mWbwYDeknxHCUiz2UXtyyBbpXSCVcoYs4KWJ5Z"),
-    new PublicKey("HxZN9wAUXHpkUpLeH3x3UtCPhdsJP2EkVN4umvny4hBw"),
+    new PublicKey("55qgcf6jqG1DfXT9DDbhwVaTLesH9S6fCgfds1BkL3tE"),
+    new PublicKey("72YkTPm85biJcS5F5NmRTXvMiJSgEZGgWUtDCEwF5eSJ"),
     new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
     new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-    new PublicKey("9p1TiAeTc6FSiNHhnR6BgmwRq49zywczAY4m77BbKGer"),
-    new PublicKey("CMaeX9mWbwYDeknxHCUiz2UXtyyBbpXSCVcoYs4KWJ5Z"),
+    new PublicKey("GR9GNdjWf8kSf3b4REribKKSeVvkzjbAQJ1A8CDnFxLF"),
+    new PublicKey("55qgcf6jqG1DfXT9DDbhwVaTLesH9S6fCgfds1BkL3tE"),
   ],
 };
 
 async function main() {
-  await updateLut(sendTx, config, "/.config/solana/id.json");
+  await updateLut(sendTx, config, "/.config/drift.json");
 }
 
 export async function updateLut(
