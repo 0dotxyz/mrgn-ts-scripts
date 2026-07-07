@@ -85,12 +85,17 @@ const BANK_KEYS: Record<EmodeTag, PublicKey[]> = {
     new PublicKey("5Tj1B7bT8PSyKjUCBxiUNe5C2Pn59NhA2ohmdj3RPpE5"), // YIELD
     new PublicKey("Ffe4RTL4oYrzA9QKQVJ3PCATXnp3mS3s7buDKnnmHYGX"), // STKESOL
     new PublicKey("24gdUT9SNqeizCD1dHXWgjpa6NnWSFD6TWPAnCFSJnAk"), // Kamino Main STKESOL
+    new PublicKey("55qgcf6jqG1DfXT9DDbhwVaTLesH9S6fCgfds1BkL3tE"), // raSOL
+    new PublicKey("CMaeX9mWbwYDeknxHCUiz2UXtyyBbpXSCVcoYs4KWJ5Z"), // rkuSOL
   ],
   // Base asset weight: 0, base maint weight: 0 
   [EmodeTag.LST_PT]: [
     new PublicKey("8Z2azfr4NkYoVvqkNgpaLCPeG63H3Dte68eebV53eVKJ"), // PT-hyloSOL
     new PublicKey("9ThXmfwhNzc6qbkRLuSGHwKS7mxjn6QcuRD644Pjn4F"),  // PT-bulkSOL
     new PublicKey("F94MBNBFikQSBr9MNAfC4st8hTf9BWtEdtyupzg7FvRs"), // PT-bulkSOL
+    new PublicKey("77tvwSNZUMnXJmETfyXRiJKUPDZyheaGUXS8EBcnVimk"), // PT-rkuSOL
+    new PublicKey("2VmE6PMRWLRxjMkoK2sWu3WyNGGdXFK1G38ZAaQu3r5Y"), // PT-hyloSOL (expired)
+    new PublicKey("4PtX5fLM5JwujjHmSyzbh5XLasKx9kiPxPfygi57jAov"), // PT-bulkSOL (expired)
   ],
   // Base asset weight: 0.5, base maint weight: 0.65
   [EmodeTag.JLP]: [
