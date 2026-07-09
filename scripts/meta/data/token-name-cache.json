@@ -952,5 +952,11 @@
     "symbol": "rkuSOL",
     "source": "jupiter",
     "cachedAt": 1782545874253
+  },
+  "HUBsveNpjo5pWqNkH57QzxjQASdTVXcSK7bVKTSZtcSX": {
+    "name": "Hubra staked SOL",
+    "symbol": "raSOL",
+    "source": "jupiter",
+    "cachedAt": 1783524304939
   }
 }
