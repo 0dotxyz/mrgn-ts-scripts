@@ -21,7 +21,7 @@ import {
   registerJuplendProgram,
   registerKaminoProgram,
 } from "../../lib/common-setup";
-import { BankAndOracles } from "../../lib/utils";
+import { BankAndOracles, getOraclesAndCrankSwb } from "../../lib/utils";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { KLEND_PROGRAM_ID } from "../kamino/kamino-types";
 import { simpleRefreshReserve } from "../kamino/ixes-common";
@@ -33,9 +33,9 @@ import {
   JUPLEND_LENDING_PROGRAM_ID,
   makeJuplendNativeUpdateRateIx,
 } from "../juplend/lib/utils";
+import { getMint, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 
 const sendTx = true;
-
 type Config = {
   PROGRAM_ID: string;
   ACCOUNT: PublicKey;
@@ -153,6 +153,20 @@ export async function borrow(
   const program = user.program;
   const connection = user.connection;
 
+  // Pick the switchboard-pull oracles from the account's active balances and
+  // crank them so their prices are fresh for the borrow's health check. This
+  // sends its own tx (it needs a real signer), so it's only possible when we
+  // are broadcasting; the multisig/serialize path can't self-crank.
+  if (sendTx) {
+    await getOraclesAndCrankSwb(
+      program,
+      user.kaminoProgram,
+      config.ACCOUNT,
+      connection,
+      user.wallet.payer,
+    );
+  }
+
   let luts: AddressLookupTableAccount[] = [];
   const lutLookup = await connection.getAddressLookupTable(config.LUT);
   if (!lutLookup || !lutLookup.value) {
@@ -164,13 +178,33 @@ export async function borrow(
     luts = [lutLookup.value];
   }
 
-  const oracleMeta: AccountMeta[] = config.NEW_REMAINING.flat().map(
+  // Detect token program
+  let tokenProgram = TOKEN_PROGRAM_ID;
+  try {
+    await getMint(connection, config.MINT, "confirmed", TOKEN_2022_PROGRAM_ID);
+    tokenProgram = TOKEN_2022_PROGRAM_ID;
+    console.log("Detected Token-2022 mint");
+  } catch {
+    console.log("Detected SPL Token mint");
+  }
+
+  let remaining: AccountMeta[] = [];
+  if (tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
+    const meta: AccountMeta = {
+      pubkey: config.MINT,
+      isSigner: false,
+      isWritable: false,
+    };
+    remaining.push(meta);
+  }
+
+  remaining.push(...config.NEW_REMAINING.flat().map(
     (pubkey) => {
       return { pubkey, isSigner: false, isWritable: false };
     },
-  );
+  ));
 
-  const ata = getAssociatedTokenAddressSync(config.MINT, user.wallet.publicKey);
+  const ata = getAssociatedTokenAddressSync(config.MINT, user.wallet.publicKey, true, tokenProgram);
   let instructions: TransactionInstruction[] = [];
 
   if (config.ADD_COMPUTE_UNITS) {
@@ -183,7 +217,7 @@ export async function borrow(
   }
   const reserves = config.KAMINO_RESERVES ?? [];
   for (let i = 0; i < reserves.length; i++) {
-    const reserve = config.KAMINO_RESERVES[i];
+    const reserve = reserves[i];
     const reserveAcc = await user.kaminoProgram.account.reserve.fetch(reserve);
 
     instructions.push(
@@ -198,7 +232,7 @@ export async function borrow(
 
   const spotMarkets = config.DRIFT_MARKETS ?? [];
   for (let i = 0; i < spotMarkets.length; i++) {
-    const marketIndex = config.DRIFT_MARKETS[i];
+    const marketIndex = spotMarkets[i];
 
     instructions.push(
       await makeUpdateSpotMarketCumulativeInterestIx(
@@ -210,7 +244,7 @@ export async function borrow(
 
   const lendingStates = config.JUPLEND_STATES ?? [];
   for (let i = 0; i < lendingStates.length; i++) {
-    const lending = config.JUPLEND_STATES[i];
+    const lending = lendingStates[i];
 
     instructions.push(
       await makeJuplendNativeUpdateRateIx(user.juplendProgram, lending),
@@ -234,9 +268,9 @@ export async function borrow(
         destinationTokenAccount: ata,
         // bankLiquidityVaultAuthority = deriveLiquidityVaultAuthority(id, bank);
         // bankLiquidityVault = deriveLiquidityVault(id, bank)
-        tokenProgram: TOKEN_PROGRAM_ID,
+        tokenProgram,
       })
-      .remainingAccounts(oracleMeta)
+      .remainingAccounts(remaining)
       .instruction(),
   );
 

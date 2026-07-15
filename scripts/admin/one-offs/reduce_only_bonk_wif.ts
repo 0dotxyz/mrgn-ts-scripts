@@ -6,6 +6,6 @@ const BONK_BANK = new PublicKey("DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM");
 /** WIF (dogwifhat) bank in the main group (mint EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm) */
 const WIF_BANK = new PublicKey("9dpu8KL5ABYiD3WP2Cnajzg1XaotcJvZspv29Y1Y3tn1");
 
-reduceOnlyBanks([BONK_BANK, WIF_BANK]).catch((err) => {
+reduceOnlyBanks([BONK_BANK, WIF_BANK], true).catch((err) => {
   console.error(err);
 });

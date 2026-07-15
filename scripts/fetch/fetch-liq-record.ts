@@ -16,10 +16,14 @@ const config: Config = {
 };
 
 async function main() {
+  await fetchLiqRecord(config, "/.config/solana/id.json");
+}
+
+export async function fetchLiqRecord(config: Config, walletPath: string) {
   const user = commonSetup(
     true,
     config.PROGRAM_ID,
-    "/.config/solana/id.json",
+    walletPath,
     undefined,
   );
   const program = user.program;
@@ -86,6 +90,8 @@ async function main() {
       Value: formatNumber(wrappedI80F48toBigNumber(cache.liabilityValueEquity)),
     },
   ]);
+
+  return { liqRecordKey, record };
 }
 
 function formatF64(value: number): string {

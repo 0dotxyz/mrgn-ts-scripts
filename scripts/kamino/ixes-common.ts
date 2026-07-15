@@ -232,7 +232,7 @@ export const makeKaminoDepositIx = async (
   );
 
   return program.methods
-    .kaminoDeposit(amount)
+    .kaminoDeposit(amount, true)
     .accounts({
       lendingMarketAuthority,
       reserveLiquiditySupply,
@@ -291,18 +291,21 @@ export const makeKaminoWithdrawIx = async (
     accounts.reserve,
   );
 
-  return program.methods
-    .kaminoWithdraw(amount, withdraw_all)
-    .accounts({
-      lendingMarketAuthority,
-      reserveLiquiditySupply,
-      reserveCollateralMint,
-      reserveSourceCollateral: reserveCollateralSupply,
-      liquidityTokenProgram: TOKEN_PROGRAM_ID,
-      ...accs,
-    })
-    .remainingAccounts(remaining)
-    .instruction();
+  return (
+    program.methods
+      // TODO pass the withdraw flag in a less janky way.
+      .kaminoWithdraw(amount, Number(withdraw_all) + 2)
+      .accounts({
+        lendingMarketAuthority,
+        reserveLiquiditySupply,
+        reserveCollateralMint,
+        reserveSourceCollateral: reserveCollateralSupply,
+        liquidityTokenProgram: TOKEN_PROGRAM_ID,
+        ...accs,
+      })
+      .remainingAccounts(remaining)
+      .instruction()
+  );
 };
 
 // Note:  The vast majority (maybe all) Kamino reserves use scope so we do not bother to support
