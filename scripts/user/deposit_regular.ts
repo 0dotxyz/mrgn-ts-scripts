@@ -1,11 +1,16 @@
 import {
+  AccountMeta,
   PublicKey,
   SystemProgram,
   Transaction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+  getMint,
+  TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
@@ -100,19 +105,42 @@ export async function depositRegular(
   const program = user.program;
   const connection = user.connection;
 
+  // Detect token program
+  let tokenProgram = TOKEN_PROGRAM_ID;
+  try {
+    await getMint(connection, config.MINT, "confirmed", TOKEN_2022_PROGRAM_ID);
+    tokenProgram = TOKEN_2022_PROGRAM_ID;
+    console.log("Detected Token-2022 mint");
+  } catch {
+    console.log("Detected SPL Token mint");
+  }
+
   const ata = getAssociatedTokenAddressSync(
     config.MINT,
     user.wallet.publicKey,
     true,
+    tokenProgram,
   );
 
+  let remaining: AccountMeta[] = [];
+  if (tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
+    const meta: AccountMeta = {
+      pubkey: config.MINT,
+      isSigner: false,
+      isWritable: false,
+    };
+    remaining.push(meta);
+  }
+
   const transaction = new Transaction();
+
   transaction.add(
     createAssociatedTokenAccountIdempotentInstruction(
       user.wallet.publicKey,
       ata,
       user.wallet.publicKey,
       config.MINT,
+      tokenProgram,
     ),
   );
   if (config.MINT.toString() == "So11111111111111111111111111111111111111112") {
@@ -133,8 +161,9 @@ export async function depositRegular(
         bank: config.BANK,
         signerTokenAccount: ata,
         // bankLiquidityVault = deriveLiquidityVault(id, bank)
-        tokenProgram: TOKEN_PROGRAM_ID,
+        tokenProgram,
       })
+      .remainingAccounts(remaining)
       // To handle the case where the account doesn't exist yet.
       // .accountsPartial({
       //   group: config.GROUP,

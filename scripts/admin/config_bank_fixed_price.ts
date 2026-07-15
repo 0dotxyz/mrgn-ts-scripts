@@ -25,7 +25,7 @@ const configCommon: SharedConfig = {
   MULTISIG: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
-type BankOracleConfig = {
+export type BankOracleConfig = {
   bank: PublicKey;
   price: number;
 };
@@ -41,10 +41,24 @@ const configs: BankOracleConfig[] = [
 ];
 
 async function main() {
+  await setFixedOraclePrice(
+    sendTx,
+    configCommon,
+    "./keys/zerotrade_admin.json",
+    configs,
+  );
+}
+
+export async function setFixedOraclePrice(
+  sendTx: boolean,
+  configCommon: SharedConfig,
+  walletPath: string,
+  configs: BankOracleConfig[],
+) {
   const user = commonSetup(
     sendTx,
     configCommon.PROGRAM_ID,
-    "./keys/zerotrade_admin.json",
+    walletPath,
     configCommon.MULTISIG,
   );
   const program = user.program;
@@ -92,6 +106,8 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+  });
+}

@@ -15,7 +15,7 @@ import { commonSetup } from "../../lib/common-setup";
 import { OperationalStateRaw, RiskTierRaw } from "@mrgnlabs/marginfi-client-v2";
 import { aprToU32, utilToU32 } from "../../lib/utils";
 import { deriveBankWithSeed } from "../common/pdas";
-import { I80F48_ONE } from "../utils/utils";
+import { getMint, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
@@ -46,7 +46,6 @@ type Config = {
   FEE_PAYER?: PublicKey; // If omitted, defaults to ADMIN
   BANK_MINT: PublicKey;
   SEED: number;
-  TOKEN_PROGRAM?: PublicKey; // If omitted, defaults to TOKEN_PROGRAM_ID
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
   CLONE_FROM?: PublicKey; // Required when cloneEmode = true
 };
@@ -127,6 +126,21 @@ export async function addBank(
     new BN(config.SEED),
   );
 
+  // Detect token program
+  let tokenProgram = TOKEN_PROGRAM_ID;
+  try {
+    await getMint(
+      connection,
+      config.BANK_MINT,
+      "confirmed",
+      TOKEN_2022_PROGRAM_ID,
+    );
+    tokenProgram = TOKEN_2022_PROGRAM_ID;
+    console.log("Detected Token-2022 mint");
+  } catch {
+    console.log("Detected SPL Token mint");
+  }
+
   if (cloneEmode && !config.CLONE_FROM) {
     throw new Error("CLONE_FROM must be set when cloneEmode = true");
   }
@@ -167,7 +181,7 @@ export async function addBank(
         admin: config.ADMIN,
         feePayer: config.FEE_PAYER ?? config.ADMIN,
         bankMint: config.BANK_MINT,
-        tokenProgram: config.TOKEN_PROGRAM ?? TOKEN_PROGRAM_ID,
+        tokenProgram,
       })
       .instruction(),
     await program.methods
