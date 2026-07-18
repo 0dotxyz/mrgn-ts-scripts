@@ -2,11 +2,45 @@
   "address": "",
   "metadata": {
     "name": "marginfi",
-    "version": "0.1.8",
+    "version": "0.1.9",
     "spec": "0.1.0",
     "description": "Borrow Lending Prime Broker"
   },
   "instructions": [
+    {
+      "name": "admin_close_account",
+      "docs": [
+        "(permissionless) Close an account that is empty, inactive for >60 days, and has no",
+        "blocking state flags. Rent is returned to the group's global fee wallet."
+      ],
+      "discriminator": [
+        131,
+        60,
+        75,
+        215,
+        109,
+        34,
+        157,
+        26
+      ],
+      "accounts": [
+        {
+          "name": "group",
+          "relations": [
+            "marginfi_account"
+          ]
+        },
+        {
+          "name": "marginfi_account",
+          "writable": true
+        },
+        {
+          "name": "global_fee_wallet",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
     {
       "name": "config_group_fee",
       "docs": [
@@ -185,6 +219,380 @@
           "name": "daily_max_outflow_usd",
           "type": {
             "option": "u64"
+          }
+        }
+      ]
+    },
+    {
+      "name": "copy_fee_state_to_v2",
+      "docs": [
+        "(permissionless) Copy current FeeState values into FeeStateV2."
+      ],
+      "discriminator": [
+        100,
+        146,
+        124,
+        224,
+        95,
+        196,
+        206,
+        14
+      ],
+      "accounts": [
+        {
+          "name": "fee_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "fee_state_v2",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "disable_staked_oracles",
+      "docs": [
+        "(admin only) Disable stake pricing, i.e. effectively forbidding all operations involving stake banks.",
+        "To be used during the rollout of the SVSP upgrade.",
+        "To be removed once SVSP update is rolled out (likely in 1.10)"
+      ],
+      "discriminator": [
+        43,
+        90,
+        152,
+        55,
+        66,
+        101,
+        232,
+        200
+      ],
+      "accounts": [
+        {
+          "name": "group"
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "group"
+          ]
+        },
+        {
+          "name": "staked_settings",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  100,
+                  95,
+                  115,
+                  101,
+                  116,
+                  116,
+                  105,
+                  110,
+                  103,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "group"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "drift_claim_bad_debt",
+      "docs": [
+        "(permissionless) Claim a Drift bad-debt portal allocation for a Drift bank.",
+        "The merkle claimant is the bank's liquidity_vault_authority PDA, and claimed tokens are",
+        "swept to the global fee wallet's canonical ATA."
+      ],
+      "discriminator": [
+        163,
+        67,
+        144,
+        231,
+        119,
+        20,
+        220,
+        33
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "docs": [
+            "Pays transaction fees, ATA creation, and ClaimStatus rent."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "bank"
+        },
+        {
+          "name": "fee_state",
+          "docs": [
+            "Global fee state containing the global_fee_wallet destination owner."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "liquidity_vault_authority",
+          "docs": [
+            "The bank's liquidity vault authority. This PDA is the claimant in Drift's merkle tree."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "bank"
+              }
+            ]
+          }
+        },
+        {
+          "name": "integration_acc_2",
+          "docs": [
+            "Drift user account owned by liquidity_vault_authority."
+          ],
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "integration_acc_3",
+          "docs": [
+            "Drift user stats account owned by liquidity_vault_authority."
+          ],
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "distributor",
+          "writable": true
+        },
+        {
+          "name": "claim_status",
+          "docs": [
+            "program. The distributor initializes and validates this account."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  67,
+                  108,
+                  97,
+                  105,
+                  109,
+                  83,
+                  116,
+                  97,
+                  116,
+                  117,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "liquidity_vault_authority"
+              },
+              {
+                "kind": "account",
+                "path": "distributor"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                146,
+                236,
+                26,
+                197,
+                144,
+                103,
+                53,
+                152,
+                100,
+                169,
+                178,
+                41,
+                101,
+                122,
+                227,
+                41,
+                118,
+                44,
+                195,
+                207,
+                0,
+                4,
+                127,
+                191,
+                210,
+                197,
+                189,
+                231,
+                111,
+                46,
+                30,
+                226
+              ]
+            }
+          }
+        },
+        {
+          "name": "from",
+          "docs": [
+            "Distributor token vault."
+          ],
+          "writable": true
+        },
+        {
+          "name": "claim_mint"
+        },
+        {
+          "name": "global_fee_wallet"
+        },
+        {
+          "name": "claimant_token_account",
+          "docs": [
+            "Canonical ATA for the claim mint owned by liquidity_vault_authority."
+          ],
+          "writable": true
+        },
+        {
+          "name": "destination_token_account",
+          "docs": [
+            "Canonical ATA for the claim mint owned by FeeState.global_fee_wallet."
+          ],
+          "writable": true
+        },
+        {
+          "name": "merkle_distributor_program",
+          "address": "AtXLVASdFhmdq2KZxzhVFonmNXL76dTTsEABXySEHgLh"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "proof",
+          "type": {
+            "vec": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           }
         }
       ]
@@ -908,6 +1316,8 @@
       "docs": [
         "(user) Withdraw from a Drift spot market through a marginfi account",
         "* amount - in the underlying token (e.g., USDC), in native decimals",
+        "* if group rate limits are enabled, include the withdrawn bank's oracle group in",
+        "`remaining_accounts`",
         "* withdraw_all - if true, withdraws entire position"
       ],
       "discriminator": [
@@ -1131,7 +1541,7 @@
     {
       "name": "edit_global_fee_state",
       "docs": [
-        "(global fee admin only) Adjust fees, admin, or the destination wallet"
+        "(global fee admin only) Adjust fees, admin, wallet, or pause delegate admin"
       ],
       "discriminator": [
         52,
@@ -1179,54 +1589,78 @@
       "args": [
         {
           "name": "admin",
-          "type": "pubkey"
+          "type": {
+            "option": "pubkey"
+          }
         },
         {
           "name": "fee_wallet",
-          "type": "pubkey"
+          "type": {
+            "option": "pubkey"
+          }
         },
         {
           "name": "bank_init_flat_sol_fee",
-          "type": "u32"
+          "type": {
+            "option": "u32"
+          }
         },
         {
           "name": "liquidation_flat_sol_fee",
-          "type": "u32"
+          "type": {
+            "option": "u32"
+          }
         },
         {
           "name": "order_init_flat_sol_fee",
-          "type": "u32"
+          "type": {
+            "option": "u32"
+          }
         },
         {
           "name": "program_fee_fixed",
           "type": {
-            "defined": {
-              "name": "WrappedI80F48"
+            "option": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
             }
           }
         },
         {
           "name": "program_fee_rate",
           "type": {
-            "defined": {
-              "name": "WrappedI80F48"
+            "option": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
             }
           }
         },
         {
           "name": "liquidation_max_fee",
           "type": {
-            "defined": {
-              "name": "WrappedI80F48"
+            "option": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
             }
           }
         },
         {
           "name": "order_execution_max_fee",
           "type": {
-            "defined": {
-              "name": "WrappedI80F48"
+            "option": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
             }
+          }
+        },
+        {
+          "name": "pause_delegate_admin",
+          "type": {
+            "option": "pubkey"
           }
         }
       ]
@@ -1275,6 +1709,70 @@
           }
         }
       ]
+    },
+    {
+      "name": "enable_staked_oracle_onramp",
+      "docs": [
+        "(admin only) Enable SPL single-pool on-ramp lamports in staked-collateral oracle pricing.",
+        "To be removed once SVSP update is rolled out (likely in 1.10)",
+        "This flips a per-group config flag so that every staked oracle uses the canonical single-pool NAV",
+        "formula."
+      ],
+      "discriminator": [
+        114,
+        248,
+        244,
+        6,
+        74,
+        212,
+        222,
+        230
+      ],
+      "accounts": [
+        {
+          "name": "group"
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "group"
+          ]
+        },
+        {
+          "name": "staked_settings",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  100,
+                  95,
+                  115,
+                  101,
+                  116,
+                  116,
+                  105,
+                  110,
+                  103,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "group"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
     },
     {
       "name": "end_deleverage",
@@ -1398,7 +1896,9 @@
     {
       "name": "init_bank_metadata",
       "docs": [
-        "(permissionless) pay the rent to open a bank's metadata."
+        "(permissionless) pay the rent to open metadata for a bank. The bank account does not have",
+        "to exist yet — callers can pre-create metadata for an upcoming bank pubkey at their own",
+        "rent expense. When the bank is initialized and its seed is on-chain, the PDA is verified."
       ],
       "discriminator": [
         94,
@@ -1412,7 +1912,10 @@
       ],
       "accounts": [
         {
-          "name": "bank"
+          "name": "bank",
+          "docs": [
+            "keypair-based bank. When initialized with a known seed, the PDA is verified in the handler."
+          ]
         },
         {
           "name": "fee_payer",
@@ -1562,6 +2065,61 @@
           }
         }
       ]
+    },
+    {
+      "name": "init_global_fee_state_v2",
+      "docs": [
+        "(Runs once per program) Initialize the V2 fee state PDA."
+      ],
+      "discriminator": [
+        170,
+        82,
+        207,
+        84,
+        84,
+        17,
+        116,
+        124
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "docs": [
+            "Pays the init fee"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "fee_state_v2",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
     },
     {
       "name": "init_staked_settings",
@@ -1805,7 +2363,8 @@
           "writable": true
         },
         {
-          "name": "liquidity_program"
+          "name": "liquidity_program",
+          "address": "jupeiUmn818Jg1ekPURTpr4mFo29p46vygyykFJ3wZC"
         },
         {
           "name": "rewards_rate_model"
@@ -1984,7 +2543,8 @@
           "writable": true
         },
         {
-          "name": "liquidity_program"
+          "name": "liquidity_program",
+          "address": "jupeiUmn818Jg1ekPURTpr4mFo29p46vygyykFJ3wZC"
         },
         {
           "name": "rewards_rate_model"
@@ -2016,7 +2576,9 @@
       "name": "juplend_withdraw",
       "docs": [
         "(user) Withdraw from a JupLend lending pool through a marginfi account.",
-        "* amount - in the underlying token (e.g., USDC), in native decimals"
+        "* amount - in the underlying token (e.g., USDC), in native decimals",
+        "* if group rate limits are enabled, include the withdrawn bank's oracle group in",
+        "`remaining_accounts`"
       ],
       "discriminator": [
         245,
@@ -2181,7 +2743,8 @@
           "writable": true
         },
         {
-          "name": "liquidity_program"
+          "name": "liquidity_program",
+          "address": "jupeiUmn818Jg1ekPURTpr4mFo29p46vygyykFJ3wZC"
         },
         {
           "name": "rewards_rate_model"
@@ -2404,6 +2967,12 @@
         {
           "name": "amount",
           "type": "u64"
+        },
+        {
+          "name": "refresh_reserve",
+          "type": {
+            "option": "bool"
+          }
         }
       ]
     },
@@ -2752,22 +3321,6 @@
           "writable": true
         },
         {
-          "name": "pyth_oracle",
-          "optional": true
-        },
-        {
-          "name": "switchboard_price_oracle",
-          "optional": true
-        },
-        {
-          "name": "switchboard_twap_oracle",
-          "optional": true
-        },
-        {
-          "name": "scope_prices",
-          "optional": true
-        },
-        {
           "name": "obligation_farm_user_state",
           "docs": [
             "Required if the Kamino reserve has an active farm."
@@ -2834,8 +3387,11 @@
         "(user) Withdraw from a Kamino pool through a marginfi account",
         "* amount - in the collateral token (NOT liquidity token), in native decimals. Must convert",
         "from collateral to liquidity token amounts using the current exchange rate.",
-        "* withdraw_all - if true, withdraw the entire mrgn balance (Note: due to rounding down, a",
-        "deposit and withdraw back to back may result in several lamports less)"
+        "* if group rate limits are enabled, include the withdrawn bank's oracle group in",
+        "`remaining_accounts`",
+        "* flags - optional bitflags:",
+        "- bit 0 (`0x01`): withdraw all",
+        "- bit 1 (`0x02`): refresh reserve via batch refresh"
       ],
       "discriminator": [
         199,
@@ -2980,8 +3536,7 @@
           "name": "mint",
           "docs": [
             "The liquidity token mint (e.g., USDC)",
-            "Needs serde to get the mint decimals for transfer checked",
-            "TODO: rename to just 'mint' to make use of has_one and to be consistent with deposit"
+            "Needs serde to get the mint decimals for transfer checked"
           ],
           "writable": true,
           "relations": [
@@ -3060,9 +3615,9 @@
           "type": "u64"
         },
         {
-          "name": "withdraw_all",
+          "name": "flags",
           "type": {
-            "option": "bool"
+            "option": "u8"
           }
         }
       ]
@@ -3071,7 +3626,9 @@
       "name": "lending_account_borrow",
       "docs": [
         "(account authority) Borrow assets from a bank. Accrues interest, records liability, applies",
-        "origination fee, transfers tokens, and runs a health check."
+        "origination fee, transfers tokens, and runs a health check. If group rate limits are",
+        "enabled, `remaining_accounts` must include the borrowed bank's oracle group for USD",
+        "pricing."
       ],
       "discriminator": [
         4,
@@ -3160,33 +3717,6 @@
           "type": "u64"
         }
       ]
-    },
-    {
-      "name": "lending_account_clear_emissions",
-      "docs": [
-        "(permissionless) Zero out `emissions_outstanding` on a balance after emissions are disabled",
-        "on the bank."
-      ],
-      "discriminator": [
-        239,
-        4,
-        221,
-        98,
-        45,
-        167,
-        201,
-        244
-      ],
-      "accounts": [
-        {
-          "name": "marginfi_account",
-          "writable": true
-        },
-        {
-          "name": "bank"
-        }
-      ],
-      "args": []
     },
     {
       "name": "lending_account_close_balance",
@@ -3631,7 +4161,8 @@
       "docs": [
         "(account authority, or any signer during receivership) Withdraw assets from a bank. Accrues",
         "interest, records withdrawal, transfers tokens, and runs a health check (skipped during",
-        "receivership)."
+        "receivership). If group rate limits are enabled, `remaining_accounts` must include the",
+        "withdrawn bank's oracle group for USD pricing."
       ],
       "discriminator": [
         36,
@@ -5167,12 +5698,23 @@
           "name": "sol_pool"
         },
         {
+          "name": "pool_onramp"
+        },
+        {
           "name": "stake_pool",
           "docs": [
             "this key.",
             "",
             "If derives the same `bank_mint`, then this must be the correct stake pool for that mint, and",
             "we can subsequently use it to validate the `sol_pool`"
+          ]
+        },
+        {
+          "name": "validator_vote_account",
+          "docs": [
+            "Validator vote account for this staked bank.",
+            "",
+            "vote -> stake_pool -> mint/stake/on-ramp."
           ]
         },
         {
@@ -6041,6 +6583,77 @@
       ]
     },
     {
+      "name": "lending_pool_backfill_bank_is_t22_flag",
+      "docs": [
+        "(permissionless) Backfill `IS_T22` on existing banks created before this flag existed.",
+        "Also optionally backfills `bank_seed` in the same call.",
+        "Pass `None` to skip seed backfill, `Some(seed)` to backfill (including `Some(0)`)."
+      ],
+      "discriminator": [
+        189,
+        14,
+        205,
+        160,
+        172,
+        46,
+        157,
+        52
+      ],
+      "accounts": [
+        {
+          "name": "bank",
+          "writable": true
+        },
+        {
+          "name": "group",
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "bank"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "bank_seed",
+          "type": {
+            "option": "u64"
+          }
+        }
+      ]
+    },
+    {
+      "name": "lending_pool_backfill_staked_bank_validator_vote_account",
+      "docs": [
+        "(permissionless) Backfill validator vote account on existing staked-collateral banks.",
+        "No-op if already set to the same validator vote account."
+      ],
+      "discriminator": [
+        141,
+        6,
+        23,
+        125,
+        72,
+        34,
+        199,
+        24
+      ],
+      "accounts": [
+        {
+          "name": "bank",
+          "writable": true
+        },
+        {
+          "name": "validator_vote_account"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "lending_pool_clone_bank",
       "docs": [
         "(admin only) Staging or localnet only, panics on mainnet",
@@ -6821,6 +7434,70 @@
       ]
     },
     {
+      "name": "lending_pool_emissions_deposit",
+      "docs": [
+        "(permissionless) Deposit same-bank emissions directly into liquidity vault and increase",
+        "depositors' value via `asset_share_value`."
+      ],
+      "discriminator": [
+        121,
+        118,
+        123,
+        58,
+        59,
+        192,
+        74,
+        138
+      ],
+      "accounts": [
+        {
+          "name": "group",
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "bank",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "emissions_funding_account",
+          "docs": [
+            "NOTE: This is a TokenAccount, spl transfer will validate it.",
+            ""
+          ],
+          "writable": true
+        },
+        {
+          "name": "depositor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "liquidity_vault",
+          "writable": true,
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "lending_pool_force_tokenless_repay_complete",
       "docs": [
         "(risk_admin only) - Signals all of a bank's liability have been deleveraged. Used if a bank",
@@ -7030,157 +7707,6 @@
         {
           "name": "bank",
           "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "lending_pool_reclaim_emissions_vault",
-      "docs": [
-        "(permissionless) Reclaim all remaining tokens from the emissions vault",
-        "to the global fee wallet ATA, and disable emissions on the bank."
-      ],
-      "discriminator": [
-        206,
-        67,
-        186,
-        225,
-        41,
-        30,
-        95,
-        216
-      ],
-      "accounts": [
-        {
-          "name": "group",
-          "relations": [
-            "bank"
-          ]
-        },
-        {
-          "name": "bank",
-          "writable": true
-        },
-        {
-          "name": "emissions_mint"
-        },
-        {
-          "name": "emissions_auth",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  101,
-                  109,
-                  105,
-                  115,
-                  115,
-                  105,
-                  111,
-                  110,
-                  115,
-                  95,
-                  97,
-                  117,
-                  116,
-                  104,
-                  95,
-                  115,
-                  101,
-                  101,
-                  100
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "bank"
-              },
-              {
-                "kind": "account",
-                "path": "emissions_mint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "emissions_vault",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  101,
-                  109,
-                  105,
-                  115,
-                  115,
-                  105,
-                  111,
-                  110,
-                  115,
-                  95,
-                  116,
-                  111,
-                  107,
-                  101,
-                  110,
-                  95,
-                  97,
-                  99,
-                  99,
-                  111,
-                  117,
-                  110,
-                  116,
-                  95,
-                  115,
-                  101,
-                  101,
-                  100
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "bank"
-              },
-              {
-                "kind": "account",
-                "path": "emissions_mint"
-              }
-            ]
-          }
-        },
-        {
-          "name": "fee_state",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  102,
-                  101,
-                  101,
-                  115,
-                  116,
-                  97,
-                  116,
-                  101
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "destination_account",
-          "docs": [
-            "emissions mint (validated in handler)."
-          ],
-          "writable": true
-        },
-        {
-          "name": "token_program"
         }
       ],
       "args": []
@@ -7626,6 +8152,48 @@
       "args": []
     },
     {
+      "name": "marginfi_account_close_liq_record",
+      "docs": [
+        "(permissionless) Close a liquidation record PDA and return rent to the original payer.",
+        "Rent always goes to `record_payer`. Fails if the account is in receivership or deleverage."
+      ],
+      "discriminator": [
+        187,
+        222,
+        41,
+        134,
+        102,
+        10,
+        112,
+        147
+      ],
+      "accounts": [
+        {
+          "name": "marginfi_account",
+          "writable": true,
+          "relations": [
+            "liquidation_record"
+          ]
+        },
+        {
+          "name": "liquidation_record",
+          "writable": true,
+          "relations": [
+            "marginfi_account"
+          ]
+        },
+        {
+          "name": "record_payer",
+          "docs": [
+            "The wallet that originally paid to create this record.",
+            "Rent is returned here via Anchor's `close` constraint."
+          ],
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "marginfi_account_close_order",
       "docs": [
         "(user) Close an existing Order, returning rent to the user"
@@ -7642,6 +8210,12 @@
       ],
       "accounts": [
         {
+          "name": "group",
+          "relations": [
+            "marginfi_account"
+          ]
+        },
+        {
           "name": "marginfi_account",
           "writable": true,
           "relations": [
@@ -7650,10 +8224,7 @@
         },
         {
           "name": "authority",
-          "signer": true,
-          "relations": [
-            "marginfi_account"
-          ]
+          "signer": true
         },
         {
           "name": "order",
@@ -7995,6 +8566,7 @@
             "marginfi account was closed.",
             "The ownership check is checked in the handler or/and type checks are made in the handler."
           ],
+          "writable": true,
           "relations": [
             "order"
           ]
@@ -8163,15 +8735,18 @@
       ],
       "accounts": [
         {
+          "name": "group",
+          "relations": [
+            "marginfi_account"
+          ]
+        },
+        {
           "name": "marginfi_account",
           "writable": true
         },
         {
           "name": "authority",
-          "signer": true,
-          "relations": [
-            "marginfi_account"
-          ]
+          "signer": true
         }
       ],
       "args": [
@@ -8324,7 +8899,9 @@
       "docs": [
         "(admin only) Configure group admin keys and emode leverage caps. All admin keys must be",
         "provided on every call. Emode leverage caps are set if provided, otherwise the existing",
-        "(non-zero) values are kept. Pass `Some(value)` to update, `None` to leave unchanged."
+        "(non-zero) values are kept. Pass `Some(value)` to update, `None` to leave unchanged.",
+        "",
+        "Note: `new_emissions_admin` is deprecated and currently has no on-chain effect."
       ],
       "discriminator": [
         62,
@@ -8474,34 +9051,10 @@
       "args": []
     },
     {
-      "name": "migrate_curve",
-      "docs": [
-        "(Permissionless) Convert a bank from the legacy curve setup to the new setup, with no effect",
-        "on how interest accrues."
-      ],
-      "discriminator": [
-        151,
-        254,
-        50,
-        13,
-        112,
-        235,
-        152,
-        72
-      ],
-      "accounts": [
-        {
-          "name": "bank",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "panic_pause",
       "docs": [
-        "(global_fee_admin only) Pause the protocol. Auto-expires after 30 minutes. Limited to 3",
-        "pauses per day and 2 consecutive pauses."
+        "(global_fee_admin or pause_delegate_admin only) Pause the protocol. Auto-expires after 6",
+        "hours. Limited to 3 pauses per day and 4 consecutive pauses."
       ],
       "discriminator": [
         76,
@@ -8515,14 +9068,11 @@
       ],
       "accounts": [
         {
-          "name": "global_fee_admin",
+          "name": "pause_authority",
           "docs": [
-            "Admin of the global FeeState (can trigger panic pause)"
+            "Global fee admin or the dedicated pause delegate admin."
           ],
-          "signer": true,
-          "relations": [
-            "fee_state"
-          ]
+          "signer": true
         },
         {
           "name": "fee_state",
@@ -8554,7 +9104,7 @@
     {
       "name": "panic_unpause",
       "docs": [
-        "(global_fee_admin only) Unpause the protocol before the auto-expiry."
+        "(global_fee_admin only) Unpause the protocol before auto-expiry."
       ],
       "discriminator": [
         236,
@@ -8570,7 +9120,7 @@
         {
           "name": "global_fee_admin",
           "docs": [
-            "Admin of the global FeeState (can manually unpause)"
+            "Global fee admin only."
           ],
           "writable": true,
           "signer": true,
@@ -9160,6 +9710,8 @@
       "docs": [
         "(user) Withdraw from a Solend reserve through a marginfi account",
         "* amount - in collateral tokens (cTokens), in native decimals",
+        "* if group rate limits are enabled, include the withdrawn bank's oracle group in",
+        "`remaining_accounts`",
         "* withdraw_all - withdraw entire position if true"
       ],
       "discriminator": [
@@ -9589,6 +10141,31 @@
       ]
     },
     {
+      "name": "sync_indexer_flags",
+      "docs": [
+        "(Permissionless) Batch-sync balance-derived indexer flags for existing accounts.",
+        "Pass MarginfiAccounts as writable remaining_accounts."
+      ],
+      "discriminator": [
+        171,
+        146,
+        145,
+        43,
+        190,
+        175,
+        9,
+        32
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "transfer_to_new_account",
       "docs": [
         "(account authority) Transfer all positions to a new account under a new authority. The old",
@@ -9872,8 +10449,8 @@
     {
       "name": "write_bank_metadata",
       "docs": [
-        "(metadata admin only) Write ticker/description information for a bank on-chain. Optional, not",
-        "all Banks are guaranteed to have metadata."
+        "(metadata admin only) Write ticker/description for an initialized bank. The bank account",
+        "must exist; when its seed is on-chain, the canonical PDA is verified."
       ],
       "discriminator": [
         147,
@@ -9894,6 +10471,10 @@
         },
         {
           "name": "bank",
+          "docs": [
+            "Must be initialized. The metadata-to-bank binding is enforced by `metadata.has_one = bank`,",
+            "and `bank.has_one = group` ties this bank to the admin's group."
+          ],
           "relations": [
             "metadata"
           ]
@@ -9912,6 +10493,83 @@
         }
       ],
       "args": [
+        {
+          "name": "ticker",
+          "type": {
+            "option": "bytes"
+          }
+        },
+        {
+          "name": "description",
+          "type": {
+            "option": "bytes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "write_bank_metadata_pre_init",
+      "docs": [
+        "(metadata admin only) Write ticker/description before bank initialization, for canonical",
+        "seeded banks only."
+      ],
+      "discriminator": [
+        224,
+        124,
+        22,
+        73,
+        60,
+        209,
+        80,
+        170
+      ],
+      "accounts": [
+        {
+          "name": "group"
+        },
+        {
+          "name": "bank_mint"
+        },
+        {
+          "name": "bank",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "group"
+              },
+              {
+                "kind": "account",
+                "path": "bank_mint"
+              },
+              {
+                "kind": "arg",
+                "path": "bank_seed"
+              }
+            ]
+          },
+          "relations": [
+            "metadata"
+          ]
+        },
+        {
+          "name": "metadata_admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "group"
+          ]
+        },
+        {
+          "name": "metadata",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "bank_seed",
+          "type": "u64"
+        },
         {
           "name": "ticker",
           "type": {
@@ -9981,16 +10639,16 @@
       ]
     },
     {
-      "name": "Lending",
+      "name": "FeeStateV2",
       "discriminator": [
-        135,
-        199,
-        82,
-        16,
-        249,
-        131,
-        182,
-        241
+        240,
+        43,
+        104,
+        108,
+        146,
+        39,
+        22,
+        38
       ]
     },
     {
@@ -10033,58 +10691,6 @@
       ]
     },
     {
-      "name": "MinimalObligation",
-      "discriminator": [
-        168,
-        206,
-        141,
-        106,
-        88,
-        76,
-        172,
-        167
-      ]
-    },
-    {
-      "name": "MinimalReserve",
-      "discriminator": [
-        43,
-        242,
-        204,
-        202,
-        26,
-        247,
-        59,
-        127
-      ]
-    },
-    {
-      "name": "MinimalSpotMarket",
-      "discriminator": [
-        100,
-        177,
-        8,
-        107,
-        168,
-        65,
-        65,
-        39
-      ]
-    },
-    {
-      "name": "MinimalUser",
-      "discriminator": [
-        159,
-        117,
-        95,
-        227,
-        239,
-        151,
-        58,
-        236
-      ]
-    },
-    {
       "name": "Order",
       "discriminator": [
         134,
@@ -10095,12 +10701,6 @@
         86,
         28,
         51
-      ]
-    },
-    {
-      "name": "SolendMinimalReserve",
-      "discriminator": [
-        1
       ]
     },
     {
@@ -10118,6 +10718,19 @@
     }
   ],
   "events": [
+    {
+      "name": "AdminCloseAccountEvent",
+      "discriminator": [
+        166,
+        92,
+        180,
+        81,
+        158,
+        251,
+        225,
+        73
+      ]
+    },
     {
       "name": "DeleverageEvent",
       "discriminator": [
@@ -10142,6 +10755,19 @@
         204,
         84,
         176
+      ]
+    },
+    {
+      "name": "DriftClaimBadDebtEvent",
+      "discriminator": [
+        20,
+        106,
+        26,
+        156,
+        28,
+        116,
+        250,
+        172
       ]
     },
     {
@@ -10777,8 +11403,8 @@
     },
     {
       "code": 6053,
-      "name": "Vacated2",
-      "msg": "Vacated2"
+      "name": "StakeOraclesDisabled",
+      "msg": "Stake oracles are temporarily disabled"
     },
     {
       "code": 6054,
@@ -11053,7 +11679,7 @@
     {
       "code": 6108,
       "name": "UnexpectedOrderExecutionState",
-      "msg": "Order execution state issue. Check the necessary invariants i.e not in flashloan or disabled e.t.c"
+      "msg": "Order execution state issue. Check not in flashloan, disabled, etc"
     },
     {
       "code": 6109,
@@ -11169,6 +11795,26 @@
       "code": 6131,
       "name": "DeleverageWithdrawalUpdateOutOfOrderSeq",
       "msg": "Deleverage withdrawal admin update sequence is out of order"
+    },
+    {
+      "code": 6132,
+      "name": "UseSetFixedOraclePrice",
+      "msg": "Use set_fixed_oracle_price instead"
+    },
+    {
+      "code": 6133,
+      "name": "InvalidGlobalFeeWallet",
+      "msg": "Provided global fee wallet does not match group fee state cache"
+    },
+    {
+      "code": 6134,
+      "name": "BankUninitialized",
+      "msg": "Bank has not completed one-time initialization"
+    },
+    {
+      "code": 6135,
+      "name": "SlippageTooHigh",
+      "msg": "Max slippage exceeds the allowed cap"
     },
     {
       "code": 6200,
@@ -11559,6 +12205,26 @@
       }
     },
     {
+      "name": "AdminCloseAccountEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "header",
+            "type": {
+              "defined": {
+                "name": "AccountEventHeader"
+              }
+            }
+          },
+          {
+            "name": "global_fee_wallet",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
       "name": "Balance",
       "repr": {
         "kind": "c"
@@ -11888,7 +12554,14 @@
               "- Bit 3 (8): `FREEZE_SETTINGS` — bank configuration is frozen (only limits can change)",
               "- Bit 4 (16): `CLOSE_ENABLED_FLAG` — bank can be closed (set at creation for banks >= 0.1.4)",
               "- Bit 5 (32): `TOKENLESS_REPAYMENTS_ALLOWED` — risk admin can repay debt without tokens",
-              "- Bit 6 (64): `TOKENLESS_REPAYMENTS_COMPLETE` — all debt cleared, lender purge enabled"
+              "- Bit 6 (64): `TOKENLESS_REPAYMENTS_COMPLETE` — all debt cleared, lender purge enabled",
+              "- Bit 7 (128): `IS_T22` — 1 if T22, 0 if token classic",
+              "- Bit 8 (256): `BANK_SEED_KNOWN` — bank is known to be PDA/seed-derived. If not set, bank",
+              "may still be a PDA, but created before this flag launched (1.8 or earlier) or is a legacy",
+              "keypair-based bank.",
+              "- Bit 9 (512): `STAKED_ORACLE_DISABLED` — staked oracle pricing is temporarily disabled.",
+              "- Bit 10 (1024): `STAKED_ORACLE_PRICE_USES_ONRAMP` — staked oracle pricing includes the SPL",
+              "single-pool on-ramp account in NAV."
             ],
             "type": "u64"
           },
@@ -12002,7 +12675,8 @@
               "- Kamino: reserve",
               "- Drift: spot market",
               "- Solend: reserve",
-              "- JupLend: lending state"
+              "- JupLend: lending state",
+              "- Staked Collateral: Validator vote account"
             ],
             "type": "pubkey"
           },
@@ -12048,16 +12722,21 @@
             }
           },
           {
+            "name": "bank_seed",
+            "docs": [
+              "* `0` for legacy banks created via `lending_pool_add_bank` (created via keypair, not a PDA),",
+              "or pre-backfill banks (1.8 or earlier) where seed remains unknown.",
+              "* Otherwise the `bank_seed: u64` argument passed when creating the bank.",
+              "* Use `flags & BANK_SEED_KNOWN` to verify this value has known seed provenance."
+            ],
+            "type": "u64"
+          },
+          {
             "name": "_padding_1",
             "type": {
               "array": [
-                {
-                  "array": [
-                    "u64",
-                    2
-                  ]
-                },
-                7
+                "u64",
+                13
               ]
             }
           }
@@ -12177,12 +12856,26 @@
             "type": "u8"
           },
           {
-            "name": "_padding",
+            "name": "_pad0",
             "type": {
               "array": [
                 "u8",
-                23
+                7
               ]
+            }
+          },
+          {
+            "name": "price_multiplier",
+            "docs": [
+              "For integration banks, this is the exchange rate of cToken/token or similar. The \"real\"",
+              "price of one deposited token is `price_multiplier` * `last_oracle_price`, we split it here",
+              "for consumers who are only interested in reading the oracle price and are applying the",
+              "multiplier already elsewhere."
+            ],
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
             }
           },
           {
@@ -12853,6 +13546,12 @@
           },
           {
             "name": "KilledByBankruptcy"
+          },
+          {
+            "name": "Uninitialized"
+          },
+          {
+            "name": "ReduceOnlyWithBorrowingPower"
           }
         ]
       }
@@ -12953,6 +13652,58 @@
               "Unix timestamp when the flow was recorded"
             ],
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DriftClaimBadDebtEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "header",
+            "type": {
+              "defined": {
+                "name": "GroupEventHeader"
+              }
+            }
+          },
+          {
+            "name": "bank",
+            "type": "pubkey"
+          },
+          {
+            "name": "claim_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "distributor",
+            "type": "pubkey"
+          },
+          {
+            "name": "claim_status",
+            "type": "pubkey"
+          },
+          {
+            "name": "liquidity_vault_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "global_fee_wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "requested_amount",
+            "type": "u64"
+          },
+          {
+            "name": "received_amount",
+            "type": "u64"
+          },
+          {
+            "name": "swept_amount",
+            "type": "u64"
           }
         ]
       }
@@ -13340,7 +14091,7 @@
           {
             "name": "global_fee_admin",
             "docs": [
-              "Can modify fees"
+              "Can modify fees, pause the protocol, etc"
             ],
             "type": "pubkey"
           },
@@ -13460,13 +14211,11 @@
             }
           },
           {
-            "name": "_reserved1",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
+            "name": "pause_delegate_admin",
+            "docs": [
+              "Can pause (not unpause) the protocol, but cannot modify any fee configuration."
+            ],
+            "type": "pubkey"
           }
         ]
       }
@@ -13517,6 +14266,169 @@
               "Unix timestamp of the last fee state propagation"
             ],
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeStateV2",
+      "docs": [
+        "V2 fee state, currently unused by protocol logic. Mirrors `FeeState` with additional padding."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "key",
+            "docs": [
+              "The fee state's own key. A PDA derived from `b\"feestate_v2\"`"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "global_fee_admin",
+            "docs": [
+              "Can modify fees, pause the protocol, etc"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "global_fee_wallet",
+            "docs": [
+              "The base wallet for all protocol fees. All SOL fees go to this wallet. All non-SOL fees go",
+              "to the cannonical ATA of this wallet for that asset."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "placeholder0",
+            "type": "u64"
+          },
+          {
+            "name": "bank_init_flat_sol_fee",
+            "docs": [
+              "Flat fee assessed when a new bank is initialized, in lamports.",
+              "* In SOL, in native decimals."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "bump_seed",
+            "type": "u8"
+          },
+          {
+            "name": "_padding0",
+            "type": {
+              "array": [
+                "u8",
+                3
+              ]
+            }
+          },
+          {
+            "name": "liquidation_max_fee",
+            "docs": [
+              "Liquidators can claim at this premium, when liquidating an asset in receivership",
+              "liquidation, e.g. (1 + this) * amount repaid >= asset seized",
+              "* A percentage"
+            ],
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "program_fee_fixed",
+            "docs": [
+              "Fee collected by the program owner from all groups",
+              "* A percentage"
+            ],
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "program_fee_rate",
+            "docs": [
+              "Fee collected by the program owner from all groups",
+              "* A percentage"
+            ],
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "panic_state",
+            "docs": [
+              "When the global admin pauses the protocol in the event of an emergency, information about",
+              "the pause duration will be stored here and propagated to groups."
+            ],
+            "type": {
+              "defined": {
+                "name": "PanicState"
+              }
+            }
+          },
+          {
+            "name": "placeholder1",
+            "type": "u64"
+          },
+          {
+            "name": "liquidation_flat_sol_fee",
+            "docs": [
+              "Flat fee assessed for insurance/program use when a liquidation is executed",
+              "* In SOL, in native decimals."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "order_init_flat_sol_fee",
+            "docs": [
+              "Flat fee assessed for preventing spam use when creating an order",
+              "* In SOL, in native decimals."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "order_execution_max_fee",
+            "docs": [
+              "Take-profit Orders can be executed at this premium, which Keepers are allowed to keep (no",
+              "pun intended) e.g. (1 + this) * amount repaid >= asset seized",
+              "* A percentage"
+            ],
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "pause_delegate_admin",
+            "docs": [
+              "Can pause (not unpause) the protocol, but cannot modify any fee configuration."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "_padding1",
+            "docs": [
+              "Extra reserved bytes for future expansions."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                256
+              ]
+            }
           }
         ]
       }
@@ -13819,6 +14731,153 @@
       }
     },
     {
+      "name": "IndexerFlags",
+      "docs": [
+        "On-chain flags for indexer tranching. Each flag is a full byte so off-chain consumers can",
+        "filter accounts via `memcmp`. Balance-derived flags are synced automatically on every",
+        "balance-mutating instruction. Pulse-derived flags are updated in `pulse_health`."
+      ],
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "is_lending_only",
+            "docs": [
+              "1 if the account has no liabilities"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "is_empty",
+            "docs": [
+              "1 if the account has no balances above the dust threshold"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "is_single_borrower",
+            "docs": [
+              "1 if the account has exactly one liability position"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "has_ever_been_liquidated",
+            "docs": [
+              "1 if the account has ever entered receivership (liquidation or deleverage), permanent."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "has_ever_been_deleveraged",
+            "docs": [
+              "1 if the account has ever been forcibly deleveraged (permanent, never unset)"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "has_been_bankrupted",
+            "docs": [
+              "1 if `handle_bankruptcy` has ever been executed on this account (permanent, never unset)"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "has_isolated",
+            "docs": [
+              "1 if the account has any liability on a bank with `RiskTier::Isolated`. Note: Not",
+              "authoritative due to a variety of edge cases, such as a Bank being configured from",
+              "Collateral -> Isolated after the user deposits. Set at borrow time and refreshed best-effort",
+              "by pulse from live bank state. Cleared by balance-derived sync only when liability count",
+              "reaches zero."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "has_staked",
+            "docs": [
+              "1 if the account has a STAKED asset tag position"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "has_kamino",
+            "docs": [
+              "1 if the account has a KAMINO asset tag position"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "has_drift",
+            "docs": [
+              "1 if the account has a DRIFT asset tag position"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "has_juplend",
+            "docs": [
+              "1 if the account has a JUPLEND asset tag position"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "was_liquidatable",
+            "docs": [
+              "1 if maintenance health was negative at last pulse"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "was_underwater",
+            "docs": [
+              "1 if equity health was negative at last pulse"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "was_active_30d",
+            "docs": [
+              "1 if account was active within the last 30 days. Raised to 1 on every",
+              "balance-mutating instruction; can only transition 1 → 0 at pulse time, when the",
+              "elapsed-since-`last_update` check fails.",
+              "Combined with `is_empty`, indicates an account pending closure."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "was_active_60d",
+            "docs": [
+              "1 if account was active within the last 60 days. Raised to 1 on every",
+              "balance-mutating instruction; can only transition 1 → 0 at pulse time, when the",
+              "elapsed-since-`last_update` check fails.",
+              "Combined with `is_empty`, indicates an account eligible for permissionless close."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "has_trivial_balance",
+            "docs": [
+              "1 if net equity value was greater than $0 and less than $1 at last pulse"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "_pad",
+            "type": {
+              "array": [
+                "u8",
+                8
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "InterestRateConfig",
       "repr": {
         "kind": "c"
@@ -13827,7 +14886,10 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "optimal_utilization_rate",
+            "name": "placeholder0",
+            "docs": [
+              "DEPRECATED placeholder field. Formerly used for legacy curve math."
+            ],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -13835,7 +14897,10 @@
             }
           },
           {
-            "name": "plateau_interest_rate",
+            "name": "placeholder1",
+            "docs": [
+              "DEPRECATED placeholder field. Formerly used for legacy curve math."
+            ],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -13843,7 +14908,10 @@
             }
           },
           {
-            "name": "max_interest_rate",
+            "name": "placeholder2",
+            "docs": [
+              "DEPRECATED placeholder field. Formerly used for legacy curve math."
+            ],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -13941,8 +15009,9 @@
           {
             "name": "curve_type",
             "docs": [
-              "Determines which interest rate curve implementation is active. 0 (INTEREST_CURVE_LEGACY) =",
-              "legacy three point curve, 1 (INTEREST_CURVE_SEVEN_POINT) = multi-point curve."
+              "Determines which interest rate curve implementation is active.",
+              "- 0 (`INTEREST_CURVE_LEGACY`) is deprecated and unsupported.",
+              "- 1 (`INTEREST_CURVE_SEVEN_POINT`) is the active multi-point curve."
             ],
             "type": "u8"
           },
@@ -14178,8 +15247,9 @@
         "Used to configure JupLend banks. A simplified version of `BankConfigCompact` which omits most",
         "values related to interest since JupLend banks cannot earn interest or be borrowed against.",
         "",
-        "Note: JupLend banks do not take an Operational State, they always start in `Paused` state and",
-        "are set to `Operational` via `juplend_init_position` (seed deposit + protocol fToken vault)."
+        "Note: JupLend banks do not take an Operational State, they always start in `Uninitialized`",
+        "state and are set to `Operational` via `juplend_init_position` (seed deposit + protocol fToken",
+        "vault)."
       ],
       "type": {
         "kind": "struct",
@@ -14206,6 +15276,10 @@
           },
           {
             "name": "deposit_limit",
+            "docs": [
+              "Cap in **fToken units**, not underlying. As `token_exchange_price` grows, the same",
+              "cap admits more underlying — re-tune against the current rate."
+            ],
             "type": "u64"
           },
           {
@@ -14292,6 +15366,11 @@
           },
           {
             "name": "deposit_limit",
+            "docs": [
+              "Cap in **Kamino collateral units**, not underlying. As the reserve collateral",
+              "exchange rate grows, the same cap admits more underlying — re-tune against the",
+              "current rate."
+            ],
             "type": "u64"
           },
           {
@@ -14542,6 +15621,14 @@
           {
             "name": "amount",
             "type": "u64"
+          },
+          {
+            "name": "share_amount",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
           }
         ]
       }
@@ -14570,6 +15657,14 @@
           {
             "name": "amount",
             "type": "u64"
+          },
+          {
+            "name": "share_amount",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
           }
         ]
       }
@@ -14666,6 +15761,14 @@
           {
             "name": "close_balance",
             "type": "bool"
+          },
+          {
+            "name": "share_amount",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
           }
         ]
       }
@@ -14698,6 +15801,14 @@
           {
             "name": "close_balance",
             "type": "bool"
+          },
+          {
+            "name": "share_amount",
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
           }
         ]
       }
@@ -15424,11 +16535,21 @@
             "type": "u8"
           },
           {
+            "name": "active_orders",
+            "docs": [
+              "Count of how many Orders this account has active. One is added when an Order is opened, and",
+              "subtracted when an Order is executed or cancelled.",
+              "* Accounts cannot open more than u8::MAX orders. Sorry power users: hopefully 256 stop",
+              "losses is enough for you."
+            ],
+            "type": "u8"
+          },
+          {
             "name": "_pad0",
             "type": {
               "array": [
                 "u8",
-                3
+                2
               ]
             }
           },
@@ -15444,11 +16565,19 @@
             "type": "pubkey"
           },
           {
+            "name": "indexer_flags",
+            "type": {
+              "defined": {
+                "name": "IndexerFlags"
+              }
+            }
+          },
+          {
             "name": "_padding0",
             "type": {
               "array": [
                 "u64",
-                7
+                4
               ]
             }
           }
@@ -15674,8 +16803,8 @@
           {
             "name": "delegate_emissions_admin",
             "docs": [
-              "Can modify the emissions `flags`, `emissions_rate` and `emissions_mint`, but nothing else,",
-              "for every bank under this group"
+              "DEPRECATED: currently has no on-chain authority.",
+              "Preserved in account layout for backward compatibility and historical metadata only."
             ],
             "type": "pubkey"
           },
@@ -17379,6 +18508,11 @@
           },
           {
             "name": "deposit_limit",
+            "docs": [
+              "Cap in **Solend collateral units**, not underlying. As the reserve collateral",
+              "exchange rate grows, the same cap admits more underlying — re-tune against the",
+              "current rate."
+            ],
             "type": "u64"
           },
           {
@@ -17799,20 +18933,22 @@
             }
           },
           {
-            "name": "_reserved0",
+            "name": "flags",
+            "docs": [
+              "Desired bitmask for staked-bank transition flags. These bits are copied to `Bank.flags`",
+              "when staked settings are propagated or when a new staked bank is created.",
+              "* Bit 9 (512): `STAKED_ORACLE_DISABLED` — staked oracle pricing is temporarily disabled.",
+              "* Bit 10 (1024): `STAKED_ORACLE_PRICE_USES_ONRAMP` — staked oracle pricing includes the SPL",
+              "single-pool on-ramp account in NAV."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "_reserved1",
             "docs": [
               "The following values are irrelevant because staked collateral positions do not support",
               "borrowing."
             ],
-            "type": {
-              "array": [
-                "u8",
-                8
-              ]
-            }
-          },
-          {
-            "name": "_reserved1",
             "type": {
               "array": [
                 "u8",

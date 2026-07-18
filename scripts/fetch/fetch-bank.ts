@@ -16,7 +16,7 @@ import {
 import { ORACLE_TYPE_FIXED } from "../../lib/constants";
 
 // If true, prints this bank's settings in a format to be copy-pasted into add_bank
-const printForCopy = true;
+const printForCopy = false;
 
 type Config = {
   PROGRAM_ID: string;
@@ -30,7 +30,7 @@ const config: Config = {
     // new PublicKey("HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV"), // usdt
     // new PublicKey("8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu"), // py
     // new PublicKey("FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV"), // usds
-    new PublicKey("9p1TiAeTc6FSiNHhnR6BgmwRq49zywczAY4m77BbKGer"),
+    new PublicKey("DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM"),
   ],
 };
 
@@ -284,7 +284,7 @@ async function printBankInfo(bankKey: PublicKey) {
     program.provider.connection,
     bank.feeVault,
     undefined,
-    mintInfo.owner,
+    mintInfo!.owner,
   );
   const availableBN = new BigNumber(vaultAcc.amount.toString()).dividedBy(
     scale,
@@ -300,12 +300,6 @@ async function printBankInfo(bankKey: PublicKey) {
   const irc = bank.config.interestRateConfig;
   console.log("Interest Rate Config:");
   const interestRateRows = [
-    {
-      Field: "Optimal Utilization Rate",
-      Value: toStr(irc.optimalUtilizationRate),
-    },
-    { Field: "Plateau Interest Rate", Value: toStr(irc.plateauInterestRate) },
-    { Field: "Max Interest Rate", Value: toStr(irc.maxInterestRate) },
     {
       Field: "Insurance Fee Fixed APR",
       Value: toStr(irc.insuranceFeeFixedApr),
@@ -424,9 +418,7 @@ const formatI80F48 = (x: WrappedI80F48): string =>
   wrappedI80F48toBigNumber(x).toString();
 
 const formatNumberLiteral = (value: number, decimals = 10): string =>
-  value
-    .toFixed(decimals)
-    .replace(/\.?0+$/, "");
+  value.toFixed(decimals).replace(/\.?0+$/, "");
 
 const formatAprU32ForCopy = (value: number): string =>
   value === 0 ? "0" : `aprToU32(${formatNumberLiteral(u32ToApr(value))})`;
@@ -480,7 +472,7 @@ async function printCopyConfigSnippet(program: any, bankKey: PublicKey) {
 
   // Pull through runtime variants for printing
   const riskTierVariant = unwrapVariant(cfg.riskTier); // "collateral" | "isolated" | unknown
-  const opStateVariant  = unwrapVariant(cfg.operationalState); // "operational" | "paused" | "reduceOnly" | unknown
+  const opStateVariant = unwrapVariant(cfg.operationalState); // "operational" | "paused" | "reduceOnly" | unknown
 
   const oracleMaxConfidence =
     typeof (cfg as any).oracleMaxConfidence === "number"
@@ -489,34 +481,54 @@ async function printCopyConfigSnippet(program: any, bankKey: PublicKey) {
   const configFlags =
     typeof (cfg as any).configFlags === "number" ? (cfg as any).configFlags : 0;
 
-  console.log("\n// ===== Copy the following into your add_bank script =====\n");
+  console.log(
+    "\n// ===== Copy the following into your add_bank script =====\n",
+  );
 
   console.log("const config: Config = {");
   console.log(`  PROGRAM_ID: "${program.programId.toString()}",`);
   console.log(`  GROUP_KEY: new PublicKey("${bank.group.toString()}"),`);
   // choose first non-default oracle key if present; otherwise default pubkey
-  const oracleKey =
-    (cfg.oracleKeys?.find((k: PublicKey) => k && k.toString() !== PublicKey.default.toString()) ??
-      PublicKey.default).toString();
+  const oracleKey = (
+    cfg.oracleKeys?.find(
+      (k: PublicKey) => k && k.toString() !== PublicKey.default.toString(),
+    ) ?? PublicKey.default
+  ).toString();
   console.log(`  ORACLE: new PublicKey("${oracleKey}"),`);
   console.log(`  ORACLE_TYPE: ${oracleTypeNumeric || 0}, // 3=PYTH, 4=SWB`);
   console.log(`  ADMIN: new PublicKey("${group.admin.toString()}"),`);
   console.log(`  FEE_PAYER: new PublicKey("PLACEHOLDER_FEE_PAYER"),`);
   console.log(`  BANK_MINT: new PublicKey("${bank.mint.toString()}"),`);
   console.log(`  SEED: PLACEHOLDER_SEED, // number`);
-  console.log(`  TOKEN_PROGRAM: ${isT22 ? "TOKEN_2022_PROGRAM_ID" : "TOKEN_PROGRAM_ID"},`);
+  console.log(
+    `  TOKEN_PROGRAM: ${isT22 ? "TOKEN_2022_PROGRAM_ID" : "TOKEN_PROGRAM_ID"},`,
+  );
   console.log(`  MULTISIG_PAYER: new PublicKey("PLACEHOLDER_MULTISIG_PAYER"),`);
   console.log("};\n");
 
   console.log("const rate: InterestRateConfig1_7 = {");
-  console.log(`  insuranceFeeFixedApr: bigNumberToWrappedI80F48(${formatI80F48(irc.insuranceFeeFixedApr)}),`);
-  console.log(`  insuranceIrFee: bigNumberToWrappedI80F48(${formatI80F48(irc.insuranceIrFee)}),`);
-  console.log(`  protocolFixedFeeApr: bigNumberToWrappedI80F48(${formatI80F48(irc.protocolFixedFeeApr)}),`);
-  console.log(`  protocolIrFee: bigNumberToWrappedI80F48(${formatI80F48(irc.protocolIrFee)}),`);
-  console.log(`  protocolOriginationFee: bigNumberToWrappedI80F48(${formatI80F48(irc.protocolOriginationFee)}),`);
+  console.log(
+    `  insuranceFeeFixedApr: bigNumberToWrappedI80F48(${formatI80F48(irc.insuranceFeeFixedApr)}),`,
+  );
+  console.log(
+    `  insuranceIrFee: bigNumberToWrappedI80F48(${formatI80F48(irc.insuranceIrFee)}),`,
+  );
+  console.log(
+    `  protocolFixedFeeApr: bigNumberToWrappedI80F48(${formatI80F48(irc.protocolFixedFeeApr)}),`,
+  );
+  console.log(
+    `  protocolIrFee: bigNumberToWrappedI80F48(${formatI80F48(irc.protocolIrFee)}),`,
+  );
+  console.log(
+    `  protocolOriginationFee: bigNumberToWrappedI80F48(${formatI80F48(irc.protocolOriginationFee)}),`,
+  );
   console.log("");
-  console.log(`  zeroUtilRate: ${formatAprU32ForCopy(Number(irc.zeroUtilRate))},`);
-  console.log(`  hundredUtilRate: ${formatAprU32ForCopy(Number(irc.hundredUtilRate))},`);
+  console.log(
+    `  zeroUtilRate: ${formatAprU32ForCopy(Number(irc.zeroUtilRate))},`,
+  );
+  console.log(
+    `  hundredUtilRate: ${formatAprU32ForCopy(Number(irc.hundredUtilRate))},`,
+  );
   console.log("  points: [");
   const points = Array.isArray((irc as any).points) ? (irc as any).points : [];
   for (const point of points) {
@@ -541,16 +553,30 @@ async function printCopyConfigSnippet(program: any, bankKey: PublicKey) {
   else if (opStateVariant === "reduceOnly") opStatePrint = "{ reduceOnly: {} }";
 
   console.log("const bankConfig: BankConfig = {");
-  console.log(`  assetWeightInit:          bigNumberToWrappedI80F48(${formatI80F48(cfg.assetWeightInit)}),`);
-  console.log(`  assetWeightMaint:         bigNumberToWrappedI80F48(${formatI80F48(cfg.assetWeightMaint)}),`);
-  console.log(`  liabilityWeightInit:      bigNumberToWrappedI80F48(${formatI80F48(cfg.liabilityWeightInit)}),`);
-  console.log(`  liabilityWeightMaint:     bigNumberToWrappedI80F48(${formatI80F48(cfg.liabilityWeightMaint)}),`);
-  console.log(`  depositLimit:             new BN(${cfg.depositLimit.toString()}),`);
+  console.log(
+    `  assetWeightInit:          bigNumberToWrappedI80F48(${formatI80F48(cfg.assetWeightInit)}),`,
+  );
+  console.log(
+    `  assetWeightMaint:         bigNumberToWrappedI80F48(${formatI80F48(cfg.assetWeightMaint)}),`,
+  );
+  console.log(
+    `  liabilityWeightInit:      bigNumberToWrappedI80F48(${formatI80F48(cfg.liabilityWeightInit)}),`,
+  );
+  console.log(
+    `  liabilityWeightMaint:     bigNumberToWrappedI80F48(${formatI80F48(cfg.liabilityWeightMaint)}),`,
+  );
+  console.log(
+    `  depositLimit:             new BN(${cfg.depositLimit.toString()}),`,
+  );
   console.log(`  interestRateConfig:       rate,`);
   console.log(`  operationalState:         ${opStatePrint},`);
-  console.log(`  borrowLimit:              new BN(${cfg.borrowLimit.toString()}),`);
+  console.log(
+    `  borrowLimit:              new BN(${cfg.borrowLimit.toString()}),`,
+  );
   console.log(`  riskTier:                 ${riskTierPrint},`);
-  console.log(`  totalAssetValueInitLimit: new BN(${cfg.totalAssetValueInitLimit.toString()}),`);
+  console.log(
+    `  totalAssetValueInitLimit: new BN(${cfg.totalAssetValueInitLimit.toString()}),`,
+  );
   console.log(`  oracleMaxAge:             ${cfg.oracleMaxAge},`);
   console.log(`  assetTag:                 ${cfg.assetTag ?? 0},`);
   console.log(`  oracleMaxConfidence:      ${oracleMaxConfidence},`);

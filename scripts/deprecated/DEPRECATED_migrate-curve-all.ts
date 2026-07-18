@@ -13,7 +13,7 @@ type Config = {
 };
 
 const config: Config = {
-  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
   DEPLOY_KEYPAIR_PATH: "/.keys/staging-deploy.json",
 };
 
@@ -28,7 +28,7 @@ async function main() {
   );
   const { program, connection, wallet } = user;
 
-  const group = new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8");
+  const group = new PublicKey("Diu1q9gniR1qR4Daaej3rcHd6949HMmxLGsnQ94Z3rLz");
 
   let notMigrated = 0;
   let notMigratedKeys: PublicKey[] = [];

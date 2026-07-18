@@ -359,11 +359,11 @@ export async function getOraclesAndCrankSwb(
 ): Promise<[BankAndOracles[], TransactionInstruction[]]> {
   let swbPullFeeds: PublicKey[] = [];
   const ixs: TransactionInstruction[] = [];
+  let activeBalances: BankAndOracles[] = [];
 
   let acc = await program.account.marginfiAccount.fetch(account);
   dumpAccBalances(acc);
   let balances = acc.lendingAccount.balances;
-  let activeBalances: BankAndOracles[] = [];
   for (let i = 0; i < balances.length; i++) {
     const bal = balances[i];
     if (bal.active == 1) {

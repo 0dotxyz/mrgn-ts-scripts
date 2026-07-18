@@ -9,7 +9,7 @@ import {
 import { BN } from "@coral-xyz/anchor";
 import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
 import { commonSetup } from "../../lib/common-setup";
-import { composeRemainingAccounts } from "../../lib/utils";
+import { BankAndOracles } from "../../lib/utils";
 import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 
 const sendTx = false;
@@ -22,37 +22,7 @@ type Config = {
   /** In native decimals */
   AMOUNT: BN;
   WITHDRAW_ALL: boolean;
-  /**
-   * ONLY NEEDED IF USING THE MULTISIG, OTHERWISE FETCHED FROM THE ACCOUNT. Set sendTx = true and
-   * this script will print these for you to copy and paste!
-   * 
-   * MAKE SURE YOU REMOVE THE ONE YOU ARE WITHDRAWING IF WITHDRAWING ALL
-   *
-   * For each balance the user has, in order, pass
-   * * bank0, oracle0, bank1, oracle1, etc
-   *
-   * in any order
-   *
-   * if a bank is a STAKED COLLATERAL bank, also pass the LST mint and SOL pool, like:
-   * * bank0, oracle0, lstMint0, solPool0, bank1, oracle1
-   *
-   * You can derive these with:
-    ```
-    const [lstMint] = PublicKey.findProgramAddressSync(
-        [Buffer.from("mint"), config.STAKE_POOL.toBuffer()],
-        SINGLE_POOL_PROGRAM_ID
-    );
-    ```
-     and
-    ```
-    const [pool] = PublicKey.findProgramAddressSync(
-        [Buffer.from("stake"), config.STAKE_POOL.toBuffer()],
-        SINGLE_POOL_PROGRAM_ID
-    );
-    ```
-   * or read them from the bank directly (oracles[1] and oracles[2])
-   * */
-  REMAINING: PublicKey[][];
+  REMAINING: BankAndOracles;
   ADD_COMPUTE_UNITS: boolean;
 
   // Optional, omit if not using MS.
@@ -67,10 +37,8 @@ const withdrawLiquidatorUSDC: Config = {
   AMOUNT: new BN(20 * 10 ** 6),
   WITHDRAW_ALL: false,
   REMAINING: [
-    [
       new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"), // usdc bank
       new PublicKey("Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"), // usdc oracle
-    ],
   ],
   ADD_COMPUTE_UNITS: false,
 };
@@ -110,12 +78,11 @@ export async function withdraw(
   const tokenProgram = mintAccInfo.owner;
   let isT22 = tokenProgram.toString() == TOKEN_2022_PROGRAM_ID.toString();
 
-  const remaining = composeRemainingAccounts(config.REMAINING);
-  let meta: AccountMeta[] = remaining.map((pubkey) => ({
-    pubkey,
-    isSigner: false,
-    isWritable: false,
-  }));
+  const meta: AccountMeta[] = config.REMAINING.flat().map(
+    (pubkey) => {
+      return { pubkey, isSigner: false, isWritable: false };
+    }
+  );
 
   if (isT22) {
     const m: AccountMeta = {

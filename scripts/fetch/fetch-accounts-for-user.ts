@@ -8,8 +8,8 @@ type Config = {
 };
 
 const config: Config = {
-  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  WALLET: new PublicKey("GLBbHid2KWYfZWGEWkTxxSU5odNdeC2d8uCfSq9vsfRY"),
+  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  WALLET: new PublicKey("FDr3iLdfyyzMmge9rN5sqQ38PgbrXY94VDW726EUN2kK"),
 };
 
 async function main() {

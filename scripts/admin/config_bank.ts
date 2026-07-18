@@ -84,14 +84,14 @@ const config: Config = {
     //   },
     // },
     {
-      bank: new PublicKey("9ThXmfwhNzc6qbkRLuSGHwKS7mxjn6QcuRD644Pjn4F"),
+      bank: new PublicKey("DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM"),
       config: {
         assetWeightInit: null,
         assetWeightMaint: null,
         liabilityWeightInit: null,
         liabilityWeightMaint: null,
-        depositLimit: new BN(1),
-        borrowLimit: null,
+        depositLimit: new BN("60000000000000000"),
+        borrowLimit: new BN("150000000000000"),
         riskTier: null, // { isolated: {} },
         assetTag: null,
         totalAssetValueInitLimit: null,

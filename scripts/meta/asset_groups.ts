@@ -52,6 +52,7 @@ export const assetGroups = {
     YIELD: "phaseZSfPxTDBpiVb96H4XFSD8xHeHxZre5HerehBJG",
     cgntSOL: "CgnTSoL3DgY9SFHxcLj6CgCgKKoTBr6tp4CPAEWy25DE",
     rkuSOL: "rkubjTrZYioRSeXwDnhwGQzvW3qkcin72JSxUt3WMVp",
+    raSOL: "HUBsveNpjo5pWqNkH57QzxjQASdTVXcSK7bVKTSZtcSX"
   },
   bitcoin: {
     cbBTC: "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",

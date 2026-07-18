@@ -10,7 +10,7 @@ import { commonSetup } from "../../lib/common-setup";
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
-const sendTx = false;
+const sendTx = true;
 
 const ORACLE_TYPE_PYTH = 3;
 const ORACLE_TYPE_SWB = 4;
@@ -23,8 +23,8 @@ type SharedConfig = {
 };
 
 const configCommon: SharedConfig = {
-  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  ADMIN: new PublicKey("725Z4QQUVhRiXcCdf4cQTrxXYmQXyW9zgVkW5PDVSJz4"),
   MULTISIG: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
@@ -38,9 +38,9 @@ type BankOracleConfig = {
 /** One entry per bank to update */
 const configs: BankOracleConfig[] = [
   {
-    bank: new PublicKey("EKwXy2ui2jtJnvH4A2XufyqMyeSFecJE8xAKWpZEtDwd"),
-    oracle: new PublicKey("3xjjfYi2o2nN4w6Jhf3Cf66BgYzMtYqhXojYTgwJMCQq"),
-    oracleType: ORACLE_TYPE_SWB,
+    bank: new PublicKey("4JgDTBCnaXBd5M14Z6nJHhzEVL5iLjyyCrGC1Zfz3Qma"),
+    oracle: new PublicKey("6HAuqASbHEh4w4REJEUUUCginTLfj1kwCh215ZLtMkrT"),
+    oracleType: ORACLE_TYPE_PYTH,
   },
   // ...More entries here as needed. The limit even without using LUTs is fairly high (at least 6)
 ];
@@ -49,7 +49,7 @@ async function main() {
   const user = commonSetup(
     sendTx,
     configCommon.PROGRAM_ID,
-    "/.keys/staging-deploy.json",
+    "/.keys/zerotrade_admin.json",
     configCommon.MULTISIG,
   );
   const program = user.program;

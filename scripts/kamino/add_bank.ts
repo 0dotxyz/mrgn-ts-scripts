@@ -38,8 +38,8 @@ type Config = {
   GROUP_KEY: PublicKey;
   /** Oracle used by marginfi bank config */
   ORACLE: PublicKey;
-  /** Oracle used by Kamino reserve refresh/init (can differ from ORACLE) */
-  RESERVE_ORACLE: PublicKey;
+  /** Oracle used by Kamino reserve refresh/init (can differ from ORACLE). Only used if toInit is true. */
+  RESERVE_ORACLE?: PublicKey;
   /** { kaminoPythPush: {} } (6) or  { kaminoSwitchboardPull: {} } (7) */
   ORACLE_TYPE: OracleSetupRawWithKamino;
   /** Group admin (generally the MS on mainnet) */
@@ -73,13 +73,14 @@ const config: Config = {
 };
 
 async function main() {
-  await addKaminoBank(sendTx, config, "/.keys/staging-deploy.json");
+  await addKaminoBank(sendTx, config, "/.keys/staging-deploy.json", toInit);
 }
 
 export async function addKaminoBank(
   sendTx: boolean,
   config: Config,
   walletPath: string,
+  toInit: boolean,
 ): Promise<PublicKey> {
   console.log("adding bank to group: " + config.GROUP_KEY);
   const user = commonSetup(
@@ -215,7 +216,7 @@ export async function addKaminoBank(
           signerTokenAccount,
           lendingMarket,
           reserve: config.KAMINO_RESERVE,
-          scopePrices: config.RESERVE_ORACLE,
+          scopePrices: config.RESERVE_ORACLE!,
           reserveFarmState,
           obligationFarmUserState,
           liquidityTokenProgram: tokenProgram,
