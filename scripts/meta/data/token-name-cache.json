@@ -958,5 +958,17 @@
     "symbol": "raSOL",
     "source": "jupiter",
     "cachedAt": 1783524304939
+  },
+  "6gE8vCsnmF37e2cT6PTafNLP5MtPhChfJHJbckAXsq6r": {
+    "name": "Exponent PT-hyloSOL-12DEC26",
+    "symbol": "PT-hyloSOL",
+    "source": "jupiter",
+    "cachedAt": 1786520403857
+  },
+  "6Q8t9F7Ygv5kUjV5Gj2DfszL6Y33qCSKNYa7MKSsVeUJ": {
+    "name": "Exponent PT-hyUSD-12DEC26",
+    "symbol": "PT-hyUSD",
+    "source": "jupiter",
+    "cachedAt": 1786520404939
   }
 }
