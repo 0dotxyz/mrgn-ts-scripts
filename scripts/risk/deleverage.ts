@@ -19,13 +19,21 @@ import {
 import {
   commonSetup,
   registerDriftProgram,
+  registerJuplendProgram,
   registerKaminoProgram,
 } from "../../lib/common-setup";
 import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import fs from "fs";
 import BigNumber from "bignumber.js";
-import { deriveLiquidationRecord } from "../common/pdas";
-import { ASSET_TAG_DRIFT, ASSET_TAG_KAMINO } from "../../lib/constants";
+import {
+  deriveLiquidationRecord,
+  deriveLiquidityVaultAuthority,
+} from "../common/pdas";
+import {
+  ASSET_TAG_DRIFT,
+  ASSET_TAG_JUPLEND,
+  ASSET_TAG_KAMINO,
+} from "../../lib/constants";
 import {
   makeKaminoWithdrawIx,
   simpleRefreshObligation,
@@ -39,6 +47,12 @@ import {
   deriveSpotMarketVaultPDA,
   DRIFT_PROGRAM_ID,
 } from "../drift/lib/utils";
+import {
+  deriveJuplendCpiAccounts,
+  findJuplendClaimAccountPda,
+  findJuplendLendingAdminPda,
+  JUPLEND_LENDING_PROGRAM_ID,
+} from "../juplend/lib/utils";
 import { updateLut } from "../../luts/update_lut";
 
 const sendTx = true;
@@ -53,6 +67,7 @@ type AccountBanks = Map<PublicKey, Balances>;
 type FetchedBanks = Map<string, any>; // any here is our Bank type
 type FetchedReserves = Map<string, any>; // any here is the Reserve type from Kamino IDL
 type FetchedSpotMarkets = Map<string, any>; // any here is the SpotMarket type from Drift IDL
+type FetchedLendings = Map<string, any>; // any here is the Lending type from the JupLend IDL
 
 const confidence = BigNumber(0.0212);
 
@@ -84,6 +99,7 @@ async function main() {
   let fetchedBanks: FetchedBanks = new Map();
   let fetchedReserves: FetchedReserves = new Map();
   let fetchedSpotMarkets: FetchedSpotMarkets = new Map();
+  let fetchedLendings: FetchedLendings = new Map();
 
   for (const [accountPk, balances] of accountBanks) {
     const config: Config = {
@@ -101,6 +117,7 @@ async function main() {
       fetchedBanks,
       fetchedReserves,
       fetchedSpotMarkets,
+      fetchedLendings,
     );
   }
 }
@@ -112,6 +129,7 @@ export async function deleverage(
   fetchedBanks?: FetchedBanks,
   fetchedReserves?: FetchedReserves,
   fetchedSpotMarkets?: FetchedSpotMarkets,
+  fetchedLendings?: FetchedLendings,
 ) {
   const user = commonSetup(
     sendTx,
@@ -121,6 +139,7 @@ export async function deleverage(
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
   registerDriftProgram(user, DRIFT_PROGRAM_ID.toString());
+  registerJuplendProgram(user, JUPLEND_LENDING_PROGRAM_ID.toString());
   const program = user.program;
   const connection = user.connection;
 
@@ -147,6 +166,10 @@ export async function deleverage(
   instructions.push(
     ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
   );
+
+  // Several JupLend banks can share one Lending state (one per mint), so only emit
+  // `updateRate` once per state to keep the tx small.
+  const refreshedLendings = new Set<string>();
 
   let liabValue: BigNumber;
   let remainingAccounts: PublicKey[][] = [];
@@ -217,7 +240,8 @@ export async function deleverage(
     if (
       bank.config.oracleSetup.switchboardPull ||
       bank.config.oracleSetup.kaminoSwitchboardPull ||
-      bank.config.oracleSetup.driftSwitchboardPull
+      bank.config.oracleSetup.driftSwitchboardPull ||
+      bank.config.oracleSetup.juplendSwitchboardPull
     ) {
       // TODO: put cranking directly in this script. Currently it's done separately.
       console.log("SWB ORACLE:", bank.config.oracleKeys[0].toBase58());
@@ -266,6 +290,42 @@ export async function deleverage(
         bank.config.oracleKeys[0],
         bank.config.oracleKeys[1],
       ]);
+    } else if (
+      bank.config.oracleSetup.juplendPythPull ||
+      bank.config.oracleSetup.juplendSwitchboardPull
+    ) {
+      // (0) bank, (1) oracle, (2) JupLend Lending state
+      remainingAccounts.push([
+        bankPk,
+        bank.config.oracleKeys[0],
+        bank.config.oracleKeys[1],
+      ]);
+
+      if (!fetchedLendings.has(bank.integrationAcc1.toBase58())) {
+        console.log("Fetching lending: ", bank.integrationAcc1.toBase58());
+        fetchedLendings.set(
+          bank.integrationAcc1.toBase58(),
+          await user.juplendProgram.account.lending.fetch(bank.integrationAcc1),
+        );
+      }
+      const lending = fetchedLendings.get(bank.integrationAcc1.toBase58());
+
+      // The Lending state must be fresh before any risk check runs, otherwise the
+      // bank prices off a stale `token_exchange_price`. Mirrors
+      // `makeJuplendNativeUpdateRateIx`, but reuses the cached Lending account.
+      if (!refreshedLendings.has(bank.integrationAcc1.toBase58())) {
+        refreshedLendings.add(bank.integrationAcc1.toBase58());
+        instructions.push(
+          await user.juplendProgram.methods
+            .updateRate()
+            .accounts({
+              lending: bank.integrationAcc1,
+              supplyTokenReservesLiquidity: lending.tokenReservesLiquidity,
+              rewardsRateModel: lending.rewardsRateModel,
+            })
+            .instruction(),
+        );
+      }
     } else if (bank.config.oracleSetup.stakedWithPythPush) {
       remainingAccounts.push([
         bankPk,
@@ -541,6 +601,45 @@ export async function deleverage(
             driftRewardSpotMarket2: null,
             driftRewardMint2: null,
             tokenProgram,
+          })
+          .remainingAccounts(withdrawMeta)
+          .instruction(),
+      );
+    } else if (bank.config.assetTag == ASSET_TAG_JUPLEND) {
+      const lending = fetchedLendings.get(bank.integrationAcc1.toBase58());
+
+      const [lendingAdmin] = findJuplendLendingAdminPda();
+      const juplendAccounts = deriveJuplendCpiAccounts(bank.mint, tokenProgram);
+
+      const [liquidityVaultAuthority] = deriveLiquidityVaultAuthority(
+        program.programId,
+        bankPk,
+      );
+      const [claimAccount] = findJuplendClaimAccountPda(
+        liquidityVaultAuthority,
+        bank.mint,
+      );
+
+      instructions.push(
+        await program.methods
+          .juplendWithdraw(withdrawAmount, withdrawAll ? true : null)
+          .accounts({
+            marginfiAccount: config.ACCOUNT,
+            bank: bankPk,
+            destinationTokenAccount: ata,
+            lendingAdmin,
+            supplyTokenReservesLiquidity: lending.tokenReservesLiquidity,
+            lendingSupplyPositionOnLiquidity: lending.supplyPositionOnLiquidity,
+            rateModel: juplendAccounts.rateModel,
+            vault: juplendAccounts.vault,
+            claimAccount,
+            liquidity: juplendAccounts.liquidity,
+            liquidityProgram: juplendAccounts.liquidityProgram,
+            rewardsRateModel: juplendAccounts.rewardsRateModel,
+            tokenProgram,
+          })
+          .accountsPartial({
+            fTokenMint: lending.fTokenMint,
           })
           .remainingAccounts(withdrawMeta)
           .instruction(),

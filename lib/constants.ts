@@ -52,3 +52,6 @@ export const ASSET_TAG_DRIFT = 4;
 /// Solend assets. Accounts with a SOLEND position can only deposit other SOLEND assets or regular
 /// assets (`ASSET_TAG_DEFAULT`).
 export const ASSET_TAG_SOLEND = 5;
+/// JupLend assets. Accounts with a JUPLEND position can only deposit other JUPLEND assets or
+/// regular assets (`ASSET_TAG_DEFAULT`).
+export const ASSET_TAG_JUPLEND = 6;
