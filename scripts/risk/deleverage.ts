@@ -58,8 +58,8 @@ const confidence = BigNumber(0.0212);
 
 const grandConfig = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  BANK: new PublicKey("BeNBJrAh1tZg5sqgt8D6AWKJLD5KkBrfZvtcgd7EuiAR"), // UXD
-  LUT: new PublicKey("FtQ5uKQvFoKQ27SWY15tgBeJQnGKmKGzWqDz7kGUbeiq"),
+  BANK: new PublicKey("3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq"), // zBTC
+  LUT: new PublicKey("UzGyBno8GEZDapsj1FAy11aquXby1wkxeeDa4Y5TdPN"),
 };
 
 type Config = {
@@ -73,7 +73,7 @@ type Config = {
 async function main() {
   const raw = fs.readFileSync(
     // Note: use a log created by fetch-accounts-for-bank.ts
-    // "logs/BeNBJrAh1tZg5sqgt8D6AWKJLD5KkBrfZvtcgd7EuiAR_accounts.json",
+    // "logs/3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq_accounts.json",
     "logs/test.json",
     "utf8",
   );
@@ -453,25 +453,25 @@ export async function deleverage(
       tokenProgram,
     );
 
-    // const info = await connection.getAccountInfo(ata);
-    // if (!info) {
-    //   console.log("Creating idempotent account for mint: ", bank.mint.toBase58());
-    //   const ataTransaction = new Transaction();
-    //   ataTransaction.add(
-    //     createAssociatedTokenAccountIdempotentInstruction(
-    //       user.wallet.publicKey,
-    //       ata,
-    //       user.wallet.publicKey,
-    //       bank.mint,
-    //       tokenProgram,
-    //     ),
-    //   );
-    //   const signature = await sendAndConfirmTransaction(
-    //     connection,
-    //     ataTransaction,
-    //     [user.wallet.payer],
-    //   );
-    // }
+    const info = await connection.getAccountInfo(ata);
+    if (!info) {
+      console.log("Creating idempotent account for mint: ", bank.mint.toBase58());
+      const ataTransaction = new Transaction();
+      ataTransaction.add(
+        createAssociatedTokenAccountIdempotentInstruction(
+          user.wallet.publicKey,
+          ata,
+          user.wallet.publicKey,
+          bank.mint,
+          tokenProgram,
+        ),
+      );
+      const signature = await sendAndConfirmTransaction(
+        connection,
+        ataTransaction,
+        [user.wallet.payer],
+      );
+    }
 
     if (bank.config.assetTag == ASSET_TAG_KAMINO) {
       const reserve = fetchedReserves.get(bank.integrationAcc1.toBase58());
