@@ -552,7 +552,7 @@ export async function deleverage(
           program,
           {
             marginfiAccount: config.ACCOUNT,
-            bank: config.BANK,
+            bank: bankPk,
             destinationTokenAccount: ata,
             lendingMarket: reserve.lendingMarket,
             reserve: bank.integrationAcc1,
