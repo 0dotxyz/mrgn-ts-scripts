@@ -54,6 +54,8 @@ import {
   JUPLEND_LENDING_PROGRAM_ID,
 } from "../juplend/lib/utils";
 import { updateLut } from "../../luts/update_lut";
+import { CrossbarClient } from "@switchboard-xyz/common";
+import { crankSwitchboardFeeds } from "../user/crank-swb-feed-alt";
 
 const sendTx = true;
 
@@ -71,10 +73,20 @@ type FetchedLendings = Map<string, any>; // any here is the Lending type from th
 
 const confidence = BigNumber(0.0212);
 
+/// A Switchboard feed cranked more recently than this is considered fresh enough to reuse
+/// across accounts in the same run, so batches of only-fresh feeds skip the crank entirely.
+const CRANK_FRESHNESS_MS = 30_000;
+/// Feed pubkey -> `Date.now()` of the last successful crank, shared across `deleverage` calls.
+const lastCrankedAt = new Map<string, number>();
+
 const grandConfig = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   BANK: new PublicKey("3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq"), // zBTC
   LUT: new PublicKey("UzGyBno8GEZDapsj1FAy11aquXby1wkxeeDa4Y5TdPN"),
+
+  // Crossbar used to crank the Switchboard feeds backing the involved banks, so the oracles
+  // are inside `oracle_max_age` when the risk engine reads them.
+  CROSSBAR_URL: "https://crossbar.switchboard.xyz",
 };
 
 type Config = {
@@ -83,6 +95,7 @@ type Config = {
   ACCOUNT: PublicKey;
   BALANCES: Balances;
   LUT: PublicKey;
+  CROSSBAR_URL?: string;
 };
 
 async function main() {
@@ -108,6 +121,7 @@ async function main() {
       ACCOUNT: accountPk,
       BALANCES: balances,
       LUT: grandConfig.LUT,
+      CROSSBAR_URL: grandConfig.CROSSBAR_URL,
     };
 
     await deleverage(
@@ -170,6 +184,10 @@ export async function deleverage(
   // Several JupLend banks can share one Lending state (one per mint), so only emit
   // `updateRate` once per state to keep the tx small.
   const refreshedLendings = new Set<string>();
+
+  // Switchboard feeds backing the involved banks, cranked in their own tx before the
+  // deleverage tx is built (see below). Deduped: several banks can share one feed.
+  const swbFeeds = new Map<string, PublicKey>();
 
   let liabValue: BigNumber;
   let remainingAccounts: PublicKey[][] = [];
@@ -243,8 +261,9 @@ export async function deleverage(
       bank.config.oracleSetup.driftSwitchboardPull ||
       bank.config.oracleSetup.juplendSwitchboardPull
     ) {
-      // TODO: put cranking directly in this script. Currently it's done separately.
-      console.log("SWB ORACLE:", bank.config.oracleKeys[0].toBase58());
+      const feed = bank.config.oracleKeys[0];
+      console.log("SWB ORACLE:", feed.toBase58());
+      swbFeeds.set(feed.toBase58(), feed);
     }
 
     if (bank.config.oracleSetup.fixed) {
@@ -684,6 +703,54 @@ export async function deleverage(
       .remainingAccounts(endMeta)
       .instruction(),
   );
+
+  // Crank the Switchboard feeds last, right before the deleverage tx is assembled, so the
+  // freshly-pushed prices are as young as possible when the risk engine reads them. This is a
+  // separate tx on purpose: the SWB update ixs carry secp256k1 signature verification and their
+  // own LUTs, and the deleverage tx is already at the size limit.
+  if (sendTx && swbFeeds.size > 0) {
+    const feeds = [...swbFeeds.values()];
+    const now = Date.now();
+    const stale = feeds.filter(
+      (feed) =>
+        now - (lastCrankedAt.get(feed.toBase58()) ?? 0) >= CRANK_FRESHNESS_MS,
+    );
+
+    console.log();
+    if (stale.length === 0) {
+      console.log(
+        `All ${feeds.length} Switchboard feed(s) cranked in the last ` +
+          `${CRANK_FRESHNESS_MS / 1000}s, skipping crank`,
+      );
+    } else {
+      console.log(
+        `Cranking ${feeds.length} Switchboard feed(s) before deleveraging ` +
+          `(${stale.length} stale)`,
+      );
+      try {
+        await crankSwitchboardFeeds({
+          ORACLE_KEYS: feeds,
+          CROSSBAR_CLIENT: new CrossbarClient(
+            config.CROSSBAR_URL ?? "https://crossbar.switchboard.xyz",
+          ),
+          // Already HOME-resolved, so `crankSwitchboardFeeds` leaves it alone and we are
+          // guaranteed to sign with the same keypair as the deleverage tx.
+          WALLET_PATH: process.env.HOME + walletPath,
+          RPC_URL: connection.rpcEndpoint,
+        });
+        const crankedAt = Date.now();
+        for (const feed of feeds) {
+          lastCrankedAt.set(feed.toBase58(), crankedAt);
+        }
+      } catch (error) {
+        // A failed crank is not fatal: the feeds may still be inside `oracle_max_age`, and if
+        // they are not the deleverage tx will fail on its own with a stale-oracle error. The
+        // timestamps are left untouched so the next account retries.
+        console.error("Switchboard crank failed, continuing anyway:", error);
+      }
+    }
+    console.log();
+  }
 
   let luts: AddressLookupTableAccount[] = [];
   const lutLookup = await connection.getAddressLookupTable(config.LUT);
