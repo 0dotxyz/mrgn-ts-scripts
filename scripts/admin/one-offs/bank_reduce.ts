@@ -79,3 +79,10 @@ const reduceOnlyWithBorrowingPowerConfig = {
   freezeSettings: null,
   tokenlessRepaymentsAllowed: null,
 };
+
+/** ORE bank in the main group (mint oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp) */
+const ORE_BANK = new PublicKey("FuyzDwmMbYYPPd3oLtjNk3ZLqsTBPaQtQrxRGzUGcAvp");
+
+reduceOnlyBanks([ORE_BANK]).catch((err) => {
+  console.error(err);
+});
