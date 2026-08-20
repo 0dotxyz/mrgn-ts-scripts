@@ -34,6 +34,8 @@ import {
   makeJuplendNativeUpdateRateIx,
 } from "../juplend/lib/utils";
 import { createAssociatedTokenAccountIdempotentInstruction, getMint, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import { CrossbarClient } from "@switchboard-xyz/common";
+import { crankSwitchboardFeeds } from "./crank-swb-feed-alt";
 
 const sendTx = true;
 type Config = {
@@ -61,6 +63,11 @@ type Config = {
 
   // Optional, if Juplend positions's health is required for borrow
   JUPLEND_STATES?: PublicKey[];
+
+  // Optional, Crossbar used to crank the Switchboard feeds backing the involved banks, so the
+  // oracles are inside `oracle_max_age` when the risk engine reads them. Defaults to the public
+  // Switchboard crossbar.
+  CROSSBAR_URL?: string;
 };
 
 const config: Config = {
@@ -171,6 +178,35 @@ export async function borrow(
   const bank = await program.account.bank.fetch(config.BANK);
   const borrowMint = bank.mint as PublicKey;
 
+  // Switchboard feeds backing the banks the risk engine reads for this borrow (the account's
+  // active positions plus the bank being borrowed from), cranked in their own tx before the
+  // borrow tx is built (see below). Deduped: several banks can share one feed.
+  const swbFeeds = new Map<string, PublicKey>();
+  const noteSwbFeed = (bankAcc: any) => {
+    if (
+      bankAcc.config.oracleSetup.switchboardPull ||
+      bankAcc.config.oracleSetup.kaminoSwitchboardPull ||
+      bankAcc.config.oracleSetup.driftSwitchboardPull ||
+      bankAcc.config.oracleSetup.juplendSwitchboardPull
+    ) {
+      const feed: PublicKey = bankAcc.config.oracleKeys[0];
+      console.log("SWB ORACLE:", feed.toBase58());
+      swbFeeds.set(feed.toBase58(), feed);
+    }
+  };
+  // Only used when actually sending: the MS path emits a tx to sign later, so cranking now is
+  // pointless and the extra fetches are wasted.
+  if (sendTx) {
+    noteSwbFeed(bank);
+    const acc = await program.account.marginfiAccount.fetch(config.ACCOUNT);
+    for (const bal of acc.lendingAccount.balances) {
+      if (bal.active !== 1 || bal.bankPk.equals(config.BANK)) {
+        continue;
+      }
+      noteSwbFeed(await program.account.bank.fetch(bal.bankPk));
+    }
+  }
+
   const mintAccInfo = await connection.getAccountInfo(borrowMint);
   if (!mintAccInfo) {
     throw new Error(`Mint account not found: ${borrowMint.toBase58()}`);
@@ -280,6 +316,33 @@ export async function borrow(
   console.log(
     "borrowing : " + config.AMOUNT.toString() + " from " + config.BANK,
   );
+
+  // Crank the Switchboard feeds right before the borrow tx is assembled, so the freshly-pushed
+  // prices are as young as possible when the risk engine reads them. This is a separate tx on
+  // purpose: the SWB update ixs carry secp256k1 signature verification and their own LUTs, and
+  // the borrow tx is typically already close to the size limit.
+  if (sendTx && swbFeeds.size > 0) {
+    const feeds = [...swbFeeds.values()];
+    console.log();
+    console.log(`Cranking ${feeds.length} Switchboard feed(s) before borrowing`);
+    try {
+      await crankSwitchboardFeeds({
+        ORACLE_KEYS: feeds,
+        CROSSBAR_CLIENT: new CrossbarClient(
+          config.CROSSBAR_URL ?? "https://crossbar.switchboard.xyz",
+        ),
+        // Already HOME-resolved, so `crankSwitchboardFeeds` leaves it alone and we are
+        // guaranteed to sign with the same keypair as the borrow tx.
+        WALLET_PATH: process.env.HOME + walletPath,
+        RPC_URL: connection.rpcEndpoint,
+      });
+    } catch (error) {
+      // A failed crank is not fatal: the feeds may still be inside `oracle_max_age`, and if they
+      // are not the borrow tx will fail on its own with a stale-oracle error.
+      console.error("Switchboard crank failed, continuing anyway:", error);
+    }
+    console.log();
+  }
 
   const { blockhash, lastValidBlockHeight } =
     await connection.getLatestBlockhash();
