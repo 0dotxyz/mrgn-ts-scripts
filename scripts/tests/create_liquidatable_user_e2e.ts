@@ -85,7 +85,7 @@ const DRIFT_BANKS = 0;
 const JUPLEND_BANKS = 4;
 
 // Note: current setup assumes you have ~1 USDC, ~1 USDS and ~1 USDT on your liquidatee's balances,
-// and at least ~1 PyUSD on your liquidator's balances. Plus significant amount of SOL
+// and at least 0.9 PyUSD on your liquidator's balances. Plus significant amount of SOL
 // for transactions and for rent (>1 SOL in liquidator's case).
 
 const config: Config = {
@@ -571,7 +571,7 @@ async function main() {
   }
 
   await borrow(true, borrowConfig, config.LIQUIDATEE_WALLET_PATH);
-  await sleep(1000);
+  await sleep(5000);
 
   console.log(
     "\n\n\n 17. SET ALL COLLATERAL BANKS' ASSET WEIGHT TO 0.1 TO RENDER LIQUIDATEE UNHEALTHY",
