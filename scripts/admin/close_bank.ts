@@ -29,7 +29,7 @@ export async function closeBank(sendTx: boolean, config: Config, walletPath: str
 
   const transaction = new Transaction().add(
     await program.methods
-      .lendingPoolCloseBank()
+      .lendingPoolCloseBank(false)
       .accounts({
         bank: config.BANK,
       })

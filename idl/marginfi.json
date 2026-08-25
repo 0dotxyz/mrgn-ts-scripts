@@ -6925,7 +6925,20 @@
     {
       "name": "lending_pool_close_bank",
       "docs": [
-        "(admin only) Close a bank. Requires CLOSE_ENABLED_FLAG and zero positions/shares."
+        "(admin only) Close a bank. Requires CLOSE_ENABLED_FLAG and zero positions/shares.",
+        "",
+        "Pass `force_close = Some(true)` to bypass the CLOSE_ENABLED_FLAG and open-position checks",
+        "(zero-shares/emissions are still required). Forcing a bank closed is **VERY DANGEROUS**.",
+        "Only do it if a Bank was fundamentally broken in some way. The admin **MUST ENSURE** that:",
+        "",
+        "* **NO USER** has a Balance in this bank (zero-shares on the bank  is not sufficient to",
+        "guarantee this, a user can have a zero-share Balance, this could brick their account.)",
+        "* fee and insurance vault balances are withdrawn (unless you don't care if they are lost",
+        "**FOREVER**).",
+        "* all three vault token-account balances are zero (or you don't care if anything remaining",
+        "is lost **FOREVER**), including the liquidity vault",
+        "* all three outstanding-fee fields are zero (or you don't care if anything remaining is lost",
+        "**FOREVER**)"
       ],
       "discriminator": [
         22,
@@ -6958,7 +6971,14 @@
           ]
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "force_close",
+          "type": {
+            "option": "bool"
+          }
+        }
+      ]
     },
     {
       "name": "lending_pool_collect_bank_fees",
@@ -13234,9 +13254,9 @@
           {
             "name": "cb_frozen_seconds_pending",
             "docs": [
-              "Frozen halt seconds from halt intervals overwritten before `accrue_interest` consumed them.",
-              "Non-zero only when the breaker advances without a preceding accrual (a paused pulse); the",
-              "next accrual excludes these on top of the current halt. Zero in the common case."
+              "Frozen halt seconds from halt intervals overwritten or cleared before `accrue_interest`",
+              "consumed them. Non-zero only when the halt record changes without a preceding accrual, i.e.",
+              "a paused pulse; the next accrual excludes these on top of the current halt. Zero normally."
             ],
             "type": "u64"
           },
@@ -18051,7 +18071,7 @@
             "type": "pubkey"
           },
           {
-            "name": "padding2_part1",
+            "name": "padding_1",
             "type": {
               "array": [
                 "u8",
@@ -18060,7 +18080,7 @@
             }
           },
           {
-            "name": "padding2_part2",
+            "name": "padding_2",
             "type": {
               "array": [
                 "u8",
@@ -18069,7 +18089,7 @@
             }
           },
           {
-            "name": "padding2_part3",
+            "name": "padding_3",
             "type": {
               "array": [
                 "u8",
@@ -18078,7 +18098,7 @@
             }
           },
           {
-            "name": "padding3",
+            "name": "padding_4",
             "type": {
               "array": [
                 "u8",
@@ -18087,7 +18107,7 @@
             }
           },
           {
-            "name": "padding_part1",
+            "name": "padding_5",
             "type": {
               "array": [
                 "u8",
@@ -18096,7 +18116,7 @@
             }
           },
           {
-            "name": "padding_part2",
+            "name": "padding_6",
             "type": {
               "array": [
                 "u8",
@@ -18105,7 +18125,7 @@
             }
           },
           {
-            "name": "padding_part3",
+            "name": "padding_7",
             "type": {
               "array": [
                 "u8",
@@ -18114,7 +18134,7 @@
             }
           },
           {
-            "name": "padding_part4",
+            "name": "padding_8",
             "type": {
               "array": [
                 "u8",
@@ -18148,7 +18168,7 @@
             "type": "pubkey"
           },
           {
-            "name": "padding1_reserve_collateral",
+            "name": "padding_9",
             "type": {
               "array": [
                 "u8",
@@ -18157,7 +18177,7 @@
             }
           },
           {
-            "name": "padding2_reserve_collateral",
+            "name": "padding_10",
             "type": {
               "array": [
                 "u8",
@@ -18166,43 +18186,25 @@
             }
           },
           {
-            "name": "padding4_part1",
+            "name": "padding_11",
             "type": {
               "array": [
                 "u8",
-                4096
+                1024
               ]
             }
           },
           {
-            "name": "padding4_part2",
+            "name": "padding_12",
             "type": {
               "array": [
                 "u8",
-                512
+                128
               ]
             }
           },
           {
-            "name": "padding4_part3",
-            "type": {
-              "array": [
-                "u8",
-                256
-              ]
-            }
-          },
-          {
-            "name": "padding4_part4",
-            "type": {
-              "array": [
-                "u8",
-                64
-              ]
-            }
-          },
-          {
-            "name": "padding4_part5",
+            "name": "padding_13",
             "type": {
               "array": [
                 "u8",
@@ -18211,7 +18213,105 @@
             }
           },
           {
-            "name": "padding4_part6",
+            "name": "padding_14",
+            "type": {
+              "array": [
+                "u8",
+                24
+              ]
+            }
+          },
+          {
+            "name": "emergency_mode",
+            "docs": [
+              "`ReserveConfig.emergency_mode`. When set, `refresh_reserve` clears the price status:",
+              "https://github.com/Kamino-Finance/klend/blob/release/v1.25.0/programs/klend/src/lending_market/lending_operations.rs#L67-L70"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "padding_15",
+            "type": {
+              "array": [
+                "u8",
+                2048
+              ]
+            }
+          },
+          {
+            "name": "padding_16",
+            "type": {
+              "array": [
+                "u8",
+                512
+              ]
+            }
+          },
+          {
+            "name": "padding_17",
+            "type": {
+              "array": [
+                "u8",
+                256
+              ]
+            }
+          },
+          {
+            "name": "padding_18",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "padding_19",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
+            "name": "padding_20",
+            "type": {
+              "array": [
+                "u8",
+                512
+              ]
+            }
+          },
+          {
+            "name": "padding_21",
+            "type": {
+              "array": [
+                "u8",
+                256
+              ]
+            }
+          },
+          {
+            "name": "padding_22",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "padding_23",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "padding_24",
             "type": {
               "array": [
                 "u8",

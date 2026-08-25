@@ -6931,7 +6931,20 @@ export type Marginfi = {
     {
       "name": "lendingPoolCloseBank",
       "docs": [
-        "(admin only) Close a bank. Requires CLOSE_ENABLED_FLAG and zero positions/shares."
+        "(admin only) Close a bank. Requires CLOSE_ENABLED_FLAG and zero positions/shares.",
+        "",
+        "Pass `force_close = Some(true)` to bypass the CLOSE_ENABLED_FLAG and open-position checks",
+        "(zero-shares/emissions are still required). Forcing a bank closed is **VERY DANGEROUS**.",
+        "Only do it if a Bank was fundamentally broken in some way. The admin **MUST ENSURE** that:",
+        "",
+        "* **NO USER** has a Balance in this bank (zero-shares on the bank  is not sufficient to",
+        "guarantee this, a user can have a zero-share Balance, this could brick their account.)",
+        "* fee and insurance vault balances are withdrawn (unless you don't care if they are lost",
+        "**FOREVER**).",
+        "* all three vault token-account balances are zero (or you don't care if anything remaining",
+        "is lost **FOREVER**), including the liquidity vault",
+        "* all three outstanding-fee fields are zero (or you don't care if anything remaining is lost",
+        "**FOREVER**)"
       ],
       "discriminator": [
         22,
@@ -6964,7 +6977,14 @@ export type Marginfi = {
           ]
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "forceClose",
+          "type": {
+            "option": "bool"
+          }
+        }
+      ]
     },
     {
       "name": "lendingPoolCollectBankFees",
@@ -13240,9 +13260,9 @@ export type Marginfi = {
           {
             "name": "cbFrozenSecondsPending",
             "docs": [
-              "Frozen halt seconds from halt intervals overwritten before `accrue_interest` consumed them.",
-              "Non-zero only when the breaker advances without a preceding accrual (a paused pulse); the",
-              "next accrual excludes these on top of the current halt. Zero in the common case."
+              "Frozen halt seconds from halt intervals overwritten or cleared before `accrue_interest`",
+              "consumed them. Non-zero only when the halt record changes without a preceding accrual, i.e.",
+              "a paused pulse; the next accrual excludes these on top of the current halt. Zero normally."
             ],
             "type": "u64"
           },
@@ -18057,7 +18077,7 @@ export type Marginfi = {
             "type": "pubkey"
           },
           {
-            "name": "padding2Part1",
+            "name": "padding1",
             "type": {
               "array": [
                 "u8",
@@ -18066,20 +18086,11 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding2Part2",
+            "name": "padding2",
             "type": {
               "array": [
                 "u8",
                 128
-              ]
-            }
-          },
-          {
-            "name": "padding2Part3",
-            "type": {
-              "array": [
-                "u8",
-                24
               ]
             }
           },
@@ -18088,12 +18099,12 @@ export type Marginfi = {
             "type": {
               "array": [
                 "u8",
-                512
+                24
               ]
             }
           },
           {
-            "name": "paddingPart1",
+            "name": "padding4",
             "type": {
               "array": [
                 "u8",
@@ -18102,7 +18113,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "paddingPart2",
+            "name": "padding5",
             "type": {
               "array": [
                 "u8",
@@ -18111,7 +18122,16 @@ export type Marginfi = {
             }
           },
           {
-            "name": "paddingPart3",
+            "name": "padding6",
+            "type": {
+              "array": [
+                "u8",
+                512
+              ]
+            }
+          },
+          {
+            "name": "padding7",
             "type": {
               "array": [
                 "u8",
@@ -18120,7 +18140,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "paddingPart4",
+            "name": "padding8",
             "type": {
               "array": [
                 "u8",
@@ -18154,7 +18174,7 @@ export type Marginfi = {
             "type": "pubkey"
           },
           {
-            "name": "padding1ReserveCollateral",
+            "name": "padding9",
             "type": {
               "array": [
                 "u8",
@@ -18163,7 +18183,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding2ReserveCollateral",
+            "name": "padding10",
             "type": {
               "array": [
                 "u8",
@@ -18172,43 +18192,25 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding4Part1",
+            "name": "padding11",
             "type": {
               "array": [
                 "u8",
-                4096
+                1024
               ]
             }
           },
           {
-            "name": "padding4Part2",
+            "name": "padding12",
             "type": {
               "array": [
                 "u8",
-                512
+                128
               ]
             }
           },
           {
-            "name": "padding4Part3",
-            "type": {
-              "array": [
-                "u8",
-                256
-              ]
-            }
-          },
-          {
-            "name": "padding4Part4",
-            "type": {
-              "array": [
-                "u8",
-                64
-              ]
-            }
-          },
-          {
-            "name": "padding4Part5",
+            "name": "padding13",
             "type": {
               "array": [
                 "u8",
@@ -18217,7 +18219,105 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding4Part6",
+            "name": "padding14",
+            "type": {
+              "array": [
+                "u8",
+                24
+              ]
+            }
+          },
+          {
+            "name": "emergencyMode",
+            "docs": [
+              "`ReserveConfig.emergency_mode`. When set, `refresh_reserve` clears the price status:",
+              "https://github.com/Kamino-Finance/klend/blob/release/v1.25.0/programs/klend/src/lending_market/lending_operations.rs#L67-L70"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "padding15",
+            "type": {
+              "array": [
+                "u8",
+                2048
+              ]
+            }
+          },
+          {
+            "name": "padding16",
+            "type": {
+              "array": [
+                "u8",
+                512
+              ]
+            }
+          },
+          {
+            "name": "padding17",
+            "type": {
+              "array": [
+                "u8",
+                256
+              ]
+            }
+          },
+          {
+            "name": "padding18",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "padding19",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
+            "name": "padding20",
+            "type": {
+              "array": [
+                "u8",
+                512
+              ]
+            }
+          },
+          {
+            "name": "padding21",
+            "type": {
+              "array": [
+                "u8",
+                256
+              ]
+            }
+          },
+          {
+            "name": "padding22",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "padding23",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "padding24",
             "type": {
               "array": [
                 "u8",
