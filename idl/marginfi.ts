@@ -8,7 +8,7 @@ export type Marginfi = {
   "address": "",
   "metadata": {
     "name": "marginfi",
-    "version": "0.1.9",
+    "version": "0.1.10",
     "spec": "0.1.0",
     "description": "Borrow Lending Prime Broker"
   },
@@ -228,69 +228,6 @@ export type Marginfi = {
           }
         }
       ]
-    },
-    {
-      "name": "copyFeeStateToV2",
-      "docs": [
-        "(permissionless) Copy current FeeState values into FeeStateV2."
-      ],
-      "discriminator": [
-        100,
-        146,
-        124,
-        224,
-        95,
-        196,
-        206,
-        14
-      ],
-      "accounts": [
-        {
-          "name": "feeState",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  102,
-                  101,
-                  101,
-                  115,
-                  116,
-                  97,
-                  116,
-                  101
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "feeStateV2",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  102,
-                  101,
-                  101,
-                  115,
-                  116,
-                  97,
-                  116,
-                  101,
-                  95,
-                  118,
-                  50
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "args": []
     },
     {
       "name": "disableStakedOracles",
@@ -1668,6 +1605,12 @@ export type Marginfi = {
           "type": {
             "option": "pubkey"
           }
+        },
+        {
+          "name": "accountTransferFee",
+          "type": {
+            "option": "u32"
+          }
         }
       ]
     },
@@ -1858,6 +1801,12 @@ export type Marginfi = {
           ]
         },
         {
+          "name": "group",
+          "relations": [
+            "marginfiAccount"
+          ]
+        },
+        {
           "name": "liquidationReceiver",
           "writable": true,
           "signer": true,
@@ -1895,6 +1844,16 @@ export type Marginfi = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "feePayer",
+          "docs": [
+            "Optional separate payer for the flat liquidation fee. When provided it must sign and pays the",
+            "fee; when omitted, the `liquidation_receiver` pays (the default)."
+          ],
+          "writable": true,
+          "signer": true,
+          "optional": true
         }
       ],
       "args": []
@@ -2071,61 +2030,6 @@ export type Marginfi = {
           }
         }
       ]
-    },
-    {
-      "name": "initGlobalFeeStateV2",
-      "docs": [
-        "(Runs once per program) Initialize the V2 fee state PDA."
-      ],
-      "discriminator": [
-        170,
-        82,
-        207,
-        84,
-        84,
-        17,
-        116,
-        124
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "docs": [
-            "Pays the init fee"
-          ],
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "feeStateV2",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  102,
-                  101,
-                  101,
-                  115,
-                  116,
-                  97,
-                  116,
-                  101,
-                  95,
-                  118,
-                  50
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": []
     },
     {
       "name": "initStakedSettings",
@@ -3847,6 +3751,12 @@ export type Marginfi = {
           "writable": true
         },
         {
+          "name": "group",
+          "relations": [
+            "marginfiAccount"
+          ]
+        },
+        {
           "name": "authority",
           "signer": true,
           "relations": [
@@ -4048,6 +3958,12 @@ export type Marginfi = {
         {
           "name": "marginfiAccount",
           "writable": true
+        },
+        {
+          "name": "group",
+          "relations": [
+            "marginfiAccount"
+          ]
         }
       ],
       "args": []
@@ -6660,6 +6576,50 @@ export type Marginfi = {
       "args": []
     },
     {
+      "name": "lendingPoolClearCircuitBreaker",
+      "docs": [
+        "(admin or risk_admin) Clear an active circuit-breaker halt on a bank.",
+        "* `reseed_reference` - If true, also zero the EMA reference so the next pulse reseeds it",
+        "from live oracle data (use when clearing because the new price level is valid and the",
+        "pre-halt reference would cause an immediate re-halt)."
+      ],
+      "discriminator": [
+        64,
+        73,
+        106,
+        46,
+        213,
+        86,
+        31,
+        48
+      ],
+      "accounts": [
+        {
+          "name": "group",
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "authority",
+          "docs": [
+            "Either `group.admin` or `group.risk_admin`. Validated in the handler."
+          ],
+          "signer": true
+        },
+        {
+          "name": "bank",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "reseedReference",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "lendingPoolCloneBank",
       "docs": [
         "(admin only) Staging or localnet only, panics on mainnet",
@@ -6971,7 +6931,20 @@ export type Marginfi = {
     {
       "name": "lendingPoolCloseBank",
       "docs": [
-        "(admin only) Close a bank. Requires CLOSE_ENABLED_FLAG and zero positions/shares."
+        "(admin only) Close a bank. Requires CLOSE_ENABLED_FLAG and zero positions/shares.",
+        "",
+        "Pass `force_close = Some(true)` to bypass the CLOSE_ENABLED_FLAG and open-position checks",
+        "(zero-shares/emissions are still required). Forcing a bank closed is **VERY DANGEROUS**.",
+        "Only do it if a Bank was fundamentally broken in some way. The admin **MUST ENSURE** that:",
+        "",
+        "* **NO USER** has a Balance in this bank (zero-shares on the bank  is not sufficient to",
+        "guarantee this, a user can have a zero-share Balance, this could brick their account.)",
+        "* fee and insurance vault balances are withdrawn (unless you don't care if they are lost",
+        "**FOREVER**).",
+        "* all three vault token-account balances are zero (or you don't care if anything remaining",
+        "is lost **FOREVER**), including the liquidity vault",
+        "* all three outstanding-fee fields are zero (or you don't care if anything remaining is lost",
+        "**FOREVER**)"
       ],
       "discriminator": [
         22,
@@ -7004,7 +6977,14 @@ export type Marginfi = {
           ]
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "forceClose",
+          "type": {
+            "option": "bool"
+          }
+        }
+      ]
     },
     {
       "name": "lendingPoolCollectBankFees",
@@ -7689,6 +7669,79 @@ export type Marginfi = {
       "args": []
     },
     {
+      "name": "lendingPoolInitSameAssetEmodeRegistry",
+      "docs": [
+        "(admin or emode_admin only) Initialize the per-group same-asset e-mode registry."
+      ],
+      "discriminator": [
+        217,
+        78,
+        227,
+        223,
+        147,
+        231,
+        213,
+        108
+      ],
+      "accounts": [
+        {
+          "name": "group"
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "sameAssetEmodeRegistry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  97,
+                  109,
+                  101,
+                  95,
+                  97,
+                  115,
+                  115,
+                  101,
+                  116,
+                  95,
+                  101,
+                  109,
+                  111,
+                  100,
+                  101,
+                  95,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "group"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "lendingPoolPulseBankPriceCache",
       "docs": [
         "(Permissionless) Refresh the cached oracle price for a bank."
@@ -7718,19 +7771,139 @@ export type Marginfi = {
       "args": []
     },
     {
-      "name": "lendingPoolSetFixedOraclePrice",
+      "name": "lendingPoolResizeGroupAccount",
+      "docs": [
+        "(permissionless) Resize the group account to the v2 layout size; `payer` funds the",
+        "added rent."
+      ],
+      "discriminator": [
+        97,
+        221,
+        69,
+        96,
+        204,
+        162,
+        174,
+        250
+      ],
+      "accounts": [
+        {
+          "name": "group",
+          "docs": [
+            "undersized group can still be resized under the future (larger-struct) program."
+          ],
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "docs": [
+            "Funds the rent for the added account space."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "lendingPoolSetBankSameAssetEmodeEligibility",
+      "docs": [
+        "(admin or emode_admin only) Opt a bank in/out of same-asset e-mode participation."
+      ],
+      "discriminator": [
+        149,
+        50,
+        162,
+        236,
+        150,
+        119,
+        9,
+        47
+      ],
+      "accounts": [
+        {
+          "name": "group",
+          "relations": [
+            "bank",
+            "sameAssetEmodeRegistry"
+          ]
+        },
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "bank",
+          "writable": true
+        },
+        {
+          "name": "sameAssetEmodeRegistry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  97,
+                  109,
+                  101,
+                  95,
+                  97,
+                  115,
+                  115,
+                  101,
+                  116,
+                  95,
+                  101,
+                  109,
+                  111,
+                  100,
+                  101,
+                  95,
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "group"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "enabled",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "lendingPoolSetOraclePrice",
       "docs": [
         "(admin only)"
       ],
       "discriminator": [
-        28,
-        126,
-        127,
-        127,
-        60,
+        234,
+        244,
         37,
-        211,
-        125
+        65,
+        101,
+        255,
+        217,
+        160
       ],
       "accounts": [
         {
@@ -7759,6 +7932,10 @@ export type Marginfi = {
               "name": "wrappedI80f48"
             }
           }
+        },
+        {
+          "name": "setup",
+          "type": "u8"
         }
       ]
     },
@@ -8906,6 +9083,8 @@ export type Marginfi = {
         "(admin only) Configure group admin keys and emode leverage caps. All admin keys must be",
         "provided on every call. Emode leverage caps are set if provided, otherwise the existing",
         "(non-zero) values are kept. Pass `Some(value)` to update, `None` to leave unchanged.",
+        "Same-asset emode leverage is disabled by configuring both init and maint leverage to `1`;",
+        "values below `1`, including `0`, are invalid.",
         "",
         "Note: `new_emissions_admin` is deprecated and currently has no on-chain effect."
       ],
@@ -8993,6 +9172,26 @@ export type Marginfi = {
         },
         {
           "name": "emodeMaxMaintLeverage",
+          "type": {
+            "option": {
+              "defined": {
+                "name": "wrappedI80f48"
+              }
+            }
+          }
+        },
+        {
+          "name": "sameAssetEmodeInitLeverage",
+          "type": {
+            "option": {
+              "defined": {
+                "name": "wrappedI80f48"
+              }
+            }
+          }
+        },
+        {
+          "name": "sameAssetEmodeMaintLeverage",
           "type": {
             "option": {
               "defined": {
@@ -9279,10 +9478,11 @@ export type Marginfi = {
     {
       "name": "purgeDeleverageBalance",
       "docs": [
-        "(risk admin only) Purge a user's lending balance without withdrawing anything. Only usable",
-        "after all the debt has been settled on a bank in deleveraging mode, e.g. when",
-        "`TOKENLESS_REPAYMENTS_ALLOWED` and `TOKENLESS_REPAYMENTS_COMPLETE`. used to purge remaining",
-        "lending assets in a now-worthless bank before it is fully sunset."
+        "(risk admin only) Purge a user's lending balance on a bank being sunset, without paying the",
+        "user anything. Only usable after all the debt has been settled on a bank in deleveraging",
+        "mode, i.e. `TOKENLESS_REPAYMENTS_ALLOWED` and `TOKENLESS_REPAYMENTS_COMPLETE`. Used to clear",
+        "abandoned lending positions in a now-worthless bank so it can be closed via",
+        "`lending_pool_close_bank`."
       ],
       "discriminator": [
         132,
@@ -9316,6 +9516,63 @@ export type Marginfi = {
         {
           "name": "bank",
           "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "resizeGlobalFeeState",
+      "docs": [
+        "(permissionless) Resize the fee-state account to the v2 layout size; `payer` funds the",
+        "added rent."
+      ],
+      "discriminator": [
+        141,
+        111,
+        97,
+        79,
+        111,
+        143,
+        77,
+        159
+      ],
+      "accounts": [
+        {
+          "name": "feeState",
+          "docs": [
+            "Not an AccountLoader so an undersized fee state can still be resized under the future",
+            "(larger-struct) program."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "docs": [
+            "Funds the rent for the added account space."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
@@ -9984,6 +10241,12 @@ export type Marginfi = {
           ]
         },
         {
+          "name": "group",
+          "relations": [
+            "marginfiAccount"
+          ]
+        },
+        {
           "name": "liquidationReceiver",
           "docs": [
             "This account will have the authority to withdraw/repay as if they are the user authority",
@@ -10220,6 +10483,26 @@ export type Marginfi = {
           "writable": true
         },
         {
+          "name": "feeState",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
@@ -10319,6 +10602,26 @@ export type Marginfi = {
         {
           "name": "globalFeeWallet",
           "writable": true
+        },
+        {
+          "name": "feeState",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "instructionsSysvar",
@@ -10645,19 +10948,6 @@ export type Marginfi = {
       ]
     },
     {
-      "name": "feeStateV2",
-      "discriminator": [
-        240,
-        43,
-        104,
-        108,
-        146,
-        39,
-        22,
-        38
-      ]
-    },
-    {
       "name": "liquidationRecord",
       "discriminator": [
         95,
@@ -10710,6 +11000,19 @@ export type Marginfi = {
       ]
     },
     {
+      "name": "sameAssetEmodeRegistry",
+      "discriminator": [
+        222,
+        21,
+        195,
+        149,
+        193,
+        72,
+        219,
+        31
+      ]
+    },
+    {
       "name": "stakedSettings",
       "discriminator": [
         157,
@@ -10735,6 +11038,45 @@ export type Marginfi = {
         251,
         225,
         73
+      ]
+    },
+    {
+      "name": "circuitBreakerAutoBrokenEvent",
+      "discriminator": [
+        104,
+        30,
+        251,
+        194,
+        213,
+        139,
+        21,
+        230
+      ]
+    },
+    {
+      "name": "circuitBreakerClearedEvent",
+      "discriminator": [
+        97,
+        244,
+        85,
+        48,
+        246,
+        155,
+        29,
+        219
+      ]
+    },
+    {
+      "name": "circuitBreakerTrippedEvent",
+      "discriminator": [
+        112,
+        68,
+        182,
+        85,
+        54,
+        184,
+        4,
+        134
       ]
     },
     {
@@ -10972,16 +11314,29 @@ export type Marginfi = {
       ]
     },
     {
-      "name": "lendingPoolBankSetFixedOraclePriceEvent",
+      "name": "lendingPoolBankSetOraclePriceEvent",
       "discriminator": [
-        65,
-        72,
-        8,
-        85,
-        229,
-        20,
-        90,
-        26
+        92,
+        180,
+        117,
+        175,
+        131,
+        24,
+        159,
+        141
+      ]
+    },
+    {
+      "name": "lendingPoolBankSetSameAssetEmodeEligibilityEvent",
+      "discriminator": [
+        186,
+        247,
+        119,
+        107,
+        251,
+        215,
+        15,
+        79
       ]
     },
     {
@@ -11804,8 +12159,8 @@ export type Marginfi = {
     },
     {
       "code": 6132,
-      "name": "useSetFixedOraclePrice",
-      "msg": "Use set_fixed_oracle_price instead"
+      "name": "useSetOraclePrice",
+      "msg": "Use set_oracle_price instead"
     },
     {
       "code": 6133,
@@ -11821,6 +12176,26 @@ export type Marginfi = {
       "code": 6135,
       "name": "slippageTooHigh",
       "msg": "Max slippage exceeds the allowed cap"
+    },
+    {
+      "code": 6136,
+      "name": "marinadeStateValidationFailed",
+      "msg": "Marinade state validation failed"
+    },
+    {
+      "code": 6137,
+      "name": "exponentVaultValidationFailed",
+      "msg": "Exponent vault validation failed"
+    },
+    {
+      "code": 6138,
+      "name": "invalidPtStartPrice",
+      "msg": "PT start price must be in (0, 1]"
+    },
+    {
+      "code": 6139,
+      "name": "stakePoolStale",
+      "msg": "Stake pool balance has not been updated recently enough"
     },
     {
       "code": 6200,
@@ -12181,6 +12556,36 @@ export type Marginfi = {
       "code": 6512,
       "name": "invalidJuplendWithdrawIntermediaryAta",
       "msg": "Invalid Juplend withdraw intermediary ATA"
+    },
+    {
+      "code": 6513,
+      "name": "invalidResize",
+      "msg": "Account is already at (or above) the target size"
+    },
+    {
+      "code": 6600,
+      "name": "bankCircuitBreakerHalted",
+      "msg": "Bank is halted by oracle circuit breaker"
+    },
+    {
+      "code": 6601,
+      "name": "circuitBreakerAdminOnly",
+      "msg": "Action requires risk admin while bank is circuit-breaker halted"
+    },
+    {
+      "code": 6602,
+      "name": "circuitBreakerInvalidConfig",
+      "msg": "Invalid circuit breaker config"
+    },
+    {
+      "code": 6603,
+      "name": "circuitBreakerRequiresWarmCache",
+      "msg": "Circuit breaker cannot be enabled until the oracle price cache is warm (call pulse first)"
+    },
+    {
+      "code": 6604,
+      "name": "circuitBreakerPriceJump",
+      "msg": "Oracle price deviates too far from the circuit breaker reference; action rejected"
     }
   ],
   "types": [
@@ -12567,7 +12972,9 @@ export type Marginfi = {
               "keypair-based bank.",
               "- Bit 9 (512): `STAKED_ORACLE_DISABLED` — staked oracle pricing is temporarily disabled.",
               "- Bit 10 (1024): `STAKED_ORACLE_PRICE_USES_ONRAMP` — staked oracle pricing includes the SPL",
-              "single-pool on-ramp account in NAV."
+              "single-pool on-ramp account in NAV.",
+              "- Bit 11 (2048): `CIRCUIT_BREAKER_ENABLED` — oracle deviation breaker active on this bank",
+              "- Bit 12 (4096): `BANK_SAME_ASSET_EMODE_ELIGIBLE` — bank may participate in same-asset e-mode."
             ],
             "type": "u64"
           },
@@ -12663,6 +13070,24 @@ export type Marginfi = {
             "type": "i32"
           },
           {
+            "name": "liquidationLiquidatorFee",
+            "docs": [
+              "Fee the liquidator earns when liquidating against this bank's liability. Decode with",
+              "`u32_to_centi` (`u32::MAX` = 100%).",
+              "* 0 falls back to the default (`DEFAULT_LIQUIDATION_FEE` = 2.5%)."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "liquidationInsuranceFee",
+            "docs": [
+              "Fee routed to this bank's insurance fund on a liquidation against its liability. Decode",
+              "with `u32_to_centi` (`u32::MAX` = 100%).",
+              "* 0 falls back to the default (`DEFAULT_LIQUIDATION_FEE` = 2.5%)."
+            ],
+            "type": "u32"
+          },
+          {
             "name": "padding0",
             "docs": [
               "Reserved for future use"
@@ -12670,7 +13095,7 @@ export type Marginfi = {
             "type": {
               "array": [
                 "u8",
-                16
+                8
               ]
             }
           },
@@ -12738,11 +13163,115 @@ export type Marginfi = {
             "type": "u64"
           },
           {
+            "name": "cbHaltStartedAt",
+            "docs": [
+              "Unix-seconds when the current halt started, zero if not halted."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "cbHaltEndedAt",
+            "docs": [
+              "Unix-seconds when the current halt's tier duration ends. Tier stays sticky past this for",
+              "the escalation window; a fresh breach within the window ratchets to the next tier."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "cbTier",
+            "docs": [
+              "0 = operational, 1..=3 = escalating halt severity."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "cbTier3ConsecutiveTrips",
+            "docs": [
+              "Consecutive tier-3 trips with no clean escalation-window between them. Hitting",
+              "`CB_MAX_TIER3_BEFORE_CIRCUIT_BREAK` forces the bank to `CircuitBroken`."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "cbPreBreakState",
+            "docs": [
+              "`BankOperationalState` (as `u8`) the bank held before the breaker forced it to",
+              "`CircuitBroken`. Restored by `clear_circuit_breaker`. Meaningless unless",
+              "`operational_state == CircuitBroken`."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "cbPad",
+            "type": {
+              "array": [
+                "u8",
+                5
+              ]
+            }
+          },
+          {
+            "name": "cbLastObservedSlot",
+            "docs": [
+              "Solana slot of the last counted CB observation; used for slot-level dedup."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "cbLastOracleSourceTime",
+            "docs": [
+              "Publisher-side timestamp of the last counted CB observation; rejects re-reads of the same",
+              "publication across multiple Solana slots. Zero when the adapter doesn't expose one."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "cbReferencePrice",
+            "docs": [
+              "EMA reference price used by the circuit breaker, in the multiplier-adjusted effective-price",
+              "domain the risk engine uses. Frozen while halted, zero until the first observation after",
+              "enable."
+            ],
+            "type": {
+              "defined": {
+                "name": "wrappedI80f48"
+              }
+            }
+          },
+          {
+            "name": "cbWindowReferencePrice",
+            "docs": [
+              "Long-window reference price (same multiplier-adjusted domain as `cb_reference_price`) used",
+              "to catch slow oracle walking that stays below the per-observation breaker threshold."
+            ],
+            "type": {
+              "defined": {
+                "name": "wrappedI80f48"
+              }
+            }
+          },
+          {
+            "name": "cbWindowStartedAt",
+            "docs": [
+              "Unix-seconds when `cb_window_reference_price` was anchored."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "cbFrozenSecondsPending",
+            "docs": [
+              "Frozen halt seconds from halt intervals overwritten or cleared before `accrue_interest`",
+              "consumed them. Non-zero only when the halt record changes without a preceding accrual, i.e.",
+              "a paused pulse; the next accrual excludes these on top of the current halt. Zero normally."
+            ],
+            "type": "u64"
+          },
+          {
             "name": "padding1",
             "type": {
               "array": [
                 "u64",
-                13
+                2
               ]
             }
           }
@@ -12838,7 +13367,8 @@ export type Marginfi = {
               "Confidence interval reported by the oracle when last_oracle_price was fetched",
               "* Always non-negative",
               "* Zero if never updated",
-              "* Note: this value is the confidence reported by oracles, multiplied by `STD_DEV_MULTIPLE`"
+              "* Pyth: confidence * 2.12",
+              "* Switchboard: price * oracle_max_confidence / U32_MAX"
             ],
             "type": {
               "defined": {
@@ -12862,7 +13392,7 @@ export type Marginfi = {
             "type": "u8"
           },
           {
-            "name": "pad0",
+            "name": "cbCachePad",
             "type": {
               "array": [
                 "u8",
@@ -13040,11 +13570,25 @@ export type Marginfi = {
             }
           },
           {
+            "name": "cbWindowMaxUpBps",
+            "docs": [
+              "CB long-window upward move cap in bps; `0` uses the `CB_WINDOW_MAX_UP_BPS` default."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "cbWindowMaxDownBps",
+            "docs": [
+              "CB long-window downward move cap in bps; `0` uses the `CB_WINDOW_MAX_DOWN_BPS` default."
+            ],
+            "type": "u16"
+          },
+          {
             "name": "pad0",
             "type": {
               "array": [
                 "u8",
-                6
+                2
               ]
             }
           },
@@ -13098,9 +13642,16 @@ export type Marginfi = {
             "type": {
               "array": [
                 "u8",
-                5
+                1
               ]
             }
+          },
+          {
+            "name": "cbWindowSeconds",
+            "docs": [
+              "CB long-window length in seconds; `0` uses the `CB_WINDOW_SECONDS` default."
+            ],
+            "type": "u32"
           },
           {
             "name": "totalAssetValueInitLimit",
@@ -13135,10 +13686,15 @@ export type Marginfi = {
           {
             "name": "oracleMaxConfidence",
             "docs": [
-              "From 0-100%, if the confidence exceeds this value, the oracle is considered invalid. Note:",
-              "the confidence adjustment is capped at 5% regardless of this value.",
-              "* 0 falls back to using the default 10% instead, i.e., U32_MAX_DIV_10",
-              "* A %, as u32, e.g. 100% = u32::MAX, 50% = u32::MAX/2, etc."
+              "A %, as u32, e.g. 100% = u32::MAX, 50% = u32::MAX/2, etc.",
+              "",
+              "Oracle confidence configuration. Semantics depend on the oracle type:",
+              "* Pyth: Maximum allowed confidence interval. Prices exceeding this threshold are rejected.",
+              "- 0 defaults to 10%.",
+              "* Switchboard: Confidence spread used for price biasing.",
+              "- 0 disables confidence adjustment.",
+              "- Non-zero: confidence = price * oracle_max_confidence / U32_MAX.",
+              "- Clamped to MAX_CONF_INTERVAL (5% of price)."
             ],
             "type": "u32"
           },
@@ -13154,13 +13710,47 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding1",
+            "name": "cbDeviationBpsTiers",
+            "docs": [
+              "Deviation thresholds in basis points for tiers 1/2/3, strictly monotonic."
+            ],
             "type": {
               "array": [
-                "u8",
-                16
+                "u16",
+                3
               ]
             }
+          },
+          {
+            "name": "cbTierDurationsSeconds",
+            "docs": [
+              "Halt durations in seconds for tiers 1/2/3, strictly monotonic."
+            ],
+            "type": {
+              "array": [
+                "u16",
+                3
+              ]
+            }
+          },
+          {
+            "name": "cbEscalationWindowMult",
+            "docs": [
+              "Escalation window multiplier: a re-breach within `prev_tier_duration * mult` seconds",
+              "after a halt ends ratchets to the next tier."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "cbConfigPad",
+            "type": "u8"
+          },
+          {
+            "name": "cbEmaAlphaBps",
+            "docs": [
+              "EMA smoothing factor for the reference price, in basis points (e.g. 1000 = α=0.1)."
+            ],
+            "type": "u16"
           }
         ]
       }
@@ -13296,10 +13886,15 @@ export type Marginfi = {
           {
             "name": "oracleMaxConfidence",
             "docs": [
-              "From 0-100%, if the confidence exceeds this value, the oracle is considered invalid. Note:",
-              "the confidence adjustment is capped at 5% regardless of this value.",
-              "* 0% = use the default (10%)",
-              "* A %, as u32, e.g. 100% = u32::MAX, 50% = u32::MAX/2, etc."
+              "A %, as u32, e.g. 100% = u32::MAX, 50% = u32::MAX/2, etc.",
+              "",
+              "Oracle confidence configuration. Semantics depend on the oracle type.",
+              "* Pyth: Maximum allowed confidence interval. Prices exceeding this threshold are rejected.",
+              "- 0 defaults to 10%.",
+              "* Switchboard: Confidence spread used for price biasing.",
+              "- 0 disables confidence adjustment.",
+              "- Non-zero: confidence = price * oracle_max_confidence / U32_MAX.",
+              "- Clamped to MAX_CONF_INTERVAL (5% of price)."
             ],
             "type": "u32"
           }
@@ -13434,6 +14029,79 @@ export type Marginfi = {
             "type": {
               "option": "bool"
             }
+          },
+          {
+            "name": "liquidationLiquidatorFee",
+            "docs": [
+              "Per-bank liquidation fees, encoded as `u32_to_centi` (`u32::MAX` = 100%; 0 => default 2.5%)."
+            ],
+            "type": {
+              "option": "u32"
+            }
+          },
+          {
+            "name": "liquidationInsuranceFee",
+            "type": {
+              "option": "u32"
+            }
+          },
+          {
+            "name": "circuitBreakerEnabled",
+            "type": {
+              "option": "bool"
+            }
+          },
+          {
+            "name": "cbDeviationBpsTiers",
+            "type": {
+              "option": {
+                "array": [
+                  "u16",
+                  3
+                ]
+              }
+            }
+          },
+          {
+            "name": "cbTierDurationsSeconds",
+            "type": {
+              "option": {
+                "array": [
+                  "u16",
+                  3
+                ]
+              }
+            }
+          },
+          {
+            "name": "cbEscalationWindowMult",
+            "type": {
+              "option": "u8"
+            }
+          },
+          {
+            "name": "cbEmaAlphaBps",
+            "type": {
+              "option": "u16"
+            }
+          },
+          {
+            "name": "cbWindowSeconds",
+            "type": {
+              "option": "u32"
+            }
+          },
+          {
+            "name": "cbWindowMaxUpBps",
+            "type": {
+              "option": "u16"
+            }
+          },
+          {
+            "name": "cbWindowMaxDownBps",
+            "type": {
+              "option": "u16"
+            }
           }
         ]
       }
@@ -13558,6 +14226,9 @@ export type Marginfi = {
           },
           {
             "name": "reduceOnlyWithBorrowingPower"
+          },
+          {
+            "name": "circuitBroken"
           }
         ]
       }
@@ -13595,6 +14266,78 @@ export type Marginfi = {
                 "name": "rateLimitWindow"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "circuitBreakerAutoBrokenEvent",
+      "docs": [
+        "Emitted when consecutive tier-3 trips force a bank into `CircuitBroken`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "consecutiveTier3Trips",
+            "type": "u8"
+          },
+          {
+            "name": "currentTimestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "circuitBreakerClearedEvent",
+      "docs": [
+        "Emitted when a halt is cleared (admin override or escalation-window expiry)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "priorTier",
+            "type": "u8"
+          },
+          {
+            "name": "reason",
+            "docs": [
+              "One of the `CB_CLEAR_REASON_*` constants."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "currentTimestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "circuitBreakerTrippedEvent",
+      "docs": [
+        "Emitted when the per-bank oracle circuit breaker trips or escalates a halt."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "tier",
+            "type": "u8"
+          },
+          {
+            "name": "deviationBps",
+            "type": "u64"
+          },
+          {
+            "name": "haltStartedAt",
+            "type": "i64"
+          },
+          {
+            "name": "haltEndedAt",
+            "type": "i64"
           }
         ]
       }
@@ -13718,7 +14461,7 @@ export type Marginfi = {
       "name": "driftConfigCompact",
       "docs": [
         "Used to configure Drift banks. A simplified version of `BankConfigCompact` which omits most",
-        "values related to interest since Drift banks cannot earn interest or be borrowed against."
+        "values related to interest since Drift banks cannot earn interest or be borrowed from."
       ],
       "type": {
         "kind": "struct",
@@ -14110,8 +14853,23 @@ export type Marginfi = {
             "type": "pubkey"
           },
           {
+            "name": "accountTransferFee",
+            "docs": [
+              "Flat fee in lamports paid to the global fee wallet when initiating an account transfer",
+              "(anti-spam; 5,000,000 lamports ~= $0.50). A stored 0 means \"use the default\"",
+              "(`DEFAULT_ACCOUNT_TRANSFER_FEE_LAMPORTS`), which preserves the legacy fee for FeeStates",
+              "created before this field existed."
+            ],
+            "type": "u32"
+          },
+          {
             "name": "placeholder0",
-            "type": "u64"
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
           },
           {
             "name": "bankInitFlatSolFee",
@@ -14222,6 +14980,21 @@ export type Marginfi = {
               "Can pause (not unpause) the protocol, but cannot modify any fee configuration."
             ],
             "type": "pubkey"
+          },
+          {
+            "name": "reserved0",
+            "docs": [
+              "Reserved for future use (e.g. the variable-borrow premium settings). Accounts created",
+              "before the struct grew to this size are v1-sized (`8 + V1_LEN` bytes) and must be",
+              "grown via `resize_global_fee_state` before this program version can load them; the new",
+              "bytes are zero-filled."
+            ],
+            "type": {
+              "array": [
+                "u64",
+                32
+              ]
+            }
           }
         ]
       }
@@ -14272,169 +15045,6 @@ export type Marginfi = {
               "Unix timestamp of the last fee state propagation"
             ],
             "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "feeStateV2",
-      "docs": [
-        "V2 fee state, currently unused by protocol logic. Mirrors `FeeState` with additional padding."
-      ],
-      "serialization": "bytemuck",
-      "repr": {
-        "kind": "c"
-      },
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "key",
-            "docs": [
-              "The fee state's own key. A PDA derived from `b\"feestate_v2\"`"
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "globalFeeAdmin",
-            "docs": [
-              "Can modify fees, pause the protocol, etc"
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "globalFeeWallet",
-            "docs": [
-              "The base wallet for all protocol fees. All SOL fees go to this wallet. All non-SOL fees go",
-              "to the cannonical ATA of this wallet for that asset."
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "placeholder0",
-            "type": "u64"
-          },
-          {
-            "name": "bankInitFlatSolFee",
-            "docs": [
-              "Flat fee assessed when a new bank is initialized, in lamports.",
-              "* In SOL, in native decimals."
-            ],
-            "type": "u32"
-          },
-          {
-            "name": "bumpSeed",
-            "type": "u8"
-          },
-          {
-            "name": "padding0",
-            "type": {
-              "array": [
-                "u8",
-                3
-              ]
-            }
-          },
-          {
-            "name": "liquidationMaxFee",
-            "docs": [
-              "Liquidators can claim at this premium, when liquidating an asset in receivership",
-              "liquidation, e.g. (1 + this) * amount repaid >= asset seized",
-              "* A percentage"
-            ],
-            "type": {
-              "defined": {
-                "name": "wrappedI80f48"
-              }
-            }
-          },
-          {
-            "name": "programFeeFixed",
-            "docs": [
-              "Fee collected by the program owner from all groups",
-              "* A percentage"
-            ],
-            "type": {
-              "defined": {
-                "name": "wrappedI80f48"
-              }
-            }
-          },
-          {
-            "name": "programFeeRate",
-            "docs": [
-              "Fee collected by the program owner from all groups",
-              "* A percentage"
-            ],
-            "type": {
-              "defined": {
-                "name": "wrappedI80f48"
-              }
-            }
-          },
-          {
-            "name": "panicState",
-            "docs": [
-              "When the global admin pauses the protocol in the event of an emergency, information about",
-              "the pause duration will be stored here and propagated to groups."
-            ],
-            "type": {
-              "defined": {
-                "name": "panicState"
-              }
-            }
-          },
-          {
-            "name": "placeholder1",
-            "type": "u64"
-          },
-          {
-            "name": "liquidationFlatSolFee",
-            "docs": [
-              "Flat fee assessed for insurance/program use when a liquidation is executed",
-              "* In SOL, in native decimals."
-            ],
-            "type": "u32"
-          },
-          {
-            "name": "orderInitFlatSolFee",
-            "docs": [
-              "Flat fee assessed for preventing spam use when creating an order",
-              "* In SOL, in native decimals."
-            ],
-            "type": "u32"
-          },
-          {
-            "name": "orderExecutionMaxFee",
-            "docs": [
-              "Take-profit Orders can be executed at this premium, which Keepers are allowed to keep (no",
-              "pun intended) e.g. (1 + this) * amount repaid >= asset seized",
-              "* A percentage"
-            ],
-            "type": {
-              "defined": {
-                "name": "wrappedI80f48"
-              }
-            }
-          },
-          {
-            "name": "pauseDelegateAdmin",
-            "docs": [
-              "Can pause (not unpause) the protocol, but cannot modify any fee configuration."
-            ],
-            "type": "pubkey"
-          },
-          {
-            "name": "padding1",
-            "docs": [
-              "Extra reserved bytes for future expansions."
-            ],
-            "type": {
-              "array": [
-                "u8",
-                256
-              ]
-            }
           }
         ]
       }
@@ -15251,7 +15861,7 @@ export type Marginfi = {
       "name": "juplendConfigCompact",
       "docs": [
         "Used to configure JupLend banks. A simplified version of `BankConfigCompact` which omits most",
-        "values related to interest since JupLend banks cannot earn interest or be borrowed against.",
+        "values related to interest since JupLend banks cannot earn interest or be borrowed from.",
         "",
         "Note: JupLend banks do not take an Operational State, they always start in `Uninitialized`",
         "state and are set to `Operational` via `juplend_init_position` (seed deposit + protocol fToken",
@@ -16048,7 +16658,7 @@ export type Marginfi = {
       }
     },
     {
-      "name": "lendingPoolBankSetFixedOraclePriceEvent",
+      "name": "lendingPoolBankSetOraclePriceEvent",
       "type": {
         "kind": "struct",
         "fields": [
@@ -16071,6 +16681,34 @@ export type Marginfi = {
                 "name": "wrappedI80f48"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "lendingPoolBankSetSameAssetEmodeEligibilityEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "header",
+            "type": {
+              "defined": {
+                "name": "groupEventHeader"
+              }
+            }
+          },
+          {
+            "name": "bank",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
           }
         ]
       }
@@ -16160,6 +16798,10 @@ export type Marginfi = {
           },
           {
             "name": "liquidatorLiabilityBalance",
+            "type": "f64"
+          },
+          {
+            "name": "liquidatorLiabilityBankAssetBalance",
             "type": "f64"
           }
         ]
@@ -16870,16 +17512,21 @@ export type Marginfi = {
             "type": "u32"
           },
           {
-            "name": "padding",
+            "name": "sameAssetEmodeInitLeverage",
             "docs": [
-              "Reserved for future use"
+              "Encoded same-asset automatic emode leverage for initial margin.",
+              "Decode with `u32_to_basis`. Same-asset treatment is disabled when the decoded leverage is",
+              "less than or equal to 1 and also requires each participating bank to opt in."
             ],
-            "type": {
-              "array": [
-                "u8",
-                8
-              ]
-            }
+            "type": "u32"
+          },
+          {
+            "name": "sameAssetEmodeMaintLeverage",
+            "docs": [
+              "Encoded same-asset automatic emode leverage for maintenance margin.",
+              "Decode with `u32_to_basis`. Ordering is validated in decoded space."
+            ],
+            "type": "u32"
           },
           {
             "name": "rateLimiter",
@@ -16955,6 +17602,20 @@ export type Marginfi = {
                   "array": [
                     "u64",
                     2
+                  ]
+                },
+                32
+              ]
+            }
+          },
+          {
+            "name": "padding2",
+            "type": {
+              "array": [
+                {
+                  "array": [
+                    "u64",
+                    32
                   ]
                 },
                 32
@@ -17416,7 +18077,7 @@ export type Marginfi = {
             "type": "pubkey"
           },
           {
-            "name": "padding2Part1",
+            "name": "padding1",
             "type": {
               "array": [
                 "u8",
@@ -17425,20 +18086,11 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding2Part2",
+            "name": "padding2",
             "type": {
               "array": [
                 "u8",
                 128
-              ]
-            }
-          },
-          {
-            "name": "padding2Part3",
-            "type": {
-              "array": [
-                "u8",
-                24
               ]
             }
           },
@@ -17447,12 +18099,12 @@ export type Marginfi = {
             "type": {
               "array": [
                 "u8",
-                512
+                24
               ]
             }
           },
           {
-            "name": "paddingPart1",
+            "name": "padding4",
             "type": {
               "array": [
                 "u8",
@@ -17461,7 +18113,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "paddingPart2",
+            "name": "padding5",
             "type": {
               "array": [
                 "u8",
@@ -17470,7 +18122,16 @@ export type Marginfi = {
             }
           },
           {
-            "name": "paddingPart3",
+            "name": "padding6",
+            "type": {
+              "array": [
+                "u8",
+                512
+              ]
+            }
+          },
+          {
+            "name": "padding7",
             "type": {
               "array": [
                 "u8",
@@ -17479,7 +18140,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "paddingPart4",
+            "name": "padding8",
             "type": {
               "array": [
                 "u8",
@@ -17513,7 +18174,7 @@ export type Marginfi = {
             "type": "pubkey"
           },
           {
-            "name": "padding1ReserveCollateral",
+            "name": "padding9",
             "type": {
               "array": [
                 "u8",
@@ -17522,7 +18183,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding2ReserveCollateral",
+            "name": "padding10",
             "type": {
               "array": [
                 "u8",
@@ -17531,43 +18192,25 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding4Part1",
+            "name": "padding11",
             "type": {
               "array": [
                 "u8",
-                4096
+                1024
               ]
             }
           },
           {
-            "name": "padding4Part2",
+            "name": "padding12",
             "type": {
               "array": [
                 "u8",
-                512
+                128
               ]
             }
           },
           {
-            "name": "padding4Part3",
-            "type": {
-              "array": [
-                "u8",
-                256
-              ]
-            }
-          },
-          {
-            "name": "padding4Part4",
-            "type": {
-              "array": [
-                "u8",
-                64
-              ]
-            }
-          },
-          {
-            "name": "padding4Part5",
+            "name": "padding13",
             "type": {
               "array": [
                 "u8",
@@ -17576,7 +18219,105 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding4Part6",
+            "name": "padding14",
+            "type": {
+              "array": [
+                "u8",
+                24
+              ]
+            }
+          },
+          {
+            "name": "emergencyMode",
+            "docs": [
+              "`ReserveConfig.emergency_mode`. When set, `refresh_reserve` clears the price status:",
+              "https://github.com/Kamino-Finance/klend/blob/release/v1.25.0/programs/klend/src/lending_market/lending_operations.rs#L67-L70"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "padding15",
+            "type": {
+              "array": [
+                "u8",
+                2048
+              ]
+            }
+          },
+          {
+            "name": "padding16",
+            "type": {
+              "array": [
+                "u8",
+                512
+              ]
+            }
+          },
+          {
+            "name": "padding17",
+            "type": {
+              "array": [
+                "u8",
+                256
+              ]
+            }
+          },
+          {
+            "name": "padding18",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "padding19",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          },
+          {
+            "name": "padding20",
+            "type": {
+              "array": [
+                "u8",
+                512
+              ]
+            }
+          },
+          {
+            "name": "padding21",
+            "type": {
+              "array": [
+                "u8",
+                256
+              ]
+            }
+          },
+          {
+            "name": "padding22",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "padding23",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "padding24",
             "type": {
               "array": [
                 "u8",
@@ -17971,6 +18712,30 @@ export type Marginfi = {
           },
           {
             "name": "fixedJuplend"
+          },
+          {
+            "name": "pythMsol"
+          },
+          {
+            "name": "kaminoMsol"
+          },
+          {
+            "name": "juplendMsol"
+          },
+          {
+            "name": "pythLst"
+          },
+          {
+            "name": "kaminoLst"
+          },
+          {
+            "name": "juplendLst"
+          },
+          {
+            "name": "ptPyth"
+          },
+          {
+            "name": "ptFixed"
           }
         ]
       }
@@ -18005,11 +18770,12 @@ export type Marginfi = {
             }
           },
           {
-            "name": "placeholder",
+            "name": "createdAt",
             "docs": [
-              "Reserved for future use"
+              "Unix timestamp (seconds) when the order was created. Reads 0 for orders created before this",
+              "field existed (it was previously a reserved placeholder; same 8 bytes, so layout-compatible)."
             ],
-            "type": "u64"
+            "type": "i64"
           },
           {
             "name": "maxSlippage",
@@ -18455,6 +19221,175 @@ export type Marginfi = {
           },
           {
             "name": "isolated"
+          }
+        ]
+      }
+    },
+    {
+      "name": "sameAssetEmodeBank",
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bank",
+            "type": "pubkey"
+          },
+          {
+            "name": "groupIndex",
+            "docs": [
+              "Index into `SameAssetEmodeRegistry.groups`."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                7
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "sameAssetEmodeGroup",
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "oracleKey",
+            "docs": [
+              "The canonical price source, matching `Bank.config.oracle_keys[0]`."
+            ],
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "sameAssetEmodeRegistry",
+      "docs": [
+        "Read-only archive of same-asset-emode banks. Enables the emode admin to see, at a glance, which",
+        "banks are participating in same-asset-emode."
+      ],
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "padding0",
+            "type": "u64"
+          },
+          {
+            "name": "key",
+            "docs": [
+              "This registry's own key."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "group",
+            "docs": [
+              "Group for which this registry applies."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "bankCount",
+            "type": "u16"
+          },
+          {
+            "name": "groupCount",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "padding1",
+            "type": {
+              "array": [
+                "u8",
+                4
+              ]
+            }
+          },
+          {
+            "name": "groups",
+            "docs": [
+              "Describes the same-asset-emode groupings that exist"
+            ],
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "sameAssetEmodeGroup"
+                  }
+                },
+                32
+              ]
+            }
+          },
+          {
+            "name": "banks",
+            "docs": [
+              "Describes which bank belongs to which group"
+            ],
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "sameAssetEmodeBank"
+                  }
+                },
+                128
+              ]
+            }
+          },
+          {
+            "name": "padding2",
+            "type": {
+              "array": [
+                "u8",
+                1024
+              ]
+            }
+          },
+          {
+            "name": "padding3",
+            "type": {
+              "array": [
+                "u8",
+                512
+              ]
+            }
+          },
+          {
+            "name": "padding4",
+            "type": {
+              "array": [
+                "u8",
+                256
+              ]
+            }
           }
         ]
       }
@@ -19182,3 +20117,4 @@ export type Marginfi = {
     }
   ]
 };
+

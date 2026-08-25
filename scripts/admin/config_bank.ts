@@ -111,6 +111,16 @@ const config: Config = {
         permissionlessBadDebtSettlement: null,
         freezeSettings: null,
         tokenlessRepaymentsAllowed: null,
+        liquidationLiquidatorFee: null,
+        liquidationInsuranceFee: null,
+        circuitBreakerEnabled: null,
+        cbDeviationBpsTiers: null,
+        cbTierDurationsSeconds: null,
+        cbEscalationWindowMult: null,
+        cbEmaAlphaBps: null,
+        cbWindowSeconds: null,
+        cbWindowMaxUpBps: null,
+        cbWindowMaxDownBps: null,
       },
     },
   ],
@@ -143,6 +153,16 @@ export function bankConfigOptDefault(): BankConfigOptRaw {
     permissionlessBadDebtSettlement: null, // true or false
     freezeSettings: null,
     tokenlessRepaymentsAllowed: null,
+    liquidationLiquidatorFee: null, // u32, a % out of 100%, e.g. 2.5% = u32MAX * 0.025
+    liquidationInsuranceFee: null, // u32, same encoding as above
+    circuitBreakerEnabled: null, // true or false
+    cbDeviationBpsTiers: null, // [u16; 3], in bps
+    cbTierDurationsSeconds: null, // [u16; 3], in seconds
+    cbEscalationWindowMult: null, // u8
+    cbEmaAlphaBps: null, // u16, in bps
+    cbWindowSeconds: null, // u32, in seconds
+    cbWindowMaxUpBps: null, // u16, in bps
+    cbWindowMaxDownBps: null, // u16, in bps
   };
   return bankConfigOpt;
 }
@@ -312,4 +332,17 @@ type BankConfigOptRaw = {
   permissionlessBadDebtSettlement: boolean | null;
   freezeSettings: boolean | null;
   tokenlessRepaymentsAllowed: boolean | null;
+
+  /** Per-bank liquidation fees, as u32 where u32MAX = 100% (0 => default 2.5%) */
+  liquidationLiquidatorFee: number | null;
+  liquidationInsuranceFee: number | null;
+
+  circuitBreakerEnabled: boolean | null;
+  cbDeviationBpsTiers: [number, number, number] | null;
+  cbTierDurationsSeconds: [number, number, number] | null;
+  cbEscalationWindowMult: number | null;
+  cbEmaAlphaBps: number | null;
+  cbWindowSeconds: number | null;
+  cbWindowMaxUpBps: number | null;
+  cbWindowMaxDownBps: number | null;
 };
