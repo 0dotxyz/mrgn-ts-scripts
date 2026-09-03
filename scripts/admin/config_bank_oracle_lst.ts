@@ -8,14 +8,16 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { commonSetup } from "../../lib/common-setup";
 
 /**
- * Configure a bank to use one of the internal LST/mSOL "multiplier" oracle setups. The bank is
- * priced as `base_feed * exchange_rate`, where the rate is read from a second on-chain account:
+ * Configure a bank to use one of the LST/mSOL "multiplier" oracle setups, priced as
+ * `base_feed * exchange_rate`. The rate comes from the Marinade `State` (…MSOL) or an SPL /
+ * Sanctum stake pool (…LST). Kamino/JupLend variants additionally carry the venue account.
  *
- *  - PythMSOL: base Pyth SOL/USD feed + the Marinade `State` account (mSOL/SOL rate).
- *  - PythLST:  base Pyth SOL/USD feed + an SPL / Sanctum stake-pool account (LST/SOL rate).
+ * Remaining accounts:
+ *   Pyth variants:            [base feed, rate source]
+ *   Kamino / JupLend variants: [base feed, venue account, rate source]
  *
- * `oracle` becomes `oracle_keys[0]` (base feed); `multiplier` becomes `oracle_keys[1]`. Both are
- * passed as remaining accounts, in that order, for validation.
+ * The instruction does not write `oracle_keys[1]` (the venue account is fixed at bank creation,
+ * only re-validated here), so it is read off the bank instead of being configured below.
  *
  * If true, send the tx. If false, output the unsigned b58 tx to console (for a squads proposal).
  */
@@ -23,7 +25,19 @@ const sendTx = false;
 
 /** Instruction `setup` byte (see `OracleSetup::from_u8`). */
 const ORACLE_SETUP_PYTH_MSOL = 19;
+const ORACLE_SETUP_KAMINO_MSOL = 20;
+const ORACLE_SETUP_JUPLEND_MSOL = 21;
 const ORACLE_SETUP_PYTH_LST = 22;
+const ORACLE_SETUP_KAMINO_LST = 23;
+const ORACLE_SETUP_JUPLEND_LST = 24;
+
+/** Setups that take a venue account between the base feed and the rate source. */
+const VENUE_SETUPS = new Set([
+  ORACLE_SETUP_KAMINO_MSOL,
+  ORACLE_SETUP_JUPLEND_MSOL,
+  ORACLE_SETUP_KAMINO_LST,
+  ORACLE_SETUP_JUPLEND_LST,
+]);
 
 /** Shared settings across all entries */
 type SharedConfig = {
@@ -40,29 +54,29 @@ const configCommon: SharedConfig = {
 
 type BankOracleConfig = {
   bank: PublicKey;
-  /** Base price feed -> `oracle_keys[0]`. Pyth SOL/USD for both setups. */
+  /** Base price feed -> `oracle_keys[0]`. Pyth SOL/USD for every setup here. */
   oracle: PublicKey;
-  /** Rate source -> `oracle_keys[1]`. Marinade State (PythMSOL) or SPL stake pool (PythLST). */
+  /** Rate source: Marinade State (…MSOL) or SPL stake pool (…LST). */
   multiplier: PublicKey;
-  /** ORACLE_SETUP_PYTH_MSOL or ORACLE_SETUP_PYTH_LST */
+  /** One of the ORACLE_SETUP_* constants above. */
   setup: number;
 };
 
 /** One entry per bank to update */
 const configs: BankOracleConfig[] = [
-  // Example (PythLST): bSOL bank priced off Pyth SOL/USD * bSOL stake-pool rate.
-  // {
-  //   bank: new PublicKey("..."),
-  //   oracle: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
-  //   multiplier: new PublicKey("stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"),
-  //   setup: ORACLE_SETUP_PYTH_LST,
-  // },
   // Example (PythMSOL): mSOL bank priced off Pyth SOL/USD * Marinade rate.
   // {
   //   bank: new PublicKey("..."),
   //   oracle: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
   //   multiplier: new PublicKey("8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC"),
   //   setup: ORACLE_SETUP_PYTH_MSOL,
+  // },
+  // Example (KaminoLST): Kamino-deposited LST bank; the reserve is read off the bank.
+  // {
+  //   bank: new PublicKey("..."),
+  //   oracle: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
+  //   multiplier: new PublicKey("stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi"),
+  //   setup: ORACLE_SETUP_KAMINO_LST,
   // },
 ];
 
@@ -80,10 +94,18 @@ async function main() {
   const transaction = new Transaction();
 
   for (const cfg of configs) {
-    // Remaining accounts: [base feed, rate source], in that order.
-    const remaining: AccountMeta[] = [cfg.oracle, cfg.multiplier].map(
-      (pubkey) => ({ pubkey, isSigner: false, isWritable: false }),
-    );
+    const keys: PublicKey[] = [cfg.oracle];
+    if (VENUE_SETUPS.has(cfg.setup)) {
+      const bank = await program.account.bank.fetch(cfg.bank);
+      keys.push(bank.config.oracleKeys[1]);
+    }
+    keys.push(cfg.multiplier);
+
+    const remaining: AccountMeta[] = keys.map((pubkey) => ({
+      pubkey,
+      isSigner: false,
+      isWritable: false,
+    }));
 
     const ix = await program.methods
       .lendingPoolConfigureBankOracle(cfg.setup, cfg.oracle)
