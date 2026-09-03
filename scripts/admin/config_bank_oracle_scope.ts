@@ -1,19 +1,26 @@
 import {
+  AccountMeta,
   PublicKey,
   Transaction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { commonSetup } from "../../lib/common-setup";
-import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
 
 /**
- * If true, send the tx. If false, output the unsigned b58 tx to console.
+ * Configure a bank to price from a Scope feed. Scope stores a fixed array of `DatedPrice` records
+ * in one `OraclePrices` account (owned by HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ), so a bank
+ * is identified by the pair (account, entry index) rather than by the account alone. That is why
+ * this has its own instruction instead of going through `configure_bank_oracle`.
+ *
+ * `oracle` becomes `oracle_keys[0]` and is also the single remaining account. `entryIndex` becomes
+ * `scope_entry_index`. Scope carries no confidence interval, so risk is expressed through weights.
+ *
+ * The entry must already be populated: a never-refreshed record is all zeroes and is rejected.
+ *
+ * If true, send the tx. If false, output the unsigned b58 tx to console (for a squads proposal).
  */
 const sendTx = false;
-
-/** Instruction `setup` byte for a plain Fixed oracle (see `OracleSetup::from_u8`). */
-const ORACLE_SETUP_FIXED = 8;
 
 /** Shared settings across all entries */
 type SharedConfig = {
@@ -28,40 +35,28 @@ const configCommon: SharedConfig = {
   MULTISIG: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
-export type BankOracleConfig = {
+type BankOracleConfig = {
   bank: PublicKey;
-  price: number;
+  /** Scope `OraclePrices` account -> `oracle_keys[0]`. */
+  oracle: PublicKey;
+  /** Record within that account -> `scope_entry_index`. */
+  entryIndex: number;
 };
 
 /** One entry per bank to update */
 const configs: BankOracleConfig[] = [
-  // GUAC
-  {
-    bank: new PublicKey("44digRwKFeyiqDaxJRE6iag4cbXECKjG54v5ozxdu5mu"),
-    price: 0.000000001,
-  },
-  // ...More entries here as needed. The limit even without using LUTs is fairly high (at least 6)
+  // {
+  //   bank: new PublicKey("..."),
+  //   oracle: new PublicKey("3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C"),
+  //   entryIndex: 0,
+  // },
 ];
 
 async function main() {
-  await setFixedOraclePrice(
-    sendTx,
-    configCommon,
-    "./keys/zerotrade_admin.json",
-    configs,
-  );
-}
-
-export async function setFixedOraclePrice(
-  sendTx: boolean,
-  configCommon: SharedConfig,
-  walletPath: string,
-  configs: BankOracleConfig[],
-) {
   const user = commonSetup(
     sendTx,
     configCommon.PROGRAM_ID,
-    walletPath,
+    "./keys/zerotrade_admin.json",
     configCommon.MULTISIG,
   );
   const program = user.program;
@@ -71,15 +66,18 @@ export async function setFixedOraclePrice(
   const transaction = new Transaction();
 
   for (const cfg of configs) {
+    // Remaining accounts: the Scope OraclePrices account, same key as `oracle`.
+    const remaining: AccountMeta[] = [
+      { pubkey: cfg.oracle, isSigner: false, isWritable: false },
+    ];
+
     const ix = await program.methods
-      .lendingPoolSetOraclePrice(
-        bigNumberToWrappedI80F48(cfg.price),
-        ORACLE_SETUP_FIXED,
-      )
-      .accounts({
+      .lendingPoolConfigureBankOracleScope(cfg.oracle, cfg.entryIndex)
+      .accountsPartial({
+        admin: configCommon.ADMIN,
         bank: cfg.bank,
       })
-      .remainingAccounts([])
+      .remainingAccounts(remaining)
       .instruction();
 
     transaction.add(ix);
@@ -112,8 +110,6 @@ export async function setFixedOraclePrice(
   }
 }
 
-if (require.main === module) {
-  main().catch((err) => {
-    console.error(err);
-  });
-}
+main().catch((err) => {
+  console.error(err);
+});

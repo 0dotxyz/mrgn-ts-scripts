@@ -7420,6 +7420,53 @@ export type Marginfi = {
       ]
     },
     {
+      "name": "lendingPoolConfigureBankOracleScope",
+      "docs": [
+        "(admin only) Point a bank at a Scope feed entry.",
+        "* oracle - the feed's `OraclePrices` account",
+        "* entry_index - which of the 512 entries in that account prices this bank"
+      ],
+      "discriminator": [
+        134,
+        228,
+        127,
+        3,
+        117,
+        132,
+        85,
+        146
+      ],
+      "accounts": [
+        {
+          "name": "group",
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "group"
+          ]
+        },
+        {
+          "name": "bank",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "oracle",
+          "type": "pubkey"
+        },
+        {
+          "name": "entryIndex",
+          "type": "u16"
+        }
+      ]
+    },
+    {
       "name": "lendingPoolEmissionsDeposit",
       "docs": [
         "(permissionless) Deposit same-bank emissions directly into liquidity vault and increase",
@@ -12586,6 +12633,26 @@ export type Marginfi = {
       "code": 6604,
       "name": "circuitBreakerPriceJump",
       "msg": "Oracle price deviates too far from the circuit breaker reference; action rejected"
+    },
+    {
+      "code": 6700,
+      "name": "scopeInvalidAccount",
+      "msg": "Scope oracle account is not owned by the Scope program or is malformed"
+    },
+    {
+      "code": 6701,
+      "name": "scopeInvalidEntry",
+      "msg": "Scope entry index is out of range or the entry has never been refreshed"
+    },
+    {
+      "code": 6702,
+      "name": "scopeStalePrice",
+      "msg": "Scope price is stale"
+    },
+    {
+      "code": 6703,
+      "name": "useConfigureBankOracleScope",
+      "msg": "Use lending_pool_configure_bank_oracle_scope; Scope requires an entry index"
     }
   ],
   "types": [
@@ -13675,13 +13742,13 @@ export type Marginfi = {
             "type": "u16"
           },
           {
-            "name": "padding0",
-            "type": {
-              "array": [
-                "u8",
-                2
-              ]
-            }
+            "name": "scopeEntryIndex",
+            "docs": [
+              "Entry index into the Scope `OraclePrices` price list. Only read when",
+              "`oracle_setup == OracleSetup::Scope`; ignored (and zero) for every other setup.",
+              "Occupies what was previously `_padding0`, so the layout is unchanged."
+            ],
+            "type": "u16"
           },
           {
             "name": "oracleMaxConfidence",
@@ -18077,7 +18144,7 @@ export type Marginfi = {
             "type": "pubkey"
           },
           {
-            "name": "padding1",
+            "name": "padding2Part1",
             "type": {
               "array": [
                 "u8",
@@ -18086,7 +18153,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding2",
+            "name": "padding2Part2",
             "type": {
               "array": [
                 "u8",
@@ -18095,7 +18162,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding3",
+            "name": "padding2Part3",
             "type": {
               "array": [
                 "u8",
@@ -18104,7 +18171,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding4",
+            "name": "padding3",
             "type": {
               "array": [
                 "u8",
@@ -18113,7 +18180,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding5",
+            "name": "paddingPart1",
             "type": {
               "array": [
                 "u8",
@@ -18122,7 +18189,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding6",
+            "name": "paddingPart2",
             "type": {
               "array": [
                 "u8",
@@ -18131,7 +18198,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding7",
+            "name": "paddingPart3",
             "type": {
               "array": [
                 "u8",
@@ -18140,7 +18207,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding8",
+            "name": "paddingPart4",
             "type": {
               "array": [
                 "u8",
@@ -18174,7 +18241,7 @@ export type Marginfi = {
             "type": "pubkey"
           },
           {
-            "name": "padding9",
+            "name": "padding1ReserveCollateral",
             "type": {
               "array": [
                 "u8",
@@ -18183,7 +18250,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding10",
+            "name": "padding2ReserveCollateral",
             "type": {
               "array": [
                 "u8",
@@ -18192,60 +18259,16 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding11",
+            "name": "padding4Part1",
             "type": {
               "array": [
                 "u8",
-                1024
+                4096
               ]
             }
           },
           {
-            "name": "padding12",
-            "type": {
-              "array": [
-                "u8",
-                128
-              ]
-            }
-          },
-          {
-            "name": "padding13",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
-          },
-          {
-            "name": "padding14",
-            "type": {
-              "array": [
-                "u8",
-                24
-              ]
-            }
-          },
-          {
-            "name": "emergencyMode",
-            "docs": [
-              "`ReserveConfig.emergency_mode`. When set, `refresh_reserve` clears the price status:",
-              "https://github.com/Kamino-Finance/klend/blob/release/v1.25.0/programs/klend/src/lending_market/lending_operations.rs#L67-L70"
-            ],
-            "type": "u8"
-          },
-          {
-            "name": "padding15",
-            "type": {
-              "array": [
-                "u8",
-                2048
-              ]
-            }
-          },
-          {
-            "name": "padding16",
+            "name": "padding4Part2",
             "type": {
               "array": [
                 "u8",
@@ -18254,7 +18277,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding17",
+            "name": "padding4Part3",
             "type": {
               "array": [
                 "u8",
@@ -18263,7 +18286,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding18",
+            "name": "padding4Part4",
             "type": {
               "array": [
                 "u8",
@@ -18272,43 +18295,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding19",
-            "type": {
-              "array": [
-                "u8",
-                7
-              ]
-            }
-          },
-          {
-            "name": "padding20",
-            "type": {
-              "array": [
-                "u8",
-                512
-              ]
-            }
-          },
-          {
-            "name": "padding21",
-            "type": {
-              "array": [
-                "u8",
-                256
-              ]
-            }
-          },
-          {
-            "name": "padding22",
-            "type": {
-              "array": [
-                "u8",
-                64
-              ]
-            }
-          },
-          {
-            "name": "padding23",
+            "name": "padding4Part5",
             "type": {
               "array": [
                 "u8",
@@ -18317,7 +18304,7 @@ export type Marginfi = {
             }
           },
           {
-            "name": "padding24",
+            "name": "padding4Part6",
             "type": {
               "array": [
                 "u8",
@@ -18712,6 +18699,9 @@ export type Marginfi = {
           },
           {
             "name": "fixedJuplend"
+          },
+          {
+            "name": "scope"
           },
           {
             "name": "pythMsol"
@@ -20117,4 +20107,3 @@ export type Marginfi = {
     }
   ]
 };
-
