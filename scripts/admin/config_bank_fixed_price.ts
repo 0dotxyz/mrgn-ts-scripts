@@ -12,6 +12,9 @@ import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
  */
 const sendTx = false;
 
+/** Instruction `setup` byte for a plain Fixed oracle (see `OracleSetup::from_u8`). */
+const ORACLE_SETUP_FIXED = 8;
+
 /** Shared settings across all entries */
 type SharedConfig = {
   PROGRAM_ID: string;
@@ -69,7 +72,10 @@ export async function setFixedOraclePrice(
 
   for (const cfg of configs) {
     const ix = await program.methods
-      .lendingPoolSetFixedOraclePrice(bigNumberToWrappedI80F48(cfg.price))
+      .lendingPoolSetOraclePrice(
+        bigNumberToWrappedI80F48(cfg.price),
+        ORACLE_SETUP_FIXED,
+      )
       .accounts({
         bank: cfg.bank,
       })

@@ -7414,6 +7414,53 @@
       ]
     },
     {
+      "name": "lending_pool_configure_bank_oracle_scope",
+      "docs": [
+        "(admin only) Point a bank at a Scope feed entry.",
+        "* oracle - the feed's `OraclePrices` account",
+        "* entry_index - which of the 512 entries in that account prices this bank"
+      ],
+      "discriminator": [
+        134,
+        228,
+        127,
+        3,
+        117,
+        132,
+        85,
+        146
+      ],
+      "accounts": [
+        {
+          "name": "group",
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "group"
+          ]
+        },
+        {
+          "name": "bank",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "oracle",
+          "type": "pubkey"
+        },
+        {
+          "name": "entry_index",
+          "type": "u16"
+        }
+      ]
+    },
+    {
       "name": "lending_pool_emissions_deposit",
       "docs": [
         "(permissionless) Deposit same-bank emissions directly into liquidity vault and increase",
@@ -12580,6 +12627,26 @@
       "code": 6604,
       "name": "CircuitBreakerPriceJump",
       "msg": "Oracle price deviates too far from the circuit breaker reference; action rejected"
+    },
+    {
+      "code": 6700,
+      "name": "ScopeInvalidAccount",
+      "msg": "Scope oracle account is not owned by the Scope program or is malformed"
+    },
+    {
+      "code": 6701,
+      "name": "ScopeInvalidEntry",
+      "msg": "Scope entry index is out of range or the entry has never been refreshed"
+    },
+    {
+      "code": 6702,
+      "name": "ScopeStalePrice",
+      "msg": "Scope price is stale"
+    },
+    {
+      "code": 6703,
+      "name": "UseConfigureBankOracleScope",
+      "msg": "Use lending_pool_configure_bank_oracle_scope; Scope requires an entry index"
     }
   ],
   "types": [
@@ -13669,13 +13736,13 @@
             "type": "u16"
           },
           {
-            "name": "_padding0",
-            "type": {
-              "array": [
-                "u8",
-                2
-              ]
-            }
+            "name": "scope_entry_index",
+            "docs": [
+              "Entry index into the Scope `OraclePrices` price list. Only read when",
+              "`oracle_setup == OracleSetup::Scope`; ignored (and zero) for every other setup.",
+              "Occupies what was previously `_padding0`, so the layout is unchanged."
+            ],
+            "type": "u16"
           },
           {
             "name": "oracle_max_confidence",
@@ -18071,7 +18138,7 @@
             "type": "pubkey"
           },
           {
-            "name": "padding_1",
+            "name": "padding2_part1",
             "type": {
               "array": [
                 "u8",
@@ -18080,7 +18147,7 @@
             }
           },
           {
-            "name": "padding_2",
+            "name": "padding2_part2",
             "type": {
               "array": [
                 "u8",
@@ -18089,7 +18156,7 @@
             }
           },
           {
-            "name": "padding_3",
+            "name": "padding2_part3",
             "type": {
               "array": [
                 "u8",
@@ -18098,7 +18165,7 @@
             }
           },
           {
-            "name": "padding_4",
+            "name": "padding3",
             "type": {
               "array": [
                 "u8",
@@ -18107,7 +18174,7 @@
             }
           },
           {
-            "name": "padding_5",
+            "name": "padding_part1",
             "type": {
               "array": [
                 "u8",
@@ -18116,7 +18183,7 @@
             }
           },
           {
-            "name": "padding_6",
+            "name": "padding_part2",
             "type": {
               "array": [
                 "u8",
@@ -18125,7 +18192,7 @@
             }
           },
           {
-            "name": "padding_7",
+            "name": "padding_part3",
             "type": {
               "array": [
                 "u8",
@@ -18134,7 +18201,7 @@
             }
           },
           {
-            "name": "padding_8",
+            "name": "padding_part4",
             "type": {
               "array": [
                 "u8",
@@ -18168,7 +18235,7 @@
             "type": "pubkey"
           },
           {
-            "name": "padding_9",
+            "name": "padding1_reserve_collateral",
             "type": {
               "array": [
                 "u8",
@@ -18177,7 +18244,7 @@
             }
           },
           {
-            "name": "padding_10",
+            "name": "padding2_reserve_collateral",
             "type": {
               "array": [
                 "u8",
@@ -18186,60 +18253,16 @@
             }
           },
           {
-            "name": "padding_11",
+            "name": "padding4_part1",
             "type": {
               "array": [
                 "u8",
-                1024
+                4096
               ]
             }
           },
           {
-            "name": "padding_12",
-            "type": {
-              "array": [
-                "u8",
-                128
-              ]
-            }
-          },
-          {
-            "name": "padding_13",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
-          },
-          {
-            "name": "padding_14",
-            "type": {
-              "array": [
-                "u8",
-                24
-              ]
-            }
-          },
-          {
-            "name": "emergency_mode",
-            "docs": [
-              "`ReserveConfig.emergency_mode`. When set, `refresh_reserve` clears the price status:",
-              "https://github.com/Kamino-Finance/klend/blob/release/v1.25.0/programs/klend/src/lending_market/lending_operations.rs#L67-L70"
-            ],
-            "type": "u8"
-          },
-          {
-            "name": "padding_15",
-            "type": {
-              "array": [
-                "u8",
-                2048
-              ]
-            }
-          },
-          {
-            "name": "padding_16",
+            "name": "padding4_part2",
             "type": {
               "array": [
                 "u8",
@@ -18248,7 +18271,7 @@
             }
           },
           {
-            "name": "padding_17",
+            "name": "padding4_part3",
             "type": {
               "array": [
                 "u8",
@@ -18257,7 +18280,7 @@
             }
           },
           {
-            "name": "padding_18",
+            "name": "padding4_part4",
             "type": {
               "array": [
                 "u8",
@@ -18266,43 +18289,7 @@
             }
           },
           {
-            "name": "padding_19",
-            "type": {
-              "array": [
-                "u8",
-                7
-              ]
-            }
-          },
-          {
-            "name": "padding_20",
-            "type": {
-              "array": [
-                "u8",
-                512
-              ]
-            }
-          },
-          {
-            "name": "padding_21",
-            "type": {
-              "array": [
-                "u8",
-                256
-              ]
-            }
-          },
-          {
-            "name": "padding_22",
-            "type": {
-              "array": [
-                "u8",
-                64
-              ]
-            }
-          },
-          {
-            "name": "padding_23",
+            "name": "padding4_part5",
             "type": {
               "array": [
                 "u8",
@@ -18311,7 +18298,7 @@
             }
           },
           {
-            "name": "padding_24",
+            "name": "padding4_part6",
             "type": {
               "array": [
                 "u8",
@@ -18706,6 +18693,9 @@
           },
           {
             "name": "FixedJuplend"
+          },
+          {
+            "name": "Scope"
           },
           {
             "name": "PythMSOL"
