@@ -24,12 +24,12 @@ import { commonSetup } from "../../lib/common-setup";
 const sendTx = false;
 
 /** Instruction `setup` byte (see `OracleSetup::from_u8`). */
-const ORACLE_SETUP_PYTH_MSOL = 19;
-const ORACLE_SETUP_KAMINO_MSOL = 20;
-const ORACLE_SETUP_JUPLEND_MSOL = 21;
-const ORACLE_SETUP_PYTH_LST = 22;
-const ORACLE_SETUP_KAMINO_LST = 23;
-const ORACLE_SETUP_JUPLEND_LST = 24;
+export const ORACLE_SETUP_PYTH_MSOL = 19;
+export const ORACLE_SETUP_KAMINO_MSOL = 20;
+export const ORACLE_SETUP_JUPLEND_MSOL = 21;
+export const ORACLE_SETUP_PYTH_LST = 22;
+export const ORACLE_SETUP_KAMINO_LST = 23;
+export const ORACLE_SETUP_JUPLEND_LST = 24;
 
 /** Setups that take a venue account between the base feed and the rate source. */
 const VENUE_SETUPS = new Set([
@@ -40,7 +40,7 @@ const VENUE_SETUPS = new Set([
 ]);
 
 /** Shared settings across all entries */
-type SharedConfig = {
+export type SharedConfig = {
   PROGRAM_ID: string;
   ADMIN: PublicKey;
   MULTISIG?: PublicKey; // May be omitted if not using squads
@@ -52,7 +52,7 @@ const configCommon: SharedConfig = {
   MULTISIG: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
-type BankOracleConfig = {
+export type BankOracleConfig = {
   bank: PublicKey;
   /** Base price feed -> `oracle_keys[0]`. Pyth SOL/USD for every setup here. */
   oracle: PublicKey;
@@ -81,10 +81,19 @@ const configs: BankOracleConfig[] = [
 ];
 
 async function main() {
+  await configureLstOracle(sendTx, configCommon, "./keys/zerotrade_admin.json", configs);
+}
+
+export async function configureLstOracle(
+  sendTx: boolean,
+  configCommon: SharedConfig,
+  walletPath: string,
+  configs: BankOracleConfig[],
+) {
   const user = commonSetup(
     sendTx,
     configCommon.PROGRAM_ID,
-    "./keys/zerotrade_admin.json",
+    walletPath,
     configCommon.MULTISIG,
   );
   const program = user.program;

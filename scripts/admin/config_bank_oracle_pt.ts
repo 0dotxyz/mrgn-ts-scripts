@@ -21,11 +21,11 @@ import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
 const sendTx = false;
 
 /** Instruction `setup` byte (see `OracleSetup::from_u8`). */
-const ORACLE_SETUP_PT_PYTH = 25;
-const ORACLE_SETUP_PT_FIXED = 26;
+export const ORACLE_SETUP_PT_PYTH = 25;
+export const ORACLE_SETUP_PT_FIXED = 26;
 
 /** Shared settings across all entries */
-type SharedConfig = {
+export type SharedConfig = {
   PROGRAM_ID: string;
   ADMIN: PublicKey;
   MULTISIG?: PublicKey; // May be omitted if not using squads
@@ -37,7 +37,7 @@ const configCommon: SharedConfig = {
   MULTISIG: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
-type BankOracleConfig = {
+export type BankOracleConfig = {
   bank: PublicKey;
   /** ORACLE_SETUP_PT_PYTH or ORACLE_SETUP_PT_FIXED */
   setup: number;
@@ -79,10 +79,19 @@ function remainingFor(cfg: BankOracleConfig): AccountMeta[] {
 }
 
 async function main() {
+  await setPtOracle(sendTx, configCommon, "./keys/zerotrade_admin.json", configs);
+}
+
+export async function setPtOracle(
+  sendTx: boolean,
+  configCommon: SharedConfig,
+  walletPath: string,
+  configs: BankOracleConfig[],
+) {
   const user = commonSetup(
     sendTx,
     configCommon.PROGRAM_ID,
-    "./keys/zerotrade_admin.json",
+    walletPath,
     configCommon.MULTISIG,
   );
   const program = user.program;
