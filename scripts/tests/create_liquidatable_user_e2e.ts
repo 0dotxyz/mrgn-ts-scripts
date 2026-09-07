@@ -1,4 +1,4 @@
-import { Connection, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { loadKeypairFromFile } from "../utils/utils";
 import { initGroup } from "../admin/init_group";
 import { initAccount } from "../user/init_account";
@@ -10,6 +10,7 @@ import { addBank, ORACLE_TYPE_PYTH } from "../admin/add_bank";
 import { depositRegular } from "../user/deposit_regular";
 import { borrow } from "../user/borrow";
 import { composeRemainingAccounts } from "../../lib/utils";
+import { commonSetup } from "../../lib/common-setup";
 import {
   bankConfigOptDefault,
   BankConfigPair,
@@ -162,10 +163,10 @@ const config: Config = {
     "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
   ), // usdt
   JUPLEND_COLLATERAL_ORACLE: new PublicKey(
-    "FDf95uC3U4qFgTZbMDEBCziydC7k2Ex3Yqd7B1fhU5D1",
-  ), // usdt SwitchboardPull
+    "3XBYLaF9wisQLaCxTgchH6xeNJGchwDauGpot1GcRMZV",
+  ), // usdt PythPull
   DEBT_MINT: new PublicKey("2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"), // pyusd (t22)
-  DEBT_ORACLE: new PublicKey("9zXQxpYH3kYhtoybmZfUNNCRVuud7fY9jswTg1hLyT8k"), // pyusd PythPull
+  DEBT_ORACLE: new PublicKey("F1huL4wkpzHLezvKMXQMgrL6SN7CkG9fYWm4VWSmVbjw"), // pyusd PythPull
   KAMINO_RESERVE: new PublicKey("9GJ9GBRwCp4pHmWrQ43L5xpc9Vykg7jnfwcFGN8FoHYu"), // usdc (NEW)
   KAMINO_MARKET: new PublicKey("CqAoLuqWtavaVE8deBjMKe8ZfSt9ghR6Vb8nfsyabyHA"), // main (NEW)
   KAMINO_RESERVE_ORACLE: new PublicKey(
@@ -244,7 +245,7 @@ async function main() {
   console.log("group: " + marginfiGroup);
   await sleep(10000);
   // const marginfiGroup = new PublicKey(
-  //   "GDKKt4wz1NVfzwoFJn2DYwaYPpiihMSeesMqRXtBggXi",
+  //   "27z17WWf7DFkR8VaS5s5QyJ3poaEZJrUgEBvBWGVFdaf",
   // );
   let state: SerializedState = {
     marginfiGroup: pkToString(marginfiGroup),
@@ -264,7 +265,7 @@ async function main() {
   console.log("liquidator: " + liquidator);
   await sleep(1000);
   // const liquidator = new PublicKey(
-  //   "Cai1vSUN88r9U6fH8iUu6r4RvmaxGjuoDkUJQ4wy8Tbm",
+  //   "9GNx5FDk5VKniLCpsAo9kpMneSBu28QUHtYYxsWwHSQe",
   // );
   state.liquidator = pkToString(liquidator);
   writeJsonFile("liquidation_e2e_state.json", state);
@@ -281,7 +282,7 @@ async function main() {
   console.log("liquidatee: " + liquidatee);
   await sleep(1000);
   // const liquidatee = new PublicKey(
-  //   "4izfJUBZN9jxXLsnRqxMUfFgTbjFAXSKdi8KobFrtVvU",
+  //   "8rpvp9ZNW4SJjQSN9EP3yc9BtGAkYtqR6Fiu2h1fEvnZ",
   // );
   state.liquidatee = pkToString(liquidatee);
   writeJsonFile("liquidation_e2e_state.json", state);
@@ -306,15 +307,13 @@ async function main() {
     await sleep(1000);
   }
   // let p0Banks = [
-  //   new PublicKey("2By8M49B4F8j93ninJF9fLeyjgHK9uLvugStoJHQeErX"),
-  //   new PublicKey("afY1SEVzKkbRx2yfLet7Gq4dRbp89hq51a3Ktfwa8f9"),
-  //   new PublicKey("AQRQBJmW9Ac7p5kA7qq9WmjtYwA7CDTqq9s7DDdph4ce"),
-  //   new PublicKey("33hBnFtXxGSF9TAup3YwzQi1DVopexzpsVUAkgXX4vpG"),
+  //   new PublicKey("Fn3p8T5UeAP3vydyrjR8FzwjG7SXqek9oswkN7znhEog"),
+  //   new PublicKey("AWLoPkAoVTD2bJXeYf42TxKztHXTMFz9fJ8qaLus7Kbk"),
   // ];
   state.p0Banks = p0Banks.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
 
-  console.log("\n\n\n 4. SET FIXED PRICE ORACLES FOR P0 BANKS");
+  // console.log("\n\n\n 4. SET FIXED PRICE ORACLES FOR P0 BANKS");
   const configCommon = {
     PROGRAM_ID: config.PROGRAM_ID,
     ADMIN: liquidatorWallet.publicKey,
@@ -362,6 +361,10 @@ async function main() {
     );
     await sleep(1000);
   }
+  // let ptBanks = [
+  //   new PublicKey("EYWgXLK7CyBuUhVBPsxe7zsVmmpbksDJgVCcCEvGywBg"),
+  //   new PublicKey("EUqara3ejYYaaKVZS5KyeMhND1SHYYJAC7hr4G4ANvEE"),
+  // ];
   state.ptBanks = ptBanks.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
 
@@ -420,10 +423,8 @@ async function main() {
     await sleep(1000);
   }
   // let kaminoBanks = [
-  //   new PublicKey("HEqzPzfs57AzmksqP3Coxr7MXadmSWqNAx7EX5WQidLh"),
-  //   new PublicKey("CQSK91WDySRu3UahrXCdvAnSyNF2mcnMdYS7TYq4WsDs"),
-  //   new PublicKey("vWMCYhoREkzPh3MQ6Z9a77437qP5Sb8eEYiFWULsCFM"),
-  //   new PublicKey("GNyfXZosJPD8S2oinMf9W9KB2Fd7UNvuqzoTPEQzzevj"),
+  //   new PublicKey("BGD8iwYhXaYfhAFKDGNez789JLEJDmumkhYFFzxTGfDt"),
+  //   new PublicKey("13Ejq4vkRZApUNskc4oH5SF5Ntr21hSnhN6aaXtDZUKn"),
   // ];
   state.kaminoBanks = kaminoBanks.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
@@ -452,10 +453,8 @@ async function main() {
     await sleep(1000);
   }
   // let kaminoObligations = [
-  //   new PublicKey("ESnxRgFTEcxx1H5BJ1LKr5zGCPCWugYiBFckmpgsJWy3"),
-  //   new PublicKey("76VbEE8npWTCaRCbkaFFwdTUYBRg3veSMNmu7h7ZjKjt"),
-  //   new PublicKey("DcfpLTvXfF2Fs4dyagJfKSBtkoBVGXGQ2gN8JYjEUEUj"),
-  //   new PublicKey("8rNDhwD75NgytXT7WNz2fZHpaJ1iUgDgtxooavinwFS2"),
+  //   new PublicKey("23RPmyTEtwkJSfqRW4Bq443vihCYFACFX4C7PSue7T7e"),
+  //   new PublicKey("AHPWmsVQ3gB1VPWtWukuhXo4JqZo4kQ79RSWqc4jfe3W"),
   // ];
   state.kaminoObligations = kaminoObligations.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
@@ -513,6 +512,10 @@ async function main() {
     );
     await sleep(1000);
   }
+  // let kaminoMsolBanks = [
+  //   new PublicKey("DDJ64b4sxmrq3mdPLNJp8qijo5Q83iZ9Prc3KdkXKPyj"),
+  //   new PublicKey("F8rrY7RfXVzgP4TRYi2JdNEVourhnXUoUtJQ2Svjvs1G"),
+  // ];
   state.kaminoMsolBanks = kaminoMsolBanks.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
 
@@ -548,11 +551,15 @@ async function main() {
       await initKaminoObligation(
         true,
         kaminoMsolObligationConfig,
-        config.LIQUIDATOR_WALLET_PATH,
+        config.LIQUIDATEE_WALLET_PATH,
       ),
     );
     await sleep(1000);
   }
+  // let kaminoMsolObligations = [
+  //   new PublicKey("CgxoXxnTQ9RgQUjY3HAgj6vtFUTKfSmM66eMxFZ4qQoo"),
+  //   new PublicKey("BESEyE58c9VovWv7Dk8ncfSWJGD56Q8hWJ2rXWPKyiRe"),
+  // ];
   state.kaminoMsolObligations = kaminoMsolObligations.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
 
@@ -634,7 +641,7 @@ async function main() {
     JUPLEND_LENDING: config.JUPLEND_LENDING,
     F_TOKEN_MINT: config.JUPLEND_F_TOKEN_MINT,
     ORACLE: config.JUPLEND_COLLATERAL_ORACLE,
-    ORACLE_SETUP: { juplendSwitchboardPull: {} },
+    ORACLE_SETUP: { juplendPythPull: {} },
     ADMIN: liquidatorWallet.publicKey,
     SEED: new BN(0),
     ASSET_WEIGHT_INIT: "1.0",
@@ -658,10 +665,10 @@ async function main() {
     await sleep(1000);
   }
   // let juplendBanks = [
-  //   new PublicKey("Hbx27g2n2wZAFg98e2bFw6SRFJob5pZ64rJQiWC1pqDd"),
-  //   new PublicKey("GdQhaxpT8t2Pe82yUSrTTNcettCLumHhsGG8KALW9RTz"),
-  //   new PublicKey("Gv6bzqyqE41qzW6TJ33cwtHxrj9jmpy6tqAqtWXaRhDb"),
-  //   new PublicKey("Fz4rKPJG7Z2hbNfn9UfCjiUZhvUEJUtn7bP1aor3xUvK"),
+  //   new PublicKey("scvU8c78BJSLtA66nEa2sqeoDDMpXHpq2MroGHcbTXz"),
+  //   new PublicKey("AWUdzRKs96ELsbPSguDp8cZEpSDPmMmttErdbNc3xQox"),
+  //   new PublicKey("7BCVGfSPMFuncaG5jB57uMLey43NXgBHRtzaLvuqpLuT"),
+  //   new PublicKey("C1j3H1jDaruUSdnxbuv1dadMJj88k1zqYzyuEnMq4uuA"),
   // ];
   state.juplendBanks = juplendBanks.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
@@ -721,7 +728,7 @@ async function main() {
     config.LIQUIDATOR_WALLET_PATH,
   );
   await sleep(1000);
-  // const debtBank = new PublicKey("FPqxjqH1syRfTsShaPW7puK62nKJeCgybBkVM8QyzrgG");
+  // const debtBank = new PublicKey("HrL7JdYsCBjuJaZXJ86RGgs7eeDbNWdYK3MhSk2W8HSW");
   state.debtBank = pkToString(debtBank);
   writeJsonFile("liquidation_e2e_state.json", state);
 
@@ -906,10 +913,10 @@ async function warnOnMissingBalances(
   config: Config,
   reqs: BalanceRequirement[],
 ) {
-  const connection = new Connection(
-    commonSetup(true, config.PROGRAM_ID, config.LIQUIDATOR_WALLET_PATH)
-      .connection.rpcEndpoint,
-    "confirmed",
+  const { connection } = commonSetup(
+    true,
+    config.PROGRAM_ID,
+    config.LIQUIDATOR_WALLET_PATH,
   );
 
   let allOk = true;
