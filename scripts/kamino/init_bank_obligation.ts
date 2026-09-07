@@ -77,6 +77,9 @@ export async function initKaminoObligation(
   const program = user.program;
   const connection = user.connection;
 
+  const feePayer =
+    user.wallet.publicKey ?? config.FEE_PAYER ?? config.ADMIN;
+
   const reserve =
     config.RESERVE ??
     (await program.account.bank.fetch(config.BANK)).integrationAcc1;
@@ -106,12 +109,7 @@ export async function initKaminoObligation(
     config.BANK,
   );
 
-  const ata = getAssociatedTokenAddressSync(
-    mint,
-    user.wallet.publicKey,
-    true,
-    tokenProgram,
-  );
+  const ata = getAssociatedTokenAddressSync(mint, feePayer, true, tokenProgram);
 
   const [baseObligation] = deriveBaseObligation(
     liquidityVaultAuthority,
@@ -140,7 +138,7 @@ export async function initKaminoObligation(
     await makeInitObligationIx(
       program,
       {
-        feePayer: config.FEE_PAYER ?? config.ADMIN,
+        feePayer,
         bank: config.BANK,
         signerTokenAccount: ata,
         lendingMarket,
