@@ -26,6 +26,23 @@ async function main() {
       state.p0Banks[i], // only bank, for the Fixed oracle
     ]);
   }
+  let ptRemainingAccounts: PublicKey[][] = [];
+  for (let i = 0; i < state.ptBanks.length; i++) {
+    ptRemainingAccounts.push([
+      state.ptBanks[i],
+      config.PT_BASE_ORACLE,
+      config.PT_EXPONENT_VAULT,
+    ]);
+  }
+  let kaminoMsolRemainingAccounts: PublicKey[][] = [];
+  for (let i = 0; i < state.kaminoMsolBanks.length; i++) {
+    kaminoMsolRemainingAccounts.push([
+      state.kaminoMsolBanks[i],
+      config.MSOL_BASE_ORACLE,
+      config.MSOL_KAMINO_RESERVE,
+      config.MARINADE_STATE,
+    ]);
+  }
   let kaminoRemainingAccounts: PublicKey[][] = [];
   for (let i = 0; i < state.kaminoBanks.length; i++) {
     kaminoRemainingAccounts.push([
@@ -51,7 +68,9 @@ async function main() {
     ]);
   }
   let remainingAccounts: PublicKey[][] = [
+    ...ptRemainingAccounts,
     ...kaminoRemainingAccounts,
+    ...kaminoMsolRemainingAccounts,
     ...driftRemainingAccounts,
     ...juplendRemainingAccounts,
   ];
@@ -61,7 +80,13 @@ async function main() {
     true,
     {
       LUT: config.LUT,
-      KEYS: state.p0Banks.concat(state.kaminoBanks).concat(state.driftBanks).concat(state.juplendBanks).concat(state.debtBank),
+      KEYS: state.p0Banks
+        .concat(state.ptBanks)
+        .concat(state.kaminoBanks)
+        .concat(state.kaminoMsolBanks)
+        .concat(state.driftBanks)
+        .concat(state.juplendBanks)
+        .concat(state.debtBank),
     },
     config.LIQUIDATOR_WALLET_PATH,
   );
@@ -100,7 +125,9 @@ async function main() {
 
   for (let i = 0; i < state.p0Banks.length; i++) {
     remainingAccounts = [
+      ...ptRemainingAccounts,
       ...kaminoRemainingAccounts,
+      ...kaminoMsolRemainingAccounts,
       ...driftRemainingAccounts,
       ...juplendRemainingAccounts,
     ];
@@ -118,6 +145,49 @@ async function main() {
     p0WithdrawConfig.BANK = state.p0Banks[i];
     p0WithdrawConfig.REMAINING = REMAINING;
     await withdraw(true, p0WithdrawConfig, config.LIQUIDATEE_WALLET_PATH);
+    await sleep(1000);
+  }
+
+  console.log("\n\n\n 3b. WITHDRAW FROM PT BANKS BY LIQUIDATEE");
+  let ptWithdrawConfig = {
+    PROGRAM_ID: config.PROGRAM_ID,
+    BANK: state.ptBanks[0],
+    ACCOUNT: state.liquidatee,
+    AMOUNT: new BN(0), // doesn't matter, since we withdraw all
+    WITHDRAW_ALL: true,
+    MINT: config.PT_COLLATERAL_MINT,
+    LUT: config.LUT, // a liquidator-created LUT
+    REMAINING: [] as PublicKey[],
+    ADD_COMPUTE_UNITS: true,
+  };
+
+  for (let i = 0; i < state.ptBanks.length; i++) {
+    remainingAccounts = [
+      ...kaminoRemainingAccounts,
+      ...kaminoMsolRemainingAccounts,
+      ...driftRemainingAccounts,
+      ...juplendRemainingAccounts,
+    ];
+    // Add all active PT banks except the one to withdraw from
+    for (let j = i + 1; j < state.ptBanks.length; j++) {
+      remainingAccounts.push([
+        state.ptBanks[j],
+        config.PT_BASE_ORACLE,
+        config.PT_EXPONENT_VAULT,
+      ]);
+    }
+
+    const REMAINING = composeRemainingAccounts(remainingAccounts);
+    // Withdraw all still requires the closing bank's oracles. They must come last.
+    REMAINING.push(
+      state.ptBanks[i],
+      config.PT_BASE_ORACLE,
+      config.PT_EXPONENT_VAULT,
+    );
+
+    ptWithdrawConfig.BANK = state.ptBanks[i];
+    ptWithdrawConfig.REMAINING = REMAINING;
+    await withdraw(true, ptWithdrawConfig, config.LIQUIDATEE_WALLET_PATH);
     await sleep(1000);
   }
 
@@ -140,6 +210,7 @@ async function main() {
 
   for (let i = 0; i < state.kaminoBanks.length; i++) {
     remainingAccounts = [
+      ...kaminoMsolRemainingAccounts,
       ...driftRemainingAccounts,
       ...juplendRemainingAccounts,
     ];
@@ -165,6 +236,57 @@ async function main() {
     await withdrawKamino(
       true,
       kaminoWithdrawConfig,
+      config.LIQUIDATEE_WALLET_PATH,
+    );
+    await sleep(1000);
+  }
+
+  console.log("\n\n\n 4b. WITHDRAW FROM KAMINO mSOL BANKS BY LIQUIDATEE");
+  let kaminoMsolWithdrawConfig = {
+    PROGRAM_ID: config.PROGRAM_ID,
+    BANK: state.kaminoMsolBanks[0],
+    ACCOUNT: state.liquidatee,
+    AMOUNT: new BN(0), // doesn't matter, since we withdraw all
+    WITHDRAW_ALL: true,
+    BANK_MINT: config.MSOL_MINT,
+    KAMINO_RESERVE: config.MSOL_KAMINO_RESERVE,
+    KAMINO_MARKET: config.MSOL_KAMINO_MARKET,
+    RESERVE_ORACLE: config.MSOL_KAMINO_RESERVE_ORACLE,
+    FARM_STATE: config.MSOL_KAMINO_FARM_STATE,
+    LUT: config.LUT, // a liquidator-created LUT
+    NEW_REMAINING: [] as PublicKey[],
+    ADD_COMPUTE_UNITS: true,
+  };
+
+  for (let i = 0; i < state.kaminoMsolBanks.length; i++) {
+    remainingAccounts = [
+      ...driftRemainingAccounts,
+      ...juplendRemainingAccounts,
+    ];
+    // Add all active Kamino mSOL banks except the one to withdraw from
+    for (let j = i + 1; j < state.kaminoMsolBanks.length; j++) {
+      remainingAccounts.push([
+        state.kaminoMsolBanks[j],
+        config.MSOL_BASE_ORACLE,
+        config.MSOL_KAMINO_RESERVE,
+        config.MARINADE_STATE,
+      ]);
+    }
+
+    const NEW_REMAINING = composeRemainingAccounts(remainingAccounts);
+    // Withdraw all still requires the closing bank's oracles. They must come last.
+    NEW_REMAINING.push(
+      state.kaminoMsolBanks[i],
+      config.MSOL_BASE_ORACLE,
+      config.MSOL_KAMINO_RESERVE,
+      config.MARINADE_STATE,
+    );
+
+    kaminoMsolWithdrawConfig.BANK = state.kaminoMsolBanks[i];
+    kaminoMsolWithdrawConfig.NEW_REMAINING = NEW_REMAINING;
+    await withdrawKamino(
+      true,
+      kaminoMsolWithdrawConfig,
       config.LIQUIDATEE_WALLET_PATH,
     );
     await sleep(1000);
@@ -302,6 +424,22 @@ async function main() {
     );
     await sleep(1000);
   }
+  for (let i = 0; i < state.kaminoMsolBanks.length; i++) {
+    await closeBank(
+      true,
+      { PROGRAM_ID: config.PROGRAM_ID, BANK: state.kaminoMsolBanks[i] },
+      config.LIQUIDATOR_WALLET_PATH,
+    );
+    await sleep(1000);
+  }
+  for (let i = 0; i < state.ptBanks.length; i++) {
+    await closeBank(
+      true,
+      { PROGRAM_ID: config.PROGRAM_ID, BANK: state.ptBanks[i] },
+      config.LIQUIDATOR_WALLET_PATH,
+    );
+    await sleep(1000);
+  }
   for (let i = 0; i < state.driftBanks.length; i++) {
     await closeBank(
       true,
@@ -379,6 +517,9 @@ function parseConfig(rawConfig: string): Config {
     LIQUIDATOR_WALLET_PATH: json.LIQUIDATOR_WALLET_PATH,
     LIQUIDATEE_WALLET_PATH: json.LIQUIDATEE_WALLET_PATH,
     P0_COLLATERAL_MINT: pkFromString(json.P0_COLLATERAL_MINT),
+    PT_COLLATERAL_MINT: pkFromString(json.PT_COLLATERAL_MINT),
+    PT_EXPONENT_VAULT: pkFromString(json.PT_EXPONENT_VAULT),
+    PT_BASE_ORACLE: pkFromString(json.PT_BASE_ORACLE),
     KAMINO_COLLATERAL_MINT: pkFromString(json.KAMINO_COLLATERAL_MINT),
     KAMINO_COLLATERAL_ORACLE: pkFromString(json.KAMINO_COLLATERAL_ORACLE),
     DRIFT_COLLATERAL_MINT: pkFromString(json.DRIFT_COLLATERAL_MINT),
@@ -391,6 +532,13 @@ function parseConfig(rawConfig: string): Config {
     KAMINO_MARKET: pkFromString(json.KAMINO_MARKET),
     KAMINO_RESERVE_ORACLE: pkFromString(json.KAMINO_RESERVE_ORACLE),
     KAMINO_FARM_STATE: pkFromString(json.KAMINO_FARM_STATE),
+    MSOL_MINT: pkFromString(json.MSOL_MINT),
+    MSOL_BASE_ORACLE: pkFromString(json.MSOL_BASE_ORACLE),
+    MARINADE_STATE: pkFromString(json.MARINADE_STATE),
+    MSOL_KAMINO_RESERVE: pkFromString(json.MSOL_KAMINO_RESERVE),
+    MSOL_KAMINO_MARKET: pkFromString(json.MSOL_KAMINO_MARKET),
+    MSOL_KAMINO_RESERVE_ORACLE: pkFromString(json.MSOL_KAMINO_RESERVE_ORACLE),
+    MSOL_KAMINO_FARM_STATE: pkFromString(json.MSOL_KAMINO_FARM_STATE),
     DRIFT_SPOT_MARKET: pkFromString(json.DRIFT_SPOT_MARKET),
     DRIFT_MARKET_INDEX: json.DRIFT_MARKET_INDEX,
     DRIFT_ORACLE: pkFromString(json.DRIFT_ORACLE),
@@ -409,8 +557,11 @@ export function parseState(raw: string): State {
     liquidatee: pkFromString(json.liquidatee),
     debtBank: pkFromString(json.debtBank),
     p0Banks: json.p0Banks.map(pkFromString),
+    ptBanks: (json.ptBanks ?? []).map(pkFromString),
     kaminoBanks: json.kaminoBanks.map(pkFromString),
     kaminoObligations: json.kaminoObligations.map(pkFromString),
+    kaminoMsolBanks: (json.kaminoMsolBanks ?? []).map(pkFromString),
+    kaminoMsolObligations: (json.kaminoMsolObligations ?? []).map(pkFromString),
     driftBanks: json.driftBanks.map(pkFromString),
     juplendBanks: json.juplendBanks.map(pkFromString),
   };
