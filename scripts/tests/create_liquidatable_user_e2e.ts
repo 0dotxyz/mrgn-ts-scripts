@@ -1,4 +1,4 @@
-import { PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { loadKeypairFromFile } from "../utils/utils";
 import { initGroup } from "../admin/init_group";
 import { initAccount } from "../user/init_account";
@@ -15,7 +15,11 @@ import {
   BankConfigPair,
   configBank,
 } from "../admin/config_bank";
-import { bigNumberToWrappedI80F48, sleep } from "@mrgnlabs/mrgn-common";
+import {
+  bigNumberToWrappedI80F48,
+  getAssociatedTokenAddressSync,
+  sleep,
+} from "@mrgnlabs/mrgn-common";
 import { pulseHealth } from "../user/health_pulse";
 import { writeFileSync } from "fs";
 import { addDriftBank } from "../drift/add_bank";
@@ -113,6 +117,14 @@ const JUPLEND_BANKS = 4;
 // bank mint to equal the stake pool's `pool_mint`. Nothing to point it at yet.
 const JUPLEND_LST_BANKS = 0;
 
+const P0_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDC
+const PT_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 PT, ~$0.10
+const KAMINO_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDC
+const KAMINO_MSOL_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 mSOL
+const DRIFT_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDS
+const JUPLEND_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDT
+const DEBT_DEPOSIT = new BN(6 * 10 ** 5); // 0.6 PyUSD, by the liquidator
+
 // Note: current setup assumes you have ~1 USDC, ~1 USDS, ~1 USDT, plus a little PT-fragSOL and
 // mSOL on your liquidatee's balances,
 // and at least 0.9 PyUSD on your liquidator's balances. Plus significant amount of SOL
@@ -203,6 +215,25 @@ async function main() {
     process.env.HOME + config.LIQUIDATEE_WALLET_PATH,
   );
   writeJsonFile("liquidation_e2e_config.json", serializeConfig(config));
+
+  console.log("\n\n\n 0. CHECK WALLET BALANCES");
+  // Banks that give the last one 2x use (n + 1) deposits in total.
+  const twice = (n: number, amt: BN) => (n > 0 ? amt.muln(n + 1) : new BN(0));
+  await warnOnMissingBalances(config, [
+    { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "USDC",
+      mint: config.P0_COLLATERAL_MINT,
+      needed: P0_DEPOSIT.muln(P0_BANKS).add(twice(KAMINO_BANKS, KAMINO_DEPOSIT)) },
+    { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "PT",
+      mint: config.PT_COLLATERAL_MINT, needed: PT_DEPOSIT.muln(PT_BANKS) },
+    { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "mSOL",
+      mint: config.MSOL_MINT, needed: KAMINO_MSOL_DEPOSIT.muln(KAMINO_MSOL_BANKS) },
+    { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "USDS",
+      mint: config.DRIFT_COLLATERAL_MINT, needed: twice(DRIFT_BANKS, DRIFT_DEPOSIT) },
+    { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "USDT",
+      mint: config.JUPLEND_COLLATERAL_MINT, needed: twice(JUPLEND_BANKS, JUPLEND_DEPOSIT) },
+    { who: "Liquidator", owner: liquidatorWallet.publicKey, label: "PyUSD",
+      mint: config.DEBT_MINT, needed: DEBT_DEPOSIT },
+  ]);
 
   console.log("\n\n\n 1. INIT GROUP");
   const marginfiGroup = await initGroup(
@@ -302,7 +333,7 @@ async function main() {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: p0Banks[0],
     ACCOUNT: liquidatee,
-    AMOUNT: new BN(1 * 10 ** 5), // 0.1 USDC
+    AMOUNT: P0_DEPOSIT,
     MINT: config.P0_COLLATERAL_MINT,
   };
 
@@ -354,7 +385,7 @@ async function main() {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: ptBanks[0],
     ACCOUNT: liquidatee,
-    AMOUNT: new BN(1 * 10 ** 6), // 0.001 PT, ~$0.10
+    AMOUNT: PT_DEPOSIT,
     MINT: config.PT_COLLATERAL_MINT,
   };
   for (let i = 0; i < ptBanks.length; i++) {
@@ -434,7 +465,7 @@ async function main() {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: kaminoBanks[0],
     ACCOUNT: liquidatee,
-    AMOUNT: new BN(1 * 10 ** 5), // 0.1 USDC
+    AMOUNT: KAMINO_DEPOSIT,
     BANK_MINT: config.KAMINO_COLLATERAL_MINT,
     KAMINO_RESERVE: config.KAMINO_RESERVE,
     KAMINO_MARKET: config.KAMINO_MARKET,
@@ -530,7 +561,7 @@ async function main() {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: kaminoMsolBanks[0],
     ACCOUNT: liquidatee,
-    AMOUNT: new BN(1 * 10 ** 6), // 0.001 mSOL (9 decimals)
+    AMOUNT: KAMINO_MSOL_DEPOSIT,
     BANK_MINT: config.MSOL_MINT,
     KAMINO_RESERVE: config.MSOL_KAMINO_RESERVE,
     KAMINO_MARKET: config.MSOL_KAMINO_MARKET,
@@ -579,7 +610,7 @@ async function main() {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: kaminoBanks[0],
     ACCOUNT: liquidatee,
-    AMOUNT: new BN(1 * 10 ** 5), // 0.1 USDS
+    AMOUNT: DRIFT_DEPOSIT,
     DRIFT_MARKET_INDEX: config.DRIFT_MARKET_INDEX,
     DRIFT_ORACLE: config.DRIFT_ORACLE,
   };
@@ -656,7 +687,7 @@ async function main() {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: juplendBanks[0],
     ACCOUNT: liquidatee,
-    AMOUNT: new BN(1 * 10 ** 5), // 0.1 USDT
+    AMOUNT: JUPLEND_DEPOSIT,
   };
 
   // The last bank gets 2x more. This is needed to test that the profit-oriented liquidator
@@ -699,7 +730,7 @@ async function main() {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: debtBank,
     ACCOUNT: liquidator,
-    AMOUNT: new BN(6 * 10 ** 5), // 0.6 PyUSD (** 6 decimals)
+    AMOUNT: DEBT_DEPOSIT,
     MINT: config.DEBT_MINT,
   };
   await depositRegular(
@@ -860,6 +891,68 @@ async function main() {
   await pulseHealth(pulseHealthConfig, config.LIQUIDATEE_WALLET_PATH);
 
   console.log("Account " + liquidatee + " is now liquidatable");
+}
+
+type BalanceRequirement = {
+  who: string;
+  owner: PublicKey;
+  label: string;
+  mint: PublicKey;
+  needed: BN;
+};
+
+/** Warns (does not throw) if either wallet is short of what the deposit steps will spend. */
+async function warnOnMissingBalances(
+  config: Config,
+  reqs: BalanceRequirement[],
+) {
+  const connection = new Connection(
+    commonSetup(true, config.PROGRAM_ID, config.LIQUIDATOR_WALLET_PATH)
+      .connection.rpcEndpoint,
+    "confirmed",
+  );
+
+  let allOk = true;
+  for (const r of reqs) {
+    if (r.needed.isZero()) continue;
+    const mintInfo = await connection.getAccountInfo(r.mint);
+    if (!mintInfo) {
+      console.warn(`  ${r.label}: mint ${r.mint.toBase58()} not found`);
+      allOk = false;
+      continue;
+    }
+    const decimals = mintInfo.data[44];
+    const ata = getAssociatedTokenAddressSync(
+      r.mint,
+      r.owner,
+      true,
+      mintInfo.owner,
+    );
+    const acc = await connection.getAccountInfo(ata);
+    const have = acc
+      ? new BN((await connection.getTokenAccountBalance(ata)).value.amount)
+      : new BN(0);
+
+    if (have.lt(r.needed)) {
+      allOk = false;
+      const short = r.needed.sub(have);
+      console.warn(
+        `  ${r.who} lacks ${toUi(short, decimals)} ${r.label} ` +
+          `(mint: ${r.mint.toBase58()}) to run the script. Please top up.`,
+      );
+    } else {
+      console.log(
+        `  ${r.who} ${r.label}: has ${toUi(have, decimals)}, needs ${toUi(r.needed, decimals)}`,
+      );
+    }
+  }
+  if (!allOk) {
+    console.warn("  ^ script will fail at the deposit steps until topped up");
+  }
+}
+
+function toUi(amount: BN, decimals: number): string {
+  return (Number(amount.toString()) / 10 ** decimals).toFixed(decimals).replace(/0+$/, "").replace(/\.$/, "");
 }
 
 function pkToString(pk: PublicKey | string): string {
