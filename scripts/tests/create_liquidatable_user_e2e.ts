@@ -126,14 +126,14 @@ const config: Config = {
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
   ), // usdc, Fixed to 1
   PT_COLLATERAL_MINT: new PublicKey(
-    "7LKNUcHaxsCMknrTwaPqLYPMkmMhkWXWnY7aiJXhkZfd",
-  ), // PT-fragSOL-15DEC26
+    "HgyWqTZ6JdGYF5TfrYmScTyvsyuopwYRJXwqA2LzCrz6",
+  ), // PT-bulkSOL-31OCT26
   PT_EXPONENT_VAULT: new PublicKey(
-    "8Rv3i2ea9QFS7pS5UeC3Vxtc3uHSF38VCdswd2ut56e",
+    "BwBn7Sro6RzDp3A59cDC7WoxWdT7yTaWuaHwvR7Gvypa",
   ),
   PT_BASE_ORACLE: new PublicKey(
     "7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE",
-  ), // SOL/USD PythPush (fragSOL is SOL-denominated)
+  ), // SOL/USD PythPush (bulkSOL is SOL-denominated)
   KAMINO_COLLATERAL_MINT: new PublicKey(
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
   ), // usdc
@@ -354,7 +354,7 @@ async function main() {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: ptBanks[0],
     ACCOUNT: liquidatee,
-    AMOUNT: new BN(1 * 10 ** 6), // 0.001 PT (9 decimals)
+    AMOUNT: new BN(1 * 10 ** 6), // 0.001 PT, ~$0.10
     MINT: config.PT_COLLATERAL_MINT,
   };
   for (let i = 0; i < ptBanks.length; i++) {
