@@ -128,13 +128,20 @@ export async function withdrawKamino(
   const reserve = await user.kaminoProgram.account.reserve.fetch(
     config.KAMINO_RESERVE,
   );
-  const reserveFarmState = reserve.farmCollateral;
+  let reserveFarmState = reserve.farmCollateral;
 
-  const [userState] = deriveUserState(
+  let [userState] = deriveUserState(
     FARMS_PROGRAM_ID,
     reserveFarmState,
     baseObligation
   );
+
+  // Reserves without a farm store the default pubkey. Both farm accounts are `Option<_>` with a
+  // `mut` constraint, so they have to be None here, not the default key (ConstraintMut otherwise).
+  if (reserveFarmState.toString() == PublicKey.default.toString()) {
+    reserveFarmState = null;
+    userState = null;
+  }
 
   let instructions: TransactionInstruction[] = [];
   if (config.ADD_COMPUTE_UNITS) {
@@ -170,6 +177,9 @@ export async function withdrawKamino(
         reserve: config.KAMINO_RESERVE,
         reserveFarmState,
         obligationFarmUserState: userState,
+        reserveLiquiditySupply: reserve.liquidity.supplyVault,
+        reserveCollateralMint: reserve.collateral.mintPubkey,
+        reserveSourceCollateral: reserve.collateral.supplyVault,
       },
       config.AMOUNT,
       config.WITHDRAW_ALL,
