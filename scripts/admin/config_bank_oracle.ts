@@ -15,6 +15,20 @@ const sendTx = true;
 const ORACLE_TYPE_PYTH = 3;
 const ORACLE_TYPE_SWB = 4;
 
+/** Setups that take the venue account (Kamino reserve / Drift market / Solend / JupLend Lending)
+ *  after the price feed. It is validated against `oracle_keys[1]`, which this ix does not write,
+ *  so it is read off the bank rather than configured below. */
+const VENUE_SETUPS = new Set([
+  6, // KaminoPythPush
+  7, // KaminoSwitchboardPull
+  9, // DriftPythPull
+  10, // DriftSwitchboardPull
+  11, // SolendPythPull
+  12, // SolendSwitchboardPull
+  15, // JuplendPythPull
+  16, // JuplendSwitchboardPull
+]);
+
 /** Shared settings across all entries */
 type SharedConfig = {
   PROGRAM_ID: string;
@@ -59,11 +73,17 @@ async function main() {
   const transaction = new Transaction();
 
   for (const cfg of configs) {
-    const oracleMeta: AccountMeta = {
-      pubkey: cfg.oracle,
+    const keys: PublicKey[] = [cfg.oracle];
+    if (VENUE_SETUPS.has(cfg.oracleType)) {
+      const bank = await program.account.bank.fetch(cfg.bank);
+      keys.push(bank.config.oracleKeys[1]);
+    }
+
+    const remaining: AccountMeta[] = keys.map((pubkey) => ({
+      pubkey,
       isSigner: false,
       isWritable: false,
-    };
+    }));
 
     const ix = await program.methods
       .lendingPoolConfigureBankOracle(cfg.oracleType, cfg.oracle)
@@ -71,7 +91,7 @@ async function main() {
         admin: configCommon.ADMIN,
         bank: cfg.bank,
       })
-      .remainingAccounts([oracleMeta])
+      .remainingAccounts(remaining)
       .instruction();
 
     transaction.add(ix);

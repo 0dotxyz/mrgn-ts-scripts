@@ -35,7 +35,7 @@ import {
 } from "../juplend/lib/utils";
 import { createAssociatedTokenAccountIdempotentInstruction, getMint, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { CrossbarClient } from "@switchboard-xyz/common";
-import { crankSwitchboardFeeds } from "./crank-swb-feed-alt";
+import { briefError, crankSwitchboardFeeds } from "./crank-swb-feed-alt";
 
 const sendTx = true;
 type Config = {
@@ -339,7 +339,9 @@ export async function borrow(
     } catch (error) {
       // A failed crank is not fatal: the feeds may still be inside `oracle_max_age`, and if they
       // are not the borrow tx will fail on its own with a stale-oracle error.
-      console.error("Switchboard crank failed, continuing anyway:", error);
+      console.error(
+        `Switchboard crank failed, continuing anyway: ${briefError(error)}`,
+      );
     }
     console.log();
   }

@@ -103,7 +103,7 @@ export async function crankSwitchboardFeeds(config: Config) {
   console.log(`  numSignatures: ${numSignatures}`);
   console.log(
     `  suppress fetchSignaturesConsensus Axios dumps: ${
-      config.HIDE_FETCH_SIGNATURES_CONSENSUS_AXIOS_ERRORS ?? false
+      config.HIDE_FETCH_SIGNATURES_CONSENSUS_AXIOS_ERRORS ?? true
     }`,
   );
   console.log(
@@ -151,7 +151,7 @@ export async function crankSwitchboardFeeds(config: Config) {
       network,
       variableOverrides,
       hideFetchSignaturesConsensusAxiosErrors:
-        config.HIDE_FETCH_SIGNATURES_CONSENSUS_AXIOS_ERRORS ?? false,
+        config.HIDE_FETCH_SIGNATURES_CONSENSUS_AXIOS_ERRORS ?? true,
     });
 
   logConsensusResponse(consensusResponse);
@@ -228,9 +228,8 @@ async function fetchUpdateManyIxWithOracleRetry(args: {
       const gatewayUrl = gatewayUrls[(attempt - 1) % gatewayUrls.length];
       forceCrossbarGateway(args.crossbarClient, gatewayUrl);
       console.log(
-        `fetchUpdateManyIx attempt ${attempt}/${args.maxAttempts}`,
+        `swb crank attempt ${attempt}/${args.maxAttempts} via ${new URL(gatewayUrl).hostname}`,
       );
-      console.log(`  gateway: ${gatewayUrl}`);
 
       return await withFetchSignaturesConsensusVariableOverrides(
         args.variableOverrides,
@@ -256,9 +255,9 @@ async function fetchUpdateManyIxWithOracleRetry(args: {
       }
 
       console.warn(
-        `ORACLE_UNAVAILABLE on attempt ${attempt}; retrying in ${args.retryDelayMs}ms`,
+        `  ${extractOracleUnavailableMessage(error).split("\n")[0]}` +
+          ` - retrying in ${args.retryDelayMs}ms`,
       );
-      console.warn(extractOracleUnavailableMessage(error));
 
       await sleep(args.retryDelayMs);
     }
@@ -304,11 +303,13 @@ async function withOptionalFetchSignaturesConsensusErrorSuppression<T>(
 
   const originalConsoleError = console.error;
   console.error = (...args: unknown[]) => {
-    const firstArg = args[0];
-    if (
-      typeof firstArg === "string" &&
-      firstArg.includes("fetchSignaturesConsensus error")
-    ) {
+    // The SDK logs the whole AxiosError (request, socket, TLS state, ...) on every gateway
+    // failure. Drop the entire call when it is that one, not just its leading string.
+    const isConsensusError =
+      args.some(
+        (a) => typeof a === "string" && a.includes("fetchSignaturesConsensus error"),
+      ) || args.some((a) => (a as any)?.isAxiosError === true);
+    if (isConsensusError) {
       return;
     }
 

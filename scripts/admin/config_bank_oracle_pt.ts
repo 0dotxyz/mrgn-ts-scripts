@@ -1,4 +1,5 @@
 import {
+  AccountMeta,
   PublicKey,
   Transaction,
   sendAndConfirmTransaction,
@@ -8,15 +9,23 @@ import { commonSetup } from "../../lib/common-setup";
 import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
 
 /**
- * If true, send the tx. If false, output the unsigned b58 tx to console.
+ * Configure a bank to use one of the Exponent PT (principal token) oracle setups. The PT price
+ * accretes linearly from `price` (the start price, must be in (0, 1]) toward par at the vault's
+ * maturity, capped by the vault's redemption backing:
+ *
+ *  - PTPyth:  base Pyth feed + Exponent vault -> price = base_feed * pt_rate. Remaining: [oracle, vault].
+ *  - PTFixed: Exponent vault only (underlying ~= $1) -> price = pt_rate in USD. Remaining: [vault].
+ *
+ * If true, send the tx. If false, output the unsigned b58 tx to console (for a squads proposal).
  */
 const sendTx = false;
 
-/** Instruction `setup` byte for a plain Fixed oracle (see `OracleSetup::from_u8`). */
-const ORACLE_SETUP_FIXED = 8;
+/** Instruction `setup` byte (see `OracleSetup::from_u8`). */
+export const ORACLE_SETUP_PT_PYTH = 25;
+export const ORACLE_SETUP_PT_FIXED = 26;
 
 /** Shared settings across all entries */
-type SharedConfig = {
+export type SharedConfig = {
   PROGRAM_ID: string;
   ADMIN: PublicKey;
   MULTISIG?: PublicKey; // May be omitted if not using squads
@@ -30,29 +39,50 @@ const configCommon: SharedConfig = {
 
 export type BankOracleConfig = {
   bank: PublicKey;
+  /** ORACLE_SETUP_PT_PYTH or ORACLE_SETUP_PT_FIXED */
+  setup: number;
+  /** PT start price, must be in (0, 1]. */
   price: number;
+  /** Exponent vault account. */
+  vault: PublicKey;
+  /** Base price feed. Required for PTPyth, omitted for PTFixed. */
+  oracle?: PublicKey;
 };
 
 /** One entry per bank to update */
 const configs: BankOracleConfig[] = [
-  // GUAC
-  {
-    bank: new PublicKey("44digRwKFeyiqDaxJRE6iag4cbXECKjG54v5ozxdu5mu"),
-    price: 0.000000001,
-  },
-  // ...More entries here as needed. The limit even without using LUTs is fairly high (at least 6)
+  // Example (PTPyth): PT-SOL bank priced off Pyth SOL/USD * PT rate.
+  // {
+  //   bank: new PublicKey("..."),
+  //   setup: ORACLE_SETUP_PT_PYTH,
+  //   price: 0.9,
+  //   oracle: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
+  //   vault: new PublicKey("9YbaicMsXrtupkpD72pdWBfU6R7EJfSByw75sEpDM1uH"),
+  // },
+  // Example (PTFixed): PT-hyUSD bank (underlying ~= $1).
+  // {
+  //   bank: new PublicKey("..."),
+  //   setup: ORACLE_SETUP_PT_FIXED,
+  //   price: 0.95,
+  //   vault: new PublicKey("..."),
+  // },
 ];
 
-async function main() {
-  await setFixedOraclePrice(
-    sendTx,
-    configCommon,
-    "./keys/zerotrade_admin.json",
-    configs,
-  );
+function remainingFor(cfg: BankOracleConfig): AccountMeta[] {
+  const keys: PublicKey[] = [];
+  if (cfg.setup === ORACLE_SETUP_PT_PYTH) {
+    if (!cfg.oracle) throw new Error("PTPyth requires `oracle` (base feed)");
+    keys.push(cfg.oracle);
+  }
+  keys.push(cfg.vault);
+  return keys.map((pubkey) => ({ pubkey, isSigner: false, isWritable: false }));
 }
 
-export async function setFixedOraclePrice(
+async function main() {
+  await setPtOracle(sendTx, configCommon, "./keys/zerotrade_admin.json", configs);
+}
+
+export async function setPtOracle(
   sendTx: boolean,
   configCommon: SharedConfig,
   walletPath: string,
@@ -72,14 +102,12 @@ export async function setFixedOraclePrice(
 
   for (const cfg of configs) {
     const ix = await program.methods
-      .lendingPoolSetOraclePrice(
-        bigNumberToWrappedI80F48(cfg.price),
-        ORACLE_SETUP_FIXED,
-      )
-      .accounts({
+      .lendingPoolSetOraclePrice(bigNumberToWrappedI80F48(cfg.price), cfg.setup)
+      .accountsPartial({
+        admin: configCommon.ADMIN,
         bank: cfg.bank,
       })
-      .remainingAccounts([])
+      .remainingAccounts(remainingFor(cfg))
       .instruction();
 
     transaction.add(ix);
