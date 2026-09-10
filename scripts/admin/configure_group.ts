@@ -27,6 +27,8 @@ type Config = {
   RISK_ADMIN?: PublicKey;
   EMODE_MAX_INIT_LEVERAGE?: WrappedI80F48;
   EMODE_MAX_MAINT_LEVERAGE?: WrappedI80F48;
+  SAME_ASSET_EMODE_INIT_LEVERAGE?: WrappedI80F48;
+  SAME_ASSET_EMODE_MAINT_LEVERAGE?: WrappedI80F48;
 
   MULTISIG?: PublicKey;
 };
@@ -37,11 +39,12 @@ const config: Config = {
   // ADMIN_GENERAL: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
   // EMODE_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
   // CURVE_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
-  LIMIT_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
+  // LIMIT_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // FLOW_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // EMISS_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // META_ADMIN: new PublicKey("B2QBNiT857wyU56jffuy5i7YPpLC9eUwJ99CzJt52RN9"),
-  // RISK_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  // zBTC deleverager wallet; revert to CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw when done
+  RISK_ADMIN: new PublicKey("KiVSJuZ2kt1X1bpheKTocJM4MWRx6Ua2mS4tesXAMyH"),
   // EMODE_MAX_INIT_LEVERAGE: bigNumberToWrappedI80F48(20),
   // EMODE_MAX_MAINT_LEVERAGE: bigNumberToWrappedI80F48(40),
 
@@ -99,9 +102,12 @@ async function main() {
         config.RISK_ADMIN ?? groupBefore.riskAdmin,
         config.EMODE_MAX_INIT_LEVERAGE ?? null,
         config.EMODE_MAX_MAINT_LEVERAGE ?? null,
+        config.SAME_ASSET_EMODE_INIT_LEVERAGE ?? null,
+        config.SAME_ASSET_EMODE_MAINT_LEVERAGE ?? null,
       )
-      .accounts({
+      .accountsPartial({
         marginfiGroup: config.GROUP,
+        admin: config.MULTISIG ?? user.wallet.publicKey,
       })
       .instruction(),
   );
