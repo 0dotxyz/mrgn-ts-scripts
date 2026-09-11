@@ -43,8 +43,7 @@ const config: Config = {
   // FLOW_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // EMISS_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // META_ADMIN: new PublicKey("B2QBNiT857wyU56jffuy5i7YPpLC9eUwJ99CzJt52RN9"),
-  // zBTC deleverager wallet; revert to CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw when done
-  RISK_ADMIN: new PublicKey("KiVSJuZ2kt1X1bpheKTocJM4MWRx6Ua2mS4tesXAMyH"),
+  // RISK_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
   // EMODE_MAX_INIT_LEVERAGE: bigNumberToWrappedI80F48(20),
   // EMODE_MAX_MAINT_LEVERAGE: bigNumberToWrappedI80F48(40),
 
