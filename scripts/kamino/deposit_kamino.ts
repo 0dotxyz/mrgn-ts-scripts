@@ -88,13 +88,20 @@ export async function depositKamino(sendTx: boolean, config: Config, walletPath:
   const reserveAcc = await user.kaminoProgram.account.reserve.fetch(
     reserve,
   );
-  const reserveFarmState = reserveAcc.farmCollateral;
+  let reserveFarmState = reserveAcc.farmCollateral;
 
-  const [userState] = deriveUserState(
+  let [userState] = deriveUserState(
     FARMS_PROGRAM_ID,
     reserveFarmState,
     baseObligation
   );
+
+  // Reserves without a farm store the default pubkey. Both farm accounts are `Option<_>` with a
+  // `mut` constraint, so they have to be None here, not the default key (ConstraintMut otherwise).
+  if (reserveFarmState.toString() == PublicKey.default.toString()) {
+    reserveFarmState = null;
+    userState = null;
+  }
 
   let depositTx = new Transaction().add(
     await simpleRefreshReserve(
@@ -119,6 +126,9 @@ export async function depositKamino(sendTx: boolean, config: Config, walletPath:
         reserve: reserve,
         reserveFarmState,
         obligationFarmUserState: userState,
+        reserveLiquiditySupply: reserveAcc.liquidity.supplyVault,
+        reserveCollateralMint: reserveAcc.collateral.mintPubkey,
+        reserveDestinationDepositCollateral: reserveAcc.collateral.supplyVault,
       },
       config.AMOUNT
     )

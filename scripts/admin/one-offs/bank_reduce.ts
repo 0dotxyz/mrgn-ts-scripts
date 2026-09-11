@@ -36,53 +36,63 @@ export async function reduceOnlyBanks(banks: PublicKey[], withBorrowingPower: bo
     verifySignatures: false,
   });
   const labels = banks.map((b) => b.toBase58()).join(", ");
-  console.log(`Reduce-only tx for bank(s) ${labels} (base58):`);
+  console.log(`Reduce-only tx for bank(s) ${labels} (base58):\n`);
   console.log(bs58.encode(serialized));
 }
 
-/** Every field null (unchanged) except operationalState = reduceOnly. */
+/**
+ * Every `BankConfigOpt` field explicitly null, i.e. "change nothing". Callers spread this and
+ * override only the fields they mean to set.
+ *
+ * This must list EVERY field in the IDL's `BankConfigOpt`. Anchor serializes the struct in IDL
+ * field order and encodes a missing key as absent rather than as `None`, so an incomplete object
+ * produces a short buffer and the program rejects the ix with `InstructionDidNotDeserialize`
+ * (0x66) at simulation time. If a future IDL adds a field, add it here too.
+ */
+const noConfigChanges = {
+  assetWeightInit: null,
+  assetWeightMaint: null,
+  liabilityWeightInit: null,
+  liabilityWeightMaint: null,
+  depositLimit: null,
+  borrowLimit: null,
+  operationalState: null,
+  interestRateConfig: null,
+  riskTier: null,
+  assetTag: null,
+  totalAssetValueInitLimit: null,
+  oracleMaxConfidence: null,
+  oracleMaxAge: null,
+  permissionlessBadDebtSettlement: null,
+  freezeSettings: null,
+  tokenlessRepaymentsAllowed: null,
+  liquidationLiquidatorFee: null,
+  liquidationInsuranceFee: null,
+  circuitBreakerEnabled: null,
+  cbDeviationBpsTiers: null,
+  cbTierDurationsSeconds: null,
+  cbEscalationWindowMult: null,
+  cbEmaAlphaBps: null,
+  cbWindowSeconds: null,
+  cbWindowMaxUpBps: null,
+  cbWindowMaxDownBps: null,
+};
+
+/** Every field unchanged except operationalState = reduceOnly. */
 const reduceOnlyConfig = {
-  assetWeightInit: null,
-  assetWeightMaint: null,
-  liabilityWeightInit: null,
-  liabilityWeightMaint: null,
-  depositLimit: null,
-  borrowLimit: null,
-  riskTier: null,
-  assetTag: null,
-  totalAssetValueInitLimit: null,
-  interestRateConfig: null,
+  ...noConfigChanges,
   operationalState: { reduceOnly: {} },
-  oracleMaxAge: null,
-  oracleMaxConfidence: null,
-  permissionlessBadDebtSettlement: null,
-  freezeSettings: null,
-  tokenlessRepaymentsAllowed: null,
 };
 
-/** Every field null (unchanged) except operationalState = reduceOnlyWithBorrowingPower. */
+/** Every field unchanged except operationalState = reduceOnlyWithBorrowingPower. */
 const reduceOnlyWithBorrowingPowerConfig = {
-  assetWeightInit: null,
-  assetWeightMaint: null,
-  liabilityWeightInit: null,
-  liabilityWeightMaint: null,
-  depositLimit: null,
-  borrowLimit: null,
-  riskTier: null,
-  assetTag: null,
-  totalAssetValueInitLimit: null,
-  interestRateConfig: null,
+  ...noConfigChanges,
   operationalState: { reduceOnlyWithBorrowingPower: {} },
-  oracleMaxAge: null,
-  oracleMaxConfidence: null,
-  permissionlessBadDebtSettlement: null,
-  freezeSettings: null,
-  tokenlessRepaymentsAllowed: null,
 };
 
-/** ORE bank in the main group (mint oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp) */
-const ORE_BANK = new PublicKey("FuyzDwmMbYYPPd3oLtjNk3ZLqsTBPaQtQrxRGzUGcAvp");
+/** UXD bank in the main group (mint 7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT) */
+const UXD_BANK = new PublicKey("BeNBJrAh1tZg5sqgt8D6AWKJLD5KkBrfZvtcgd7EuiAR");
 
-reduceOnlyBanks([ORE_BANK]).catch((err) => {
+reduceOnlyBanks([UXD_BANK]).catch((err) => {
   console.error(err);
 });

@@ -201,6 +201,15 @@ export interface KaminoDepositAccounts {
 
   obligationFarmUserState?: PublicKey | null;
   reserveFarmState?: PublicKey | null;
+
+  /**
+   * Read off the reserve when the caller has it. Only reserves created with the deterministic
+   * seeds match the derivations below; older ones use arbitrary keypairs, and deriving those
+   * yields accounts that do not exist (AccountNotInitialized from KLend).
+   */
+  reserveLiquiditySupply?: PublicKey;
+  reserveCollateralMint?: PublicKey;
+  reserveDestinationDepositCollateral?: PublicKey;
 }
 
 export const makeKaminoDepositIx = async (
@@ -259,6 +268,15 @@ export interface KaminoWithdrawAccounts {
 
   obligationFarmUserState?: PublicKey | null;
   reserveFarmState?: PublicKey | null;
+
+  /**
+   * Read off the reserve when the caller has it. Only reserves created with the deterministic
+   * seeds match the derivations below; older ones use arbitrary keypairs, and deriving those
+   * yields accounts that do not exist (AccountNotInitialized from KLend).
+   */
+  reserveLiquiditySupply?: PublicKey;
+  reserveCollateralMint?: PublicKey;
+  reserveSourceCollateral?: PublicKey;
 }
 
 export const makeKaminoWithdrawIx = async (
