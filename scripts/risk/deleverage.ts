@@ -2,6 +2,7 @@ import {
   AccountMeta,
   AddressLookupTableAccount,
   ComputeBudgetProgram,
+  Connection,
   PublicKey,
   Transaction,
   TransactionInstruction,
@@ -54,8 +55,7 @@ import {
   JUPLEND_LENDING_PROGRAM_ID,
 } from "../juplend/lib/utils";
 import { updateLut } from "../../luts/update_lut";
-import { CrossbarClient } from "@switchboard-xyz/common";
-import { crankSwitchboardFeeds } from "../user/crank-swb-feed-alt";
+import { briefError } from "../user/crank-swb-feed-alt";
 
 const sendTx = true;
 
@@ -71,22 +71,146 @@ type FetchedReserves = Map<string, any>; // any here is the Reserve type from Ka
 type FetchedSpotMarkets = Map<string, any>; // any here is the SpotMarket type from Drift IDL
 type FetchedLendings = Map<string, any>; // any here is the Lending type from the JupLend IDL
 
-const confidence = BigNumber(0.0212);
+/// Fraction of the maint-weighted debt the seizure is allowed to consume. `end_deleverage`
+/// compares health against prices locked on-chain at `start_deleverage`, which can have moved
+/// since this script read the bank caches; without slack a small adverse move trips
+/// WorseHealthPostLiquidation and reverts the whole tx.
+const SEIZE_MARGIN = BigNumber(0.98);
 
-/// A Switchboard feed cranked more recently than this is considered fresh enough to reuse
-/// across accounts in the same run, so batches of only-fresh feeds skip the crank entirely.
-const CRANK_FRESHNESS_MS = 30_000;
-/// Feed pubkey -> `Date.now()` of the last successful crank, shared across `deleverage` calls.
-const lastCrankedAt = new Map<string, number>();
+/// Price and confidence the risk engine will use for a bank, in USD per whole token.
+///
+/// `cache.lastOraclePrice` is the RAW feed price. Venue setups (Kamino/Drift/JupLend) and the
+/// mSOL/LST/PT wrappers keep their exchange rate in `cache.priceMultiplier` and the engine
+/// multiplies the two (see `update_cache_price`), so both the price and its confidence have to
+/// be scaled by it. The stored confidence is already multiplied by `CONF_INTERVAL_MULTIPLE`.
+function bankPrice(bank: any): { price: BigNumber; conf: BigNumber } {
+  let mult = wrappedI80F48toBigNumber(bank.cache.priceMultiplier);
+  if (mult.isZero()) mult = BigNumber(1);
+  return {
+    price: wrappedI80F48toBigNumber(bank.cache.lastOraclePrice).multipliedBy(mult),
+    conf: wrappedI80F48toBigNumber(bank.cache.lastOraclePriceConfidence).multipliedBy(mult),
+  };
+}
+
+/// `Bank.flags` bit that lets the risk admin clear a debt with no tokens (see
+/// `TOKENLESS_REPAYMENTS_ALLOWED` in the program's constants).
+const TOKENLESS_REPAYMENTS_ALLOWED = 1n << 5n;
+
+/// Remaining liability value (USD) below which seizing more collateral is pointless: the
+/// withdraw rounds to nothing useful and risks tripping WorseHealthPostLiquidation.
+const DUST_LIAB_VALUE = BigNumber(0.001);
+
+/// Accounts each `OracleSetup` needs after its bank, as indices into `bank.config.oracleKeys`.
+/// Mirrors `get_remaining_accounts_per_bank` and the per-setup `ais` layout in `price.rs`. Every
+/// setup must be listed: a bank that contributes no accounts silently shifts every later balance
+/// and the health check fails with `InvalidBankAccount`.
+const ORACLE_KEY_INDICES: Record<string, number[]> = {
+  fixed: [],
+  pythPushOracle: [0],
+  scope: [0],
+  ptFixed: [0],
+  // The venue loaders all validate against `oracle_keys[1]`, and these carry no base feed.
+  fixedKamino: [1],
+  fixedDrift: [1],
+  fixedJuplend: [1],
+  kaminoPythPush: [0, 1],
+  driftPythPull: [0, 1],
+  solendPythPull: [0, 1],
+  juplendPythPull: [0, 1],
+  // Base feed + rate source (Marinade State / SPL stake pool / Exponent vault).
+  pythMsol: [0, 1],
+  pythLst: [0, 1],
+  ptPyth: [0, 1],
+  // Base feed + venue + rate source.
+  kaminoMsol: [0, 1, 2],
+  juplendMsol: [0, 1, 2],
+  kaminoLst: [0, 1, 2],
+  juplendLst: [0, 1, 2],
+  // [3] is the on-ramp, replaced with the derived key when unset (see below).
+  stakedWithPythPush: [0, 1, 2, 3],
+};
+
+/// Setups holding a Kamino reserve in `integrationAcc1`, which needs a refresh ix.
+const KAMINO_SETUPS = new Set([
+  "kaminoPythPush",
+  "fixedKamino",
+  "kaminoMsol",
+  "kaminoLst",
+]);
+
+/// Setups holding a JupLend Lending state in `integrationAcc1`, which needs an updateRate ix.
+const JUPLEND_SETUPS = new Set([
+  "juplendPythPull",
+  "fixedJuplend",
+  "juplendMsol",
+  "juplendLst",
+]);
+
+const SPL_SINGLE_POOL_PROGRAM_ID = new PublicKey(
+  "SVSPxpvHdN29nkVg9rPapPNDddN5DipNLRUFhyjFThE",
+);
+
+/// `derive_staked_onramp_from_vote`: the single-pool on-ramp stake account for a validator.
+function deriveStakedOnramp(voteAccount: PublicKey): PublicKey {
+  const [pool] = PublicKey.findProgramAddressSync(
+    [Buffer.from("pool"), voteAccount.toBuffer()],
+    SPL_SINGLE_POOL_PROGRAM_ID,
+  );
+  const [onramp] = PublicKey.findProgramAddressSync(
+    [Buffer.from("onramp"), pool.toBuffer()],
+    SPL_SINGLE_POOL_PROGRAM_ID,
+  );
+  return onramp;
+}
+
+/// Extra margin (bps) added on top of the computed repay amount when checking that the repay ATA
+/// is funded. `repay_all` settles the debt as of execution, which is a few slots after this check,
+/// so it covers interest accrued in between.
+const REPAY_FUNDING_BUFFER_BPS = 10;
+
+/// Group pubkey -> fetched group, shared across `deleverage` calls (only read for `riskAdmin`).
+const fetchedGroups = new Map<string, any>();
+
+export type DeleverageResult = {
+  /** No zBTC liability on this account (lender, or dust), nothing was sent. */
+  skipped: boolean;
+  /** Tx landed. False means it was built but the send failed. */
+  ok: boolean;
+  /** Debt cleared, in zBTC native units and in USD. */
+  repaidNative: BigNumber;
+  repaidUsd: BigNumber;
+  /** Collateral seized, in USD, summed over every bank withdrawn from. */
+  seizedUsd: BigNumber;
+};
+
+/** Thrown when the deleverager wallet cannot cover the next account's debt. Stops the run. */
+export class InsufficientRepayFunds extends Error {
+  constructor(
+    readonly account: PublicKey,
+    readonly missingNative: BigNumber,
+    readonly haveNative: BigNumber,
+    readonly neededNative: BigNumber,
+    readonly decimals: number,
+    readonly mint: PublicKey,
+  ) {
+    super(`insufficient repay funds for ${account.toBase58()}`);
+  }
+}
 
 const grandConfig = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   BANK: new PublicKey("3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq"), // zBTC
-  LUT: new PublicKey("UzGyBno8GEZDapsj1FAy11aquXby1wkxeeDa4Y5TdPN"),
+  LUT: new PublicKey("DdejzsoJypNyb3Q1iMAwxiyHHtjNuvb9tZvz5nfaUA7R"),
 
-  // Crossbar used to crank the Switchboard feeds backing the involved banks, so the oracles
-  // are inside `oracle_max_age` when the risk engine reads them.
-  CROSSBAR_URL: "https://crossbar.switchboard.xyz",
+  /** Produced by fetch-accounts-for-bank.ts. */
+  DUMP: "logs/3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq_accounts.json",
+  /** Wallet holding the zBTC used to repay. Must be the group's risk admin. */
+  WALLET: "/.config/deleverager/id.json",
+  /**
+   * Resume point: skip every account until this one (inclusive). Set it to the pubkey the last
+   * run stopped on after topping the wallet back up. Empty string starts from the beginning.
+   */
+  START_FROM: "",
 };
 
 type Config = {
@@ -95,18 +219,10 @@ type Config = {
   ACCOUNT: PublicKey;
   BALANCES: Balances;
   LUT: PublicKey;
-  CROSSBAR_URL?: string;
 };
 
 async function main() {
-  const raw = fs.readFileSync(
-    // Note: use a log created by fetch-accounts-for-bank.ts
-    // "logs/3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq_accounts.json",
-    "logs/test.json",
-    "utf8",
-  );
-  const data = JSON.parse(raw);
-
+  const data = JSON.parse(fs.readFileSync(grandConfig.DUMP, "utf8"));
   const accountBanks = parseAccountBanks(data);
 
   let fetchedBanks: FetchedBanks = new Map();
@@ -114,27 +230,107 @@ async function main() {
   let fetchedSpotMarkets: FetchedSpotMarkets = new Map();
   let fetchedLendings: FetchedLendings = new Map();
 
-  for (const [accountPk, balances] of accountBanks) {
+  let repaidUsd = BigNumber(0);
+  let repaidNative = BigNumber(0);
+  let seizedUsd = BigNumber(0);
+  let done = 0;
+  let skipped = 0;
+  let failed = 0;
+  let reached = grandConfig.START_FROM === "";
+  let stoppedOn: InsufficientRepayFunds | undefined;
+
+  const accounts = [...accountBanks];
+  for (let i = 0; i < accounts.length; i++) {
+    const [accountPk, balances] = accounts[i];
+
+    if (!reached) {
+      if (accountPk.toBase58() !== grandConfig.START_FROM) continue;
+      reached = true;
+    }
+
+    console.log(`\n[${i + 1}/${accounts.length}] ${accountPk.toBase58()}`);
+
     const config: Config = {
       PROGRAM_ID: grandConfig.PROGRAM_ID,
       BANK: grandConfig.BANK,
       ACCOUNT: accountPk,
       BALANCES: balances,
       LUT: grandConfig.LUT,
-      CROSSBAR_URL: grandConfig.CROSSBAR_URL,
     };
 
-    await deleverage(
-      sendTx,
-      config,
-      "/.config/stage/id.json",
-      fetchedBanks,
-      fetchedReserves,
-      fetchedSpotMarkets,
-      fetchedLendings,
+    let result: DeleverageResult;
+    try {
+      result = await deleverage(
+        sendTx,
+        config,
+        grandConfig.WALLET,
+        fetchedBanks,
+        fetchedReserves,
+        fetchedSpotMarkets,
+        fetchedLendings,
+      );
+    } catch (error) {
+      if (error instanceof InsufficientRepayFunds) {
+        stoppedOn = error;
+        break;
+      }
+      throw error;
+    }
+
+    if (result.skipped) {
+      skipped++;
+    } else if (result.ok) {
+      done++;
+      repaidUsd = repaidUsd.plus(result.repaidUsd);
+      repaidNative = repaidNative.plus(result.repaidNative);
+      seizedUsd = seizedUsd.plus(result.seizedUsd);
+    } else {
+      failed++;
+    }
+  }
+
+  const dec = fetchedBanks.get(grandConfig.BANK.toBase58())?.mintDecimals ?? 8;
+  const tok = (n: BigNumber) => n.dividedBy(10 ** dec).toFixed(dec);
+  const usd = (n: BigNumber) => "$" + n.toFixed(2);
+
+  console.log("\n====== RUN SUMMARY ======");
+  console.log(`deleveraged:      ${done}`);
+  console.log(`skipped (no liab): ${skipped}`);
+  console.log(`failed to send:   ${failed}`);
+  console.log(`zBTC repaid:      ${tok(repaidNative)}  (${usd(repaidUsd)})`);
+  console.log(`collateral seized: ${usd(seizedUsd)}`);
+  console.log("=========================");
+
+  if (stoppedOn) {
+    console.log("\n====== STOPPED: NOT ENOUGH zBTC ======");
+    console.log(`next target:  ${stoppedOn.account.toBase58()}`);
+    console.log(`mint:         ${stoppedOn.mint.toBase58()}`);
+    console.log(`needed:       ${tok(stoppedOn.neededNative)}`);
+    console.log(`have:         ${tok(stoppedOn.haveNative)}`);
+    console.log(`MISSING:      ${tok(stoppedOn.missingNative)} zBTC`);
+    console.log(
+      `\nTop up the wallet, then set START_FROM to "${stoppedOn.account.toBase58()}" and re-run.`,
     );
+    console.log("=====================================");
+    process.exitCode = 1;
   }
 }
+
+/// Flattens `[bank, ...oracles]` groups into remaining-account metas.
+///
+/// The bank is writable: `start_deleverage` locks the liquidation price cache on every bank in
+/// the list and `end_deleverage` clears it, both via `load_mut`. Writability is a property of the
+/// transaction, not the instruction, so passing them read-only only worked by accident on
+/// accounts where every bank also happened to be repaid or withdrawn from.
+const toMeta = (groups: PublicKey[][]): AccountMeta[] =>
+  groups.flatMap(([bankPk, ...oracles]) => [
+    { pubkey: bankPk, isSigner: false, isWritable: true },
+    ...oracles.map((pubkey) => ({
+      pubkey,
+      isSigner: false,
+      isWritable: false,
+    })),
+  ]);
 
 export async function deleverage(
   sendTx: boolean,
@@ -144,7 +340,14 @@ export async function deleverage(
   fetchedReserves?: FetchedReserves,
   fetchedSpotMarkets?: FetchedSpotMarkets,
   fetchedLendings?: FetchedLendings,
-) {
+): Promise<DeleverageResult> {
+  const skippedResult: DeleverageResult = {
+    skipped: true,
+    ok: false,
+    repaidNative: BigNumber(0),
+    repaidUsd: BigNumber(0),
+    seizedUsd: BigNumber(0),
+  };
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
@@ -176,6 +379,38 @@ export async function deleverage(
     TOKEN_PROGRAM_ID,
   );
 
+  if (!fetchedGroups.has(liabBank.group.toBase58())) {
+    fetchedGroups.set(
+      liabBank.group.toBase58(),
+      await program.account.marginfiGroup.fetch(liabBank.group),
+    );
+  }
+  const group = fetchedGroups.get(liabBank.group.toBase58());
+
+  // `lendingAccountRepay(0, repay_all = true)` below only skips the token transfer when the signer
+  // is the group's risk admin AND the bank carries TOKENLESS_REPAYMENTS_ALLOWED. In every other
+  // case the very same instruction moves the whole debt out of `liabAta`, so the wallet has to
+  // hold it. Resolve which mode we are in up front, and preflight the funding before signing.
+  const isRiskAdmin = user.wallet.publicKey.equals(group.riskAdmin);
+  const tokenlessRepay =
+    isRiskAdmin &&
+    (BigInt(liabBank.flags.toString()) & TOKENLESS_REPAYMENTS_ALLOWED) !== 0n;
+
+  if (!isRiskAdmin) {
+    // start/end deleverage take the risk admin as a `Signer`, so this run cannot succeed as-is.
+    // Left as a warning rather than a throw so the tx can still be built for inspection or for
+    // handoff to whatever signs on the risk admin's behalf.
+    console.warn(
+      `WARNING: wallet ${user.wallet.publicKey.toBase58()} is not the group risk admin ` +
+        `(${group.riskAdmin.toBase58()}). start/end deleverage will be rejected.`,
+    );
+  }
+  console.log(
+    tokenlessRepay
+      ? "Repay mode: TOKENLESS (bank has TOKENLESS_REPAYMENTS_ALLOWED, debt is written off)"
+      : `Repay mode: WITH TOKENS (paid out of ${liabAta.toBase58()})`,
+  );
+
   let instructions: TransactionInstruction[] = [];
   instructions.push(
     ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
@@ -185,11 +420,14 @@ export async function deleverage(
   // `updateRate` once per state to keep the tx small.
   const refreshedLendings = new Set<string>();
 
-  // Switchboard feeds backing the involved banks, cranked in their own tx before the
-  // deleverage tx is built (see below). Deduped: several banks can share one feed.
-  const swbFeeds = new Map<string, PublicKey>();
-
-  let liabValue: BigNumber;
+  /** Maint-weighted headroom the seizure may consume; the withdraw loop draws it down. */
+  let liabValue = BigNumber(0);
+  /** Plain USD value of the debt this run clears, for the run stats (not weighted). */
+  let liabUsd = BigNumber(0);
+  /** Plain USD value of the collateral seized, for the run stats (not weighted). */
+  let seizedUsd = BigNumber(0);
+  /// Native token amount `repay_all` will pull from `liabAta` when not repaying tokenlessly.
+  let liabNative = BigNumber(0);
   let remainingAccounts: PublicKey[][] = [];
   let banksToWithdrawFrom: {
     bankPk: PublicKey;
@@ -204,7 +442,7 @@ export async function deleverage(
   } of config.BALANCES) {
     if (config.BANK.toBase58() == bankPk.toBase58()) {
       if (isCollateral || shares.isNaN()) {
-        return;
+        return skippedResult;
       } else {
         console.log();
         console.log("Deleveraging account: ", config.ACCOUNT.toBase58());
@@ -214,12 +452,26 @@ export async function deleverage(
         );
 
         const liabTokens = shares.multipliedBy(liabShareValue);
+        // `repay_all` transfers `ceil(liability_shares * liability_share_value)` (see
+        // `BankAccountWrapper::repay_all`), so this is what the ATA must cover.
+        liabNative = liabTokens.integerValue(BigNumber.ROUND_CEIL);
 
-        const price = wrappedI80F48toBigNumber(liabBank.cache.lastOraclePrice);
-        const adjustedPrice = price.multipliedBy(BigNumber(1).plus(confidence));
-        liabValue = liabTokens
-          .dividedBy(10 ** liabBank.mintDecimals)
-          .multipliedBy(adjustedPrice);
+        // `end_deleverage` weighs health in MAINT terms: a liability counts at the
+        // confidence-raised price times the maint liability weight, collateral at the
+        // confidence-lowered price times the maint asset weight. Size the seizure in those same
+        // units, otherwise raw-USD parity silently overshoots whenever the asset weight is
+        // heavier than the liability weight.
+        const { price, conf } = bankPrice(liabBank);
+        const adjustedPrice = price.plus(conf);
+        const liabWeight = wrappedI80F48toBigNumber(
+          liabBank.config.liabilityWeightMaint,
+        );
+        const liabTokensUi = liabTokens.dividedBy(10 ** liabBank.mintDecimals);
+        liabUsd = liabTokensUi.multipliedBy(price);
+        liabValue = liabTokensUi
+          .multipliedBy(adjustedPrice)
+          .multipliedBy(liabWeight)
+          .multipliedBy(SEIZE_MARGIN);
 
         console.log();
         console.log("liab share value: ", liabShareValue.toString());
@@ -255,34 +507,26 @@ export async function deleverage(
       }
     }
 
-    if (
-      bank.config.oracleSetup.switchboardPull ||
-      bank.config.oracleSetup.kaminoSwitchboardPull ||
-      bank.config.oracleSetup.driftSwitchboardPull ||
-      bank.config.oracleSetup.juplendSwitchboardPull
-    ) {
-      const feed = bank.config.oracleKeys[0];
-      console.log("SWB ORACLE:", feed.toBase58());
-      swbFeeds.set(feed.toBase58(), feed);
+    const setup = Object.keys(bank.config.oracleSetup)[0];
+
+    const keyIndices = ORACLE_KEY_INDICES[setup];
+    if (!keyIndices) {
+      throw new Error(
+        `bank ${bankPk.toBase58()}: unhandled oracle setup "${setup}". Add it to ` +
+          `ORACLE_KEY_INDICES, otherwise this bank contributes no remaining accounts and ` +
+          `every later balance reads the wrong one (InvalidBankAccount).`,
+      );
     }
+    const group = [bankPk, ...keyIndices.map((i) => bank.config.oracleKeys[i])];
+    if (setup === "stakedWithPythPush") {
+      // `expected_staked_onramp`: `oracle_keys[3]` when set, else derived off the vote account.
+      group[4] = bank.config.oracleKeys[3].equals(PublicKey.default)
+        ? deriveStakedOnramp(bank.integrationAcc1)
+        : bank.config.oracleKeys[3];
+    }
+    remainingAccounts.push(group);
 
-    if (bank.config.oracleSetup.fixed) {
-      remainingAccounts.push([bankPk]);
-    } else if (
-      bank.config.oracleSetup.pythPushOracle ||
-      bank.config.oracleSetup.switchboardPull
-    ) {
-      remainingAccounts.push([bankPk, bank.config.oracleKeys[0]]);
-    } else if (
-      bank.config.oracleSetup.kaminoPythPush ||
-      bank.config.oracleSetup.kaminoSwitchboardPull
-    ) {
-      remainingAccounts.push([
-        bankPk,
-        bank.config.oracleKeys[0],
-        bank.config.oracleKeys[1],
-      ]);
-
+    if (KAMINO_SETUPS.has(setup)) {
       if (!fetchedReserves.has(bank.integrationAcc1.toBase58())) {
         console.log("Fetching reserve: ", bank.integrationAcc1.toBase58());
         fetchedReserves.set(
@@ -300,26 +544,9 @@ export async function deleverage(
           reserve.config.tokenInfo.scopeConfiguration.priceFeed,
         ),
       );
-    } else if (
-      bank.config.oracleSetup.driftPythPull ||
-      bank.config.oracleSetup.driftSwitchboardPull
-    ) {
-      remainingAccounts.push([
-        bankPk,
-        bank.config.oracleKeys[0],
-        bank.config.oracleKeys[1],
-      ]);
-    } else if (
-      bank.config.oracleSetup.juplendPythPull ||
-      bank.config.oracleSetup.juplendSwitchboardPull
-    ) {
-      // (0) bank, (1) oracle, (2) JupLend Lending state
-      remainingAccounts.push([
-        bankPk,
-        bank.config.oracleKeys[0],
-        bank.config.oracleKeys[1],
-      ]);
+    }
 
+    if (JUPLEND_SETUPS.has(setup)) {
       if (!fetchedLendings.has(bank.integrationAcc1.toBase58())) {
         console.log("Fetching lending: ", bank.integrationAcc1.toBase58());
         fetchedLendings.set(
@@ -345,14 +572,17 @@ export async function deleverage(
             .instruction(),
         );
       }
-    } else if (bank.config.oracleSetup.stakedWithPythPush) {
-      remainingAccounts.push([
-        bankPk,
-        bank.config.oracleKeys[0],
-        bank.config.oracleKeys[1],
-        bank.config.oracleKeys[2],
-      ]);
     }
+  }
+
+  if (!tokenlessRepay) {
+    await assertRepayFunded(
+      connection,
+      liabAta,
+      liabNative,
+      liabBank,
+      config,
+    );
   }
 
   const [liqRecordKey] = deriveLiquidationRecord(
@@ -390,12 +620,7 @@ export async function deleverage(
     }
   }
 
-  const startRemaining = remainingAccounts.flat();
-  let startMeta: AccountMeta[] = startRemaining.map((pubkey) => ({
-    pubkey,
-    isSigner: false,
-    isWritable: false,
-  }));
+  const startMeta = toMeta(remainingAccounts);
 
   instructions.push(
     await program.methods
@@ -410,12 +635,7 @@ export async function deleverage(
   remainingAccounts = remainingAccounts.filter(
     (a) => a[0].toBase58() != config.BANK.toBase58(),
   );
-  const repayRemaining = remainingAccounts.flat();
-  let repayMeta: AccountMeta[] = repayRemaining.map((pubkey) => ({
-    pubkey,
-    isSigner: false,
-    isWritable: false,
-  }));
+  const repayMeta = toMeta(remainingAccounts);
   instructions.push(
     await program.methods
       .lendingAccountRepay(new BN(0), true)
@@ -439,14 +659,16 @@ export async function deleverage(
 
     const seizableTokens = shares.multipliedBy(shareValue);
 
-    const price = wrappedI80F48toBigNumber(bank.cache.lastOraclePrice);
-    if (price.isZero()) {
+    const { price, conf } = bankPrice(bank);
+    const assetWeight = wrappedI80F48toBigNumber(bank.config.assetWeightMaint);
+    if (price.isZero() || assetWeight.isZero()) {
       continue;
     }
-    const adjustedPrice = price.multipliedBy(BigNumber(1).minus(confidence));
-    const seizableValue = seizableTokens
-      .dividedBy(10 ** bank.mintDecimals)
-      .multipliedBy(adjustedPrice);
+    const adjustedPrice = price.minus(conf);
+    const seizableUi = seizableTokens.dividedBy(10 ** bank.mintDecimals);
+    const seizableValue = seizableUi
+      .multipliedBy(adjustedPrice)
+      .multipliedBy(assetWeight);
 
     console.log();
     console.log("bank: ", bankPk.toString());
@@ -471,6 +693,7 @@ export async function deleverage(
     let withdrawAll: boolean;
     if (liabValue.gt(seizableValue)) {
       liabValue = liabValue.minus(seizableValue);
+      seizedUsd = seizedUsd.plus(seizableUi.multipliedBy(price));
       console.log(
         "Withdrawing ALL, remaining liab value to cover: ",
         liabValue.toString(),
@@ -478,38 +701,40 @@ export async function deleverage(
       withdrawAmount = new BN(0);
       withdrawAll = true;
     } else {
+      if (liabValue.isLessThan(DUST_LIAB_VALUE)) {
+        // Such small values may cause WorseHealthPostLiquidation but give no practical sense for
+        // withdrawing. The remaining debt is already covered, so no later bank is needed either.
+        console.log("Remaining liab value is dust, nothing left to seize");
+        break;
+      }
+
       const proportion = liabValue.dividedBy(seizableValue);
       // console.log("proportion", proportion.toString());
 
       const fullValue = seizableTokens.multipliedBy(proportion);
       // console.log("fullValue", fullValue.toString());
 
-      let adjustedValue: BigNumber;
-      if (liabValue.isLessThan(0.001)) {
-        // Such small values may cause WorseHealthPostLiquidation but give no practical sense for withdrawing.
-        adjustedValue = BigNumber(0);
-      } else {
-        adjustedValue = fullValue.integerValue(BigNumber.ROUND_FLOOR);
-      }
+      const adjustedValue = fullValue.integerValue(BigNumber.ROUND_FLOOR);
 
       if (adjustedValue.isZero()) {
+        // The share is worth less than one native unit of this mint. Nothing to take here, but
+        // the debt is still outstanding, so keep looking at the remaining banks.
         console.log("NOTHING to withdraw, skipping");
         continue;
       }
 
       withdrawAmount = new BN(adjustedValue.toString()); // this is just to not accidentally withdraw too much
+      seizedUsd = seizedUsd.plus(
+        adjustedValue.dividedBy(10 ** bank.mintDecimals).multipliedBy(price),
+      );
       console.log("Withdrawing: ", withdrawAmount.toString());
       withdrawAll = false;
-      break;
+      // Note: no `break` here. The withdraw instruction is built below; the loop is terminated
+      // after it is pushed, by the `if (withdrawAll)` check at the end of this block.
     }
     console.log();
 
-    const withdrawRemaining = remainingAccounts.flat();
-    let withdrawMeta: AccountMeta[] = withdrawRemaining.map((pubkey) => ({
-      pubkey,
-      isSigner: false,
-      isWritable: false,
-    }));
+    const withdrawMeta = toMeta(remainingAccounts);
 
     let mintAccInfo = await connection.getAccountInfo(bank.mint);
     const tokenProgram = mintAccInfo.owner;
@@ -554,11 +779,18 @@ export async function deleverage(
 
     if (bank.config.assetTag == ASSET_TAG_KAMINO) {
       const reserve = fetchedReserves.get(bank.integrationAcc1.toBase58());
-      const [userState] = deriveUserState(
+      let reserveFarmState = reserve.farmCollateral;
+      let [userState] = deriveUserState(
         FARMS_PROGRAM_ID,
-        reserve.farmCollateral,
+        reserveFarmState,
         bank.integrationAcc2,
       );
+      // Reserves without a farm store the default pubkey, but both farm accounts are `Option<_>`
+      // with a `mut` constraint, so they must be None rather than the default key.
+      if (reserveFarmState.toString() == PublicKey.default.toString()) {
+        reserveFarmState = null;
+        userState = null;
+      }
 
       instructions.push(
         await simpleRefreshObligation(
@@ -576,8 +808,13 @@ export async function deleverage(
             lendingMarket: reserve.lendingMarket,
             reserve: bank.integrationAcc1,
             reserveLiquidityMint: bank.mint,
-            reserveFarmState: reserve.farmCollateral,
+            reserveFarmState,
             obligationFarmUserState: userState,
+            // Only reserves made with the deterministic seeds match the ix builder's
+            // derivations; read the vaults off the reserve instead.
+            reserveLiquiditySupply: reserve.liquidity.supplyVault,
+            reserveCollateralMint: reserve.collateral.mintPubkey,
+            reserveSourceCollateral: reserve.collateral.supplyVault,
           },
           withdrawAmount,
           withdrawAll,
@@ -687,11 +924,10 @@ export async function deleverage(
     }
   }
 
-  const endRemaining = remainingAccounts.flat();
-  let endMeta: AccountMeta[] = endRemaining.map((pubkey) => ({
-    pubkey,
+  const endMeta: AccountMeta[] = remainingAccounts.map(([bankPk]) => ({
+    pubkey: bankPk,
     isSigner: false,
-    isWritable: false,
+    isWritable: true,
   }));
 
   instructions.push(
@@ -703,54 +939,6 @@ export async function deleverage(
       .remainingAccounts(endMeta)
       .instruction(),
   );
-
-  // Crank the Switchboard feeds last, right before the deleverage tx is assembled, so the
-  // freshly-pushed prices are as young as possible when the risk engine reads them. This is a
-  // separate tx on purpose: the SWB update ixs carry secp256k1 signature verification and their
-  // own LUTs, and the deleverage tx is already at the size limit.
-  if (sendTx && swbFeeds.size > 0) {
-    const feeds = [...swbFeeds.values()];
-    const now = Date.now();
-    const stale = feeds.filter(
-      (feed) =>
-        now - (lastCrankedAt.get(feed.toBase58()) ?? 0) >= CRANK_FRESHNESS_MS,
-    );
-
-    console.log();
-    if (stale.length === 0) {
-      console.log(
-        `All ${feeds.length} Switchboard feed(s) cranked in the last ` +
-          `${CRANK_FRESHNESS_MS / 1000}s, skipping crank`,
-      );
-    } else {
-      console.log(
-        `Cranking ${feeds.length} Switchboard feed(s) before deleveraging ` +
-          `(${stale.length} stale)`,
-      );
-      try {
-        await crankSwitchboardFeeds({
-          ORACLE_KEYS: feeds,
-          CROSSBAR_CLIENT: new CrossbarClient(
-            config.CROSSBAR_URL ?? "https://crossbar.switchboard.xyz",
-          ),
-          // Already HOME-resolved, so `crankSwitchboardFeeds` leaves it alone and we are
-          // guaranteed to sign with the same keypair as the deleverage tx.
-          WALLET_PATH: process.env.HOME + walletPath,
-          RPC_URL: connection.rpcEndpoint,
-        });
-        const crankedAt = Date.now();
-        for (const feed of feeds) {
-          lastCrankedAt.set(feed.toBase58(), crankedAt);
-        }
-      } catch (error) {
-        // A failed crank is not fatal: the feeds may still be inside `oracle_max_age`, and if
-        // they are not the deleverage tx will fail on its own with a stale-oracle error. The
-        // timestamps are left untouched so the next account retries.
-        console.error("Switchboard crank failed, continuing anyway:", error);
-      }
-    }
-    console.log();
-  }
 
   let luts: AddressLookupTableAccount[] = [];
   const lutLookup = await connection.getAddressLookupTable(config.LUT);
@@ -771,6 +959,7 @@ export async function deleverage(
     recentBlockhash: blockhash,
     instructions,
   }).compileToV0Message(luts);
+  let ok = false;
   const v0Tx = new VersionedTransaction(v0Message);
   try {
     v0Tx.sign([user.wallet.payer]);
@@ -781,9 +970,10 @@ export async function deleverage(
       { signature, blockhash, lastValidBlockHeight },
       "confirmed",
     );
+    ok = true;
     console.log("Success:", signature);
   } catch (error) {
-    console.error("Transaction failed:", error);
+    console.error("Transaction failed:", briefError(error));
     if (
       String(error).includes("Transaction too large") ||
       String(error).includes("encoding overruns Uint8Array")
@@ -822,9 +1012,10 @@ export async function deleverage(
           { signature, blockhash, lastValidBlockHeight },
           "confirmed",
         );
+        ok = true;
         console.log("Success:", signature);
       } catch (error) {
-        console.error("Transaction failed:", error);
+        console.error("Transaction failed:", briefError(error));
       }
     }
     if (String(error).includes("Transaction locked too many accounts")) {
@@ -832,12 +1023,77 @@ export async function deleverage(
       countUniqueWritableKeys(v0Tx, luts);
     }
   }
+
+  return {
+    skipped: false,
+    ok,
+    repaidNative: liabNative,
+    repaidUsd: liabUsd,
+    seizedUsd,
+  };
 }
 
 if (require.main === module) {
   main().catch((err) => {
     console.error(err);
   });
+}
+
+/**
+ * Preflight for a token-funded `repay_all`.
+ *
+ * Without TOKENLESS_REPAYMENTS_ALLOWED the repay instruction transfers the entire debt out of
+ * `liabAta` in one shot, so an underfunded ATA fails the whole deleverage tx at the SPL transfer
+ * — after the risk engine work, with a token error that says nothing about why. Throw here
+ * instead, with the exact shortfall, and abort the run: every later account would fail the same
+ * way, and each attempt burns a `marginfiAccountInitLiqRecord` rent payment.
+ */
+async function assertRepayFunded(
+  connection: Connection,
+  liabAta: PublicKey,
+  liabNative: BigNumber,
+  liabBank: any,
+  config: Config,
+) {
+  const required = liabNative
+    .multipliedBy(10_000 + REPAY_FUNDING_BUFFER_BPS)
+    .dividedBy(10_000)
+    .integerValue(BigNumber.ROUND_CEIL);
+
+  const decimals = liabBank.mintDecimals;
+  const ui = (native: BigNumber) => native.dividedBy(10 ** decimals).toString();
+
+  const info = await connection.getAccountInfo(liabAta);
+  if (!info) {
+    throw new InsufficientRepayFunds(
+      config.ACCOUNT,
+      required,
+      BigNumber(0),
+      required,
+      decimals,
+      liabBank.mint,
+    );
+  }
+
+  const balance = new BigNumber(
+    (await connection.getTokenAccountBalance(liabAta)).value.amount,
+  );
+
+  console.log(
+    `Repay funding check: need ${ui(required)} (debt ${ui(liabNative)} + ` +
+      `${REPAY_FUNDING_BUFFER_BPS}bps), have ${ui(balance)}`,
+  );
+
+  if (balance.isLessThan(required)) {
+    throw new InsufficientRepayFunds(
+      config.ACCOUNT,
+      required.minus(balance),
+      balance,
+      required,
+      decimals,
+      liabBank.mint,
+    );
+  }
 }
 
 function parseAccountBanks(json: unknown): AccountBanks {
