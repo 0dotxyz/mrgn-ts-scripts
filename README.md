@@ -206,8 +206,14 @@ pnpm banks:configure-circuit-breaker [--check]
 
 - `--check`  
   Report what would change without building transactions
+- `--category NAME`  
+  Only banks in this category; repeat the flag for several
+- `--only ADDRESS`  
+  Only this bank; repeat the flag for several. Re-splits a transaction that was too large for the multisig without re-emitting banks already proposed
 - `--max-bytes N`  
   Serialized bytes per transaction _(number, default: 458)_
+- `--max-banks N`  
+  Instructions per transaction _(number, default: 5)_
 
 ---
 

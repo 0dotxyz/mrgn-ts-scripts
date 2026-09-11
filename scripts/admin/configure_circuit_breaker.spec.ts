@@ -70,6 +70,21 @@ describe("configure circuit breaker", () => {
     }
   });
 
+  it("splits at the wire limit instead of throwing on an oversized candidate", () => {
+    const batches = packInstructions(
+      Array.from({ length: 12 }, () => instruction(200)),
+      PAYER,
+      [],
+      PACKET_DATA_SIZE,
+      64,
+    );
+
+    expect(batches.flat()).to.have.length(12);
+    for (const batch of batches) {
+      expect(serializedBytes(batch)).to.be.at.most(PACKET_DATA_SIZE);
+    }
+  });
+
   it("rejects a single instruction that exceeds the byte budget", () => {
     expect(() =>
       packInstructions([instruction(600)], PAYER, [], 500, 8),

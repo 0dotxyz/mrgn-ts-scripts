@@ -11,4 +11,4 @@ pnpm-lock.yaml
 banks.json
 liquidatees_pending_closing.txt
 liquidation_e2e_config.json
-liquidation_e2e_state.json
+liquidation_e2e_state.json*.txt

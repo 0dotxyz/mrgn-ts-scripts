@@ -349,14 +349,23 @@ export function packInstructions(
     throw new Error(`maxPerTx must be a positive integer, got ${maxPerTx}`);
   }
 
-  const size = (ixs: TransactionInstruction[]) =>
-    new VersionedTransaction(
-      new TransactionMessage({
-        payerKey,
-        recentBlockhash: PublicKey.default.toBase58(),
-        instructions: ixs,
-      }).compileToV0Message(luts),
-    ).serialize().length;
+  // web3.js serializes into a PACKET_DATA_SIZE buffer and throws a RangeError on overrun.
+  const size = (ixs: TransactionInstruction[]) => {
+    try {
+      return new VersionedTransaction(
+        new TransactionMessage({
+          payerKey,
+          recentBlockhash: PublicKey.default.toBase58(),
+          instructions: ixs,
+        }).compileToV0Message(luts),
+      ).serialize().length;
+    } catch (err) {
+      if (err instanceof RangeError) {
+        return Infinity;
+      }
+      throw err;
+    }
+  };
 
   const batches: TransactionInstruction[][] = [];
   let current: TransactionInstruction[] = [];
@@ -396,25 +405,57 @@ export function packInstructions(
 
 const USAGE = `Enable and configure the per-bank circuit breaker from circuit_breaker_config.json.
 
-Usage: pnpm banks:configure-circuit-breaker [--check]
+Usage: pnpm banks:configure-circuit-breaker [--check] [--category NAME]... [--only ADDRESS]... [--max-bytes N] [--max-banks N]
 
 Reads each bank's on-chain state and only includes banks whose breaker flag or settings differ
 from their category in the JSON. Outputs base58 v0 transactions for Squads (sendTx = false).
 
 Options:
   --check          Report what would change without building transactions.
+  --category NAME  Only banks in this category; repeat the flag for several.
+  --only ADDRESS   Only this bank; repeat the flag for several. Use to re-split a tx that was
+                   too large for the multisig without re-emitting banks already proposed.
   --max-bytes N    Serialized bytes per tx (default ${KNOWN_GOOD_TX_BYTES}, the largest known to
-                   import into Squads). Raise only after a larger tx has imported successfully.`;
+                   import into Squads). Raise only after a larger tx has imported successfully.
+  --max-banks N    Instructions per tx (default ${MAX_BANKS_PER_TX}).`;
 
-function parseMaxBytes(argv: string[]): number {
-  const at = argv.indexOf("--max-bytes");
+/**
+ * Values following each occurrence of `name`, validated against `known`. Undefined when absent.
+ */
+function parseRepeated(
+  argv: string[],
+  name: string,
+  known: string[],
+): string[] | undefined {
+  const picked = argv.flatMap((arg, i) =>
+    arg === name && argv[i + 1] ? [argv[i + 1]] : [],
+  );
+  if (picked.length === 0) {
+    return undefined;
+  }
+  const unknown = picked.filter((c) => !known.includes(c));
+  if (unknown.length > 0) {
+    throw new Error(
+      `unknown ${name} ${unknown.join(", ")}; known: ${known.join(", ")}`,
+    );
+  }
+  return picked;
+}
+
+function parseFlag(
+  argv: string[],
+  name: string,
+  fallback: number,
+  max: number,
+): number {
+  const at = argv.indexOf(name);
   if (at < 0) {
-    return KNOWN_GOOD_TX_BYTES;
+    return fallback;
   }
   const value = Number(argv[at + 1]);
-  if (!Number.isSafeInteger(value) || value <= 0 || value > PACKET_DATA_SIZE) {
+  if (!Number.isSafeInteger(value) || value <= 0 || value > max) {
     throw new Error(
-      `--max-bytes must be an integer in [1, ${PACKET_DATA_SIZE}], got ${argv[at + 1]}`,
+      `${name} must be an integer in [1, ${max}], got ${argv[at + 1]}`,
     );
   }
   return value;
@@ -426,10 +467,31 @@ async function main() {
     return;
   }
   const checkOnly = process.argv.includes("--check");
-  const maxBytes = parseMaxBytes(process.argv);
-  const targets = loadTargets(cbConfigFile);
+  const maxBytes = parseFlag(
+    process.argv,
+    "--max-bytes",
+    KNOWN_GOOD_TX_BYTES,
+    PACKET_DATA_SIZE,
+  );
+  const maxBanks = parseFlag(process.argv, "--max-banks", MAX_BANKS_PER_TX, 64);
+  const all = loadTargets(cbConfigFile);
+  const categories = parseRepeated(
+    process.argv,
+    "--category",
+    cbConfigFile.categories.map((c) => c.name),
+  );
+  const only = parseRepeated(
+    process.argv,
+    "--only",
+    all.map((t) => t.entry.address),
+  );
+  const targets = all.filter(
+    (t) =>
+      (!categories || categories.includes(t.category)) &&
+      (!only || only.includes(t.entry.address)),
+  );
   console.log(
-    `${targets.length} banks across ${cbConfigFile.categories.length} categories`,
+    `${targets.length} banks across ${categories?.length ?? cbConfigFile.categories.length} categories`,
   );
 
   const user = commonSetup(sendTx, PROGRAM_ID, WALLET_PATH, ADMIN);
@@ -537,10 +599,12 @@ async function main() {
           .instruction(),
       );
     }
-    batches.push(...packInstructions(instructions, payerKey, luts, maxBytes));
+    batches.push(
+      ...packInstructions(instructions, payerKey, luts, maxBytes, maxBanks),
+    );
   }
   console.log(
-    `\n${batches.length} tx(s), max ${maxBytes} bytes / ${MAX_BANKS_PER_TX} banks each`,
+    `\n${batches.length} tx(s), max ${maxBytes} bytes / ${maxBanks} banks each`,
   );
 
   let cursor = 0;

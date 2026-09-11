@@ -5,7 +5,7 @@
   },
   "categories": [
     {
-      "name": "USD STABLES",
+      "name": "USD STABLES & CASH",
       "cbDeviationBpsTiers": [
         50,
         100,
@@ -21,14 +21,34 @@
       "cbWindowSeconds": 86400,
       "banks": [
         {
-          "symbol": "JupUSD",
+          "symbol": "CASH",
+          "venue": "Kamino",
+          "address": "4YPGUhxmAXgoGDRkg68zGnbGrV2xCgaoqQSfcZCjFhon"
+        },
+        {
+          "symbol": "CASH",
+          "venue": "Kamino",
+          "address": "6pSfmSLALBsTVCmoYLXs2auDSdU1TDcBWa81gCPzf8EX"
+        },
+        {
+          "symbol": "CASH",
+          "venue": "Kamino",
+          "address": "HnKy41QrJNFLJmBGtgLWpy8NissUsNLKRMibRwsNhDnF"
+        },
+        {
+          "symbol": "CASH",
           "venue": "Native",
-          "address": "3xn7strvpinirQ5KxEgVFemb6qYeHG39krohoeRHRrRt"
+          "address": "F4brCRJHx8epWah7p8Ace4ehutphxYZ1ctRq2LS3iiBh"
         },
         {
           "symbol": "JupUSD",
           "venue": "JupLend",
           "address": "hLkUhGPbBUuiCUWRsBsXrWnWH95rH3HkRkNtR8vyA7k"
+        },
+        {
+          "symbol": "JupUSD",
+          "venue": "Native",
+          "address": "3xn7strvpinirQ5KxEgVFemb6qYeHG39krohoeRHRrRt"
         },
         {
           "symbol": "PT-hyUSD",
@@ -42,11 +62,6 @@
         },
         {
           "symbol": "PYUSD",
-          "venue": "Native",
-          "address": "8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu"
-        },
-        {
-          "symbol": "PYUSD",
           "venue": "Kamino",
           "address": "9LfTcnXVa84mTwAxgHUkLBk1yg6vCWAMLSNY1oLBnnVx"
         },
@@ -56,14 +71,14 @@
           "address": "GEDEmTGC5hSaJj13mcnGR8TRwUbhGU7JsdnPdYjzSREk"
         },
         {
+          "symbol": "PYUSD",
+          "venue": "Native",
+          "address": "8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu"
+        },
+        {
           "symbol": "syrupUSDC",
           "venue": "Native",
           "address": "Dyuh6umsxbLAXKz3SrwXgYmmXuVWE9muYBvFUBPM58NY"
-        },
-        {
-          "symbol": "USD1",
-          "venue": "Native",
-          "address": "8efP4VoKDo3SqxoVCUcgxpN9S7boDWtPmeFwahRZ4ukg"
         },
         {
           "symbol": "USD1",
@@ -71,9 +86,9 @@
           "address": "BtfZEcMywgzmQ1fj1mSzXPj2jpQX5Lpr2zZz6cV5WwXw"
         },
         {
-          "symbol": "USDC",
+          "symbol": "USD1",
           "venue": "Native",
-          "address": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"
+          "address": "8efP4VoKDo3SqxoVCUcgxpN9S7boDWtPmeFwahRZ4ukg"
         },
         {
           "symbol": "USDC",
@@ -101,14 +116,14 @@
           "address": "VnVjbrytWcxTi6nCASMryKm4vHwpVZvwJetE2W1w5gB"
         },
         {
+          "symbol": "USDC",
+          "venue": "Native",
+          "address": "2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"
+        },
+        {
           "symbol": "USDe",
           "venue": "Native",
           "address": "GFuW7dxmive4oVq4ehvLuprNuJFg8GpPz2BR3tNKtdUd"
-        },
-        {
-          "symbol": "USDG",
-          "venue": "Native",
-          "address": "Dj2CwMF3GM7mMT5hcyGXKuYSQ2kQ5zaVCkA1zX1qaTva"
         },
         {
           "symbol": "USDG",
@@ -126,9 +141,9 @@
           "address": "B5nEYndavwuzEX1pQZUYcvfuhk1fMGgqrBrJkkEAe7iT"
         },
         {
-          "symbol": "USDS",
+          "symbol": "USDG",
           "venue": "Native",
-          "address": "FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV"
+          "address": "Dj2CwMF3GM7mMT5hcyGXKuYSQ2kQ5zaVCkA1zX1qaTva"
         },
         {
           "symbol": "USDS",
@@ -141,9 +156,9 @@
           "address": "FLwQ2tV4gPHKWY1jwdB3Hp8Z18nU4WngvNgJn3qZVGd7"
         },
         {
-          "symbol": "USDT",
+          "symbol": "USDS",
           "venue": "Native",
-          "address": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV"
+          "address": "FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV"
         },
         {
           "symbol": "USDT",
@@ -159,44 +174,11 @@
           "symbol": "USDT",
           "venue": "Kamino",
           "address": "FLnBNuXqJYUNa8EwC1APQ4qV128f8iHQQ6vnr1PaD1ax"
-        }
-      ]
-    },
-    {
-      "name": "CASH",
-      "cbDeviationBpsTiers": [
-        50,
-        100,
-        200
-      ],
-      "cbTierDurationsSeconds": [
-        600,
-        1800,
-        7200
-      ],
-      "cbWindowMaxUpBps": 300,
-      "cbWindowMaxDownBps": 300,
-      "cbWindowSeconds": 86400,
-      "banks": [
+        },
         {
-          "symbol": "CASH",
+          "symbol": "USDT",
           "venue": "Native",
-          "address": "F4brCRJHx8epWah7p8Ace4ehutphxYZ1ctRq2LS3iiBh"
-        },
-        {
-          "symbol": "CASH",
-          "venue": "Kamino",
-          "address": "4YPGUhxmAXgoGDRkg68zGnbGrV2xCgaoqQSfcZCjFhon"
-        },
-        {
-          "symbol": "CASH",
-          "venue": "Kamino",
-          "address": "6pSfmSLALBsTVCmoYLXs2auDSdU1TDcBWa81gCPzf8EX"
-        },
-        {
-          "symbol": "CASH",
-          "venue": "Kamino",
-          "address": "HnKy41QrJNFLJmBGtgLWpy8NissUsNLKRMibRwsNhDnF"
+          "address": "HmpMfL8942u22htC4EMiWgLX931g3sacXFR6KjuLgKLV"
         }
       ]
     },
@@ -609,11 +591,6 @@
           "address": "HshhP4nnfBvkGroaMeJZZtfQFZeg3ukLPmW294G5T4j9"
         },
         {
-          "symbol": "JTO",
-          "venue": "Native",
-          "address": "EdB7YADw4XUt6wErT8kHGCUok4mnTpWGzPUU9rWDebzb"
-        },
-        {
           "symbol": "JUP",
           "venue": "Native",
           "address": "Guu5uBc8k1WK1U2ihGosNaCy57LSgCkpWAabtzQqrQf8"
@@ -660,6 +637,11 @@
           "symbol": "$WIF",
           "venue": "Native",
           "address": "9dpu8KL5ABYiD3WP2Cnajzg1XaotcJvZspv29Y1Y3tn1"
+        },
+        {
+          "symbol": "JTO",
+          "venue": "Native",
+          "address": "EdB7YADw4XUt6wErT8kHGCUok4mnTpWGzPUU9rWDebzb"
         },
         {
           "symbol": "2Z",
