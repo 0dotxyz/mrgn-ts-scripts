@@ -16,6 +16,7 @@
     "banks:get": "tsx banks/get-bank.ts",
     "banks:get-all": "tsx banks/get-banks.ts",
     "banks:get-accounts": "tsx banks/get-bank-accounts.ts",
+    "banks:configure-circuit-breaker": "tsx scripts/admin/configure_circuit_breaker.ts",
     "activity:get": "tsx activity/get.ts",
     "activity:cache": "tsx activity/cache-activity.ts",
     "activity:report": "tsx activity/report.ts",

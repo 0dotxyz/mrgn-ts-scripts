@@ -12,3 +12,4 @@ banks.json
 liquidatees_pending_closing.txt
 liquidation_e2e_config.json
 liquidation_e2e_state.json
+*.txt
