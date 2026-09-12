@@ -5,10 +5,16 @@ import { getTokenMetadata } from "@solana/spl-token";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import { commonSetup } from "../../lib/common-setup";
+import {
+  commonSetup,
+  registerDriftProgram,
+  registerKaminoProgram,
+} from "../../lib/common-setup";
 import { configs } from "../../lib/config";
 import { Environment } from "../../lib/types";
 import { loadEnvFile } from "../utils/utils";
+import { DRIFT_PROGRAM_ID } from "../drift/lib/utils";
+import { KLEND_PROGRAM_ID } from "../kamino/kamino-types";
 import { buildMintToGroupMap } from "./asset_groups";
 import {
   applyEntry,
@@ -36,6 +42,9 @@ import {
  *
   * Venue is derived from the on-chain assetTag:
   *   3 Kamino, 4 Drift, 5 Solend, 6 JupLend, everything else P0.
+ * The venue identifier (description[4]) names the market inside the venue: "Main Market" for
+ * P0, JupLend and Drift pool 0, the lending market's on-chain name for Kamino, a known lending
+ * market for Solend. A bank whose market cannot be resolved is left untouched.
  *
  * Asset group is the mint's bucket in asset_groups.ts; Isolated risk-tier
  * banks force W/E (matches the convention in write_bank_metadata.ts).
@@ -55,6 +64,30 @@ const ASSET_TAG_TO_VENUE: Record<number, string> = {
   5: "Solend",
   6: "JupLend",
 };
+
+const ASSET_TAG_KAMINO = 3;
+const ASSET_TAG_DRIFT = 4;
+const ASSET_TAG_SOLEND = 5;
+
+const MAIN_MARKET = "Main Market";
+
+// Kamino's main market is named "SOL/BTC Market" on chain; the others keep their on-chain name.
+const KAMINO_MARKET_NAME_OVERRIDES: Record<string, string> = {
+  "7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF": MAIN_MARKET,
+};
+
+// Drift spot markets carry a pool id, not a pool name.
+const DRIFT_POOL_NAMES: Record<number, string> = {
+  0: MAIN_MARKET,
+};
+
+// Solend lending markets carry no name on chain.
+const SOLEND_MARKET_NAMES: Record<string, string> = {
+  "4UpD2fh7xH3VP9QQaXtsS1YY3bxzWhtfpks7FatyKvdY": MAIN_MARKET,
+};
+
+// SPL token-lending reserve layout: version (1), last_update (9), lending_market (32).
+const SOLEND_RESERVE_MARKET_OFFSET = 10;
 
 type CachedBank = {
   address: string;
@@ -262,6 +295,7 @@ function buildEntry(
   bank: CachedBank,
   resolved: TokenInfo,
   mintToGroup: Record<string, string>,
+  venueIdentifier: string,
   assetGroupOverride?: string,
 ): BankMetadataEntry {
   const venue = deriveVenueFromAssetTag(bank.config.assetTag);
@@ -273,8 +307,144 @@ function buildEntry(
     group: new PublicKey(bank.group),
     mint: new PublicKey(bank.mint),
     ticker: `${resolved.symbol} | ${resolved.name}`,
-    description: `${resolved.name} | ${assetGroup} | ${resolved.symbol} | ${venue} | -`,
+    description: `${resolved.name} | ${assetGroup} | ${resolved.symbol} | ${venue} | ${venueIdentifier}`,
   };
+}
+
+function nullTerminated(bytes: number[]): string {
+  return Buffer.from(bytes).toString("utf8").replace(/\0+$/, "").trim();
+}
+
+/**
+ * Market name per Kamino bank, keyed by bank address, given each bank's reserve.
+ */
+async function resolveKaminoMarkets(
+  user: ReturnType<typeof commonSetup>,
+  reservesByBank: Map<string, PublicKey>,
+): Promise<Map<string, string>> {
+  const banks = [...reservesByBank.keys()];
+  registerKaminoProgram(user, KLEND_PROGRAM_ID.toBase58());
+  const reserves = await user.kaminoProgram.account.reserve.fetchMultiple(
+    banks.map((b) => reservesByBank.get(b)!),
+  );
+  const marketKeys = [
+    ...new Set(
+      reserves.flatMap((r) => (r ? [r.lendingMarket.toBase58()] : [])),
+    ),
+  ];
+  const markets = await user.kaminoProgram.account.lendingMarket.fetchMultiple(
+    marketKeys.map((m) => new PublicKey(m)),
+  );
+  const nameByMarket = new Map(
+    marketKeys.map((m, i) => [
+      m,
+      KAMINO_MARKET_NAME_OVERRIDES[m] ?? nullTerminated(markets[i]?.name ?? []),
+    ]),
+  );
+  const names = new Map<string, string>();
+  banks.forEach((b, i) => {
+    const market = reserves[i]?.lendingMarket.toBase58();
+    const name = market && nameByMarket.get(market);
+    if (name) names.set(b, name);
+  });
+  return names;
+}
+
+/**
+ * Pool name per Drift bank, keyed by bank address, given each bank's spot market.
+ */
+async function resolveDriftMarkets(
+  user: ReturnType<typeof commonSetup>,
+  spotMarketsByBank: Map<string, PublicKey>,
+): Promise<Map<string, string>> {
+  const banks = [...spotMarketsByBank.keys()];
+  registerDriftProgram(user, DRIFT_PROGRAM_ID.toBase58());
+  const spotMarkets = await user.driftProgram.account.spotMarket.fetchMultiple(
+    banks.map((b) => spotMarketsByBank.get(b)!),
+  );
+  const names = new Map<string, string>();
+  banks.forEach((b, i) => {
+    const poolId = spotMarkets[i]?.poolId;
+    const name = poolId !== undefined && DRIFT_POOL_NAMES[poolId];
+    if (name) names.set(b, name);
+  });
+  return names;
+}
+
+/**
+ * Market name per Solend bank, keyed by bank address, given each bank's reserve.
+ */
+async function resolveSolendMarkets(
+  user: ReturnType<typeof commonSetup>,
+  reservesByBank: Map<string, PublicKey>,
+): Promise<Map<string, string>> {
+  const banks = [...reservesByBank.keys()];
+  const reserves = await user.connection.getMultipleAccountsInfo(
+    banks.map((b) => reservesByBank.get(b)!),
+  );
+  const names = new Map<string, string>();
+  banks.forEach((b, i) => {
+    const data = reserves[i]?.data;
+    if (!data || data.length < SOLEND_RESERVE_MARKET_OFFSET + 32) return;
+    const market = new PublicKey(
+      data.subarray(
+        SOLEND_RESERVE_MARKET_OFFSET,
+        SOLEND_RESERVE_MARKET_OFFSET + 32,
+      ),
+    ).toBase58();
+    const name = SOLEND_MARKET_NAMES[market];
+    if (name) names.set(b, name);
+  });
+  return names;
+}
+
+/**
+ * Venue identifier per bank, keyed by bank address. Kamino, Drift and Solend banks are resolved
+ * through their integration account 1 (reserve or spot market) and are absent from the result
+ * when the market is unknown; every other bank is on its venue's main market.
+ */
+async function resolveVenueIdentifiers(
+  user: ReturnType<typeof commonSetup>,
+  banks: CachedBank[],
+): Promise<Map<string, string>> {
+  const byTag = (tag: number) =>
+    banks.filter((b) => b.config.assetTag === tag);
+  const integration = [
+    ...byTag(ASSET_TAG_KAMINO),
+    ...byTag(ASSET_TAG_DRIFT),
+    ...byTag(ASSET_TAG_SOLEND),
+  ];
+  const identifiers = new Map(
+    banks
+      .filter((b) => !integration.includes(b))
+      .map((b) => [b.address, MAIN_MARKET]),
+  );
+  if (integration.length === 0) return identifiers;
+  const onChain = await user.program.account.bank.fetchMultiple(
+    integration.map((b) => new PublicKey(b.address)),
+  );
+  const acc1ByTag = (tag: number) =>
+    new Map(
+      integration.flatMap((b, i) =>
+        b.config.assetTag === tag && onChain[i]
+          ? [[b.address, onChain[i]!.integrationAcc1] as const]
+          : [],
+      ),
+    );
+
+  const resolvers: [number, (m: Map<string, PublicKey>) => Promise<Map<string, string>>][] = [
+    [ASSET_TAG_KAMINO, (m) => resolveKaminoMarkets(user, m)],
+    [ASSET_TAG_DRIFT, (m) => resolveDriftMarkets(user, m)],
+    [ASSET_TAG_SOLEND, (m) => resolveSolendMarkets(user, m)],
+  ];
+  for (const [tag, resolve] of resolvers) {
+    const accounts = acc1ByTag(tag);
+    if (accounts.size === 0) continue;
+    for (const [bank, name] of await resolve(accounts)) {
+      identifiers.set(bank, name);
+    }
+  }
+  return identifiers;
 }
 
 // --- On-chain bulk fetch ---------------------------------------------------
@@ -436,6 +606,10 @@ async function main() {
     `  with metadata: ${withMeta}, missing: ${active.length - withMeta}\n`,
   );
 
+  console.log("Resolving venue markets...");
+  const venueIdentifiers = await resolveVenueIdentifiers(user, active);
+  console.log(`  resolved: ${venueIdentifiers.size} of ${active.length}\n`);
+
   // ----- Phase 3: classify with cached/fresh name resolution
   const cache = argv["refresh-cache"] ? {} : loadCache();
   const initialCacheSize = Object.keys(cache).length;
@@ -484,16 +658,17 @@ async function main() {
     const current = currentByBank.get(bank.address) ?? null;
 
     const metadataPda = pdaByBank.get(bank.address) ?? "";
+    const venueIdentifier = venueIdentifiers.get(bank.address);
 
-    if (!resolved) {
+    if (!resolved || !venueIdentifier) {
       classifications.push({
         bank,
-        resolved: null,
+        resolved,
         current,
         target: null,
         kind: "unresolved",
       });
-      console.log("UNRESOLVED");
+      console.log(resolved ? "UNRESOLVED (venue market)" : "UNRESOLVED");
       tableRows.push({
         symbol: bank.tokenSymbol,
         bank: bank.address,
@@ -510,6 +685,7 @@ async function main() {
       bank,
       resolved,
       mintToGroup,
+      venueIdentifier,
       staked ? "native-stake" : undefined,
     );
 
