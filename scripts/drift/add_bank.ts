@@ -27,7 +27,7 @@ import {
   deriveLiquidityVaultAuthority,
 } from "../common/pdas";
 import { commonSetup } from "../../lib/common-setup";
-import { bs58 } from "@switchboard-xyz/common";
+import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
 
 /**
@@ -42,8 +42,8 @@ type Config = {
   // Can be found here: https://github.com/drift-labs/protocol-v2/blob/53166fa2702db1bac1ae9c025a7e28bbe35fab30/sdk/src/constants/spotMarkets.ts
   DRIFT_MARKET_INDEX: number;
   ORACLE: PublicKey;
-  /** 9 (DriftPythPush) or 10 (DriftSwitchboardPull) */
-  ORACLE_SETUP: { driftPythPull: {} } | { driftSwitchboardPull: {} };
+  /** 9 (DriftPythPull) */
+  ORACLE_SETUP: { driftPythPull: {} };
   DRIFT_ORACLE: PublicKey;
   SEED: BN;
   /** Group admin (generally the MS on mainnet) */
@@ -309,16 +309,7 @@ function parseConfig(rawConfig: string): Config {
   const pkFromString = (s: any) => new PublicKey(s);
   const json = JSON.parse(rawConfig);
 
-  let ORACLE_SETUP;
-  if (
-    json.marginfiOracleType === "switchboardPull" ||
-    json.comments?.marginfiOracleType === "switchboardPull"
-  ) {
-    ORACLE_SETUP = { driftSwitchboardPull: {} };
-  } else {
-    // Default to pythPushOracle
-    ORACLE_SETUP = { driftPythPull: {} };
-  }
+  const ORACLE_SETUP = { driftPythPull: {} };
 
   return {
     PROGRAM_ID: json.programId,

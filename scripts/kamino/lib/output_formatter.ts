@@ -1,7 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import { KaminoBankConfig } from "./config_types";
 import { SeedSelectionResult } from "./seed_manager";
-import { OracleValidationReport, SWITCHBOARD_EXPECTED_AUTHORITY } from "./validate_oracle";
 import { ReserveData } from "./reserve_utils";
 import { SimulationValidationResult } from "./simulation_validator";
 
@@ -16,7 +15,6 @@ export interface BankOutputData {
   decimals: number;
   tokenProgram: PublicKey;
   reserveData: ReserveData;
-  oracleReport?: OracleValidationReport;
   simulationSuccess: boolean;
   simValidation?: SimulationValidationResult;
   computeUnits?: number;
@@ -173,65 +171,6 @@ export function generateMarkdownOutput(data: BankOutputData): string {
   lines.push(`| Oracle | \`${config.oracle}\` |`);
   lines.push(`| Oracle Type | ${config.oracleType} |`);
   lines.push("");
-
-  // Oracle validation
-  if (data.oracleReport) {
-    const or = data.oracleReport;
-    lines.push("## Oracle Validation");
-    lines.push("");
-    lines.push(`**Overall Status:** ${or.overallValid ? "PASSED" : "FAILED"}`);
-    lines.push("");
-
-    // Switchboard details
-    lines.push("### Switchboard Feed");
-    lines.push("");
-    lines.push(`| Field | Value | Status |`);
-    lines.push(`|-------|-------|--------|`);
-    lines.push(`| Feed Address | \`${or.switchboard.feedAddress}\` | - |`);
-    lines.push(`| Feed Name | ${or.switchboard.name || "Not found"} | - |`);
-    lines.push(`| Authority | \`${or.switchboard.authority || "Not found"}\` | ${or.switchboard.authorityValid ? "✓" : "✗"} |`);
-    lines.push(`| Expected Authority | \`${SWITCHBOARD_EXPECTED_AUTHORITY}\` | - |`);
-    lines.push(`| UI Link | [View on Switchboard](${or.switchboard.uiUrl}) | - |`);
-    lines.push("");
-
-    // Ticker validation
-    if (or.tickerValidation) {
-      lines.push("### Ticker Validation");
-      lines.push("");
-      lines.push(`| Field | Value | Status |`);
-      lines.push(`|-------|-------|--------|`);
-      lines.push(`| Expected | ${or.tickerValidation.expectedAsset}/USD | - |`);
-      lines.push(`| Actual | ${or.tickerValidation.actualTicker || "Not found"} | ${or.tickerValidation.isValid ? "✓" : "✗"} |`);
-      lines.push("");
-    }
-
-    // Price comparison
-    if (or.priceComparison) {
-      lines.push("### Price Comparison");
-      lines.push("");
-      lines.push(`| Field | Value | Status |`);
-      lines.push(`|-------|-------|--------|`);
-      lines.push(`| Oracle Price | $${or.priceComparison.oraclePrice.toFixed(6)} | - |`);
-      if (or.priceComparison.jupiterPrice !== null) {
-        lines.push(`| Jupiter Price | $${or.priceComparison.jupiterPrice.toFixed(6)} | - |`);
-        lines.push(`| Deviation | ${or.priceComparison.deviationPercent?.toFixed(2)}% | ${or.priceComparison.isWithinTolerance ? "✓" : "✗"} |`);
-        lines.push(`| Tolerance | ${or.priceComparison.tolerancePercent}% | - |`);
-      } else {
-        lines.push(`| Jupiter Price | Not available | ✗ |`);
-      }
-      lines.push("");
-    }
-
-    // Errors
-    if (or.errors.length > 0) {
-      lines.push("### Errors");
-      lines.push("");
-      for (const error of or.errors) {
-        lines.push(`- ${error}`);
-      }
-      lines.push("");
-    }
-  }
 
   // Simulation
   lines.push("## Simulation Results");

@@ -7,7 +7,7 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { bytesToF64, getOraclesAndCrankSwb } from "../../lib/utils";
+import { bytesToF64, getOraclesAndKaminoIxes } from "../../lib/utils";
 import { commonSetup, registerKaminoProgram } from "../../lib/common-setup";
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { KLEND_PROGRAM_ID } from "../kamino/kamino-types";
@@ -45,12 +45,10 @@ export async function pulseHealth(
   const program = user.program;
   const connection = user.connection;
 
-  let [activeBalances, kaminoIxes] = await getOraclesAndCrankSwb(
+  let [activeBalances, kaminoIxes] = await getOraclesAndKaminoIxes(
     program,
     user.kaminoProgram,
     config.ACCOUNT,
-    connection,
-    user.wallet.payer,
   );
 
   const oracleMeta: AccountMeta[] = activeBalances.flat().map((pubkey) => {

@@ -87,7 +87,7 @@ async function main() {
   const totalAssetQuantity = totalAssetShares.times(assetShareValue).div(scaleFactor);
   const totalLiabilityQuantity = totalLiabilityShares.times(liabilityShareValue).div(scaleFactor);
 
-  const oracleType = acc.config.oracleSetup.pythPushOracle !== undefined ? "Pyth" : "Switchboard";
+  const oracleType = Object.keys(acc.config.oracleSetup)[0] ?? "unknown";
   const oracleKeys = acc.config.oracleKeys.filter((key) => !key.equals(PublicKey.default));
   const pythOracleAddresses = oracleKeys.map((key) => getPythPushOracleAddresses(key.toBuffer()));
 

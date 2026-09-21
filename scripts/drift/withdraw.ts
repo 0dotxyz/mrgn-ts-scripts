@@ -21,7 +21,7 @@ import {
 } from "./lib/utils";
 import { BankAndOracles } from "../../lib/utils";
 import { commonSetup, registerKaminoProgram } from "../../lib/common-setup";
-import { bs58 } from "@switchboard-xyz/common";
+import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { simpleRefreshReserve } from "../kamino/ixes-common";
 import { KLEND_PROGRAM_ID } from "../kamino/kamino-types";
 

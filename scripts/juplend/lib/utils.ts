@@ -31,7 +31,7 @@ export interface JuplendConfigCompact {
   assetWeightInit: WrappedI80F48;
   assetWeightMaint: WrappedI80F48;
   depositLimit: BN;
-  oracleSetup: { juplendPythPull: {} } | { juplendSwitchboardPull: {} };
+  oracleSetup: { juplendPythPull: {} };
   riskTier: { collateral: {} } | { isolated: {} };
   configFlags: number;
   totalAssetValueInitLimit: BN;

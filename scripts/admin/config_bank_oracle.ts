@@ -13,20 +13,15 @@ import { commonSetup } from "../../lib/common-setup";
 const sendTx = true;
 
 const ORACLE_TYPE_PYTH = 3;
-const ORACLE_TYPE_SWB = 4;
 
 /** Setups that take the venue account (Kamino reserve / Drift market / Solend / JupLend Lending)
  *  after the price feed. It is validated against `oracle_keys[1]`, which this ix does not write,
  *  so it is read off the bank rather than configured below. */
 const VENUE_SETUPS = new Set([
   6, // KaminoPythPush
-  7, // KaminoSwitchboardPull
   9, // DriftPythPull
-  10, // DriftSwitchboardPull
   11, // SolendPythPull
-  12, // SolendSwitchboardPull
   15, // JuplendPythPull
-  16, // JuplendSwitchboardPull
 ]);
 
 /** Shared settings across all entries */
@@ -45,7 +40,7 @@ const configCommon: SharedConfig = {
 type BankOracleConfig = {
   bank: PublicKey;
   oracle: PublicKey;
-  /** Generally 3 (Pyth) or 4 (Switchboard) */
+  /** See `OracleSetup::from_u8`, e.g. 3 (PythPushOracle) */
   oracleType: number;
 };
 

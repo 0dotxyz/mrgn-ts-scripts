@@ -33,8 +33,6 @@ import {
 } from "./constants";
 import { Environment, MarginfiAccountRaw } from "@mrgnlabs/marginfi-client-v2";
 import { Program, Provider } from "@coral-xyz/anchor";
-import * as sb from "@switchboard-xyz/on-demand";
-import { CrossbarClient } from "@switchboard-xyz/common";
 import { KaminoLending } from "../idl/kamino_lending";
 import { simpleRefreshReserve } from "../scripts/kamino/ixes-common";
 import { Marginfi } from "../idl/marginfi";
@@ -350,14 +348,12 @@ export async function getBankPrices(
   return priceMap;
 }
 
-export async function getOraclesAndCrankSwb(
+/** Remaining accounts for each active balance, plus the Kamino reserve refresh ixes they need. */
+export async function getOraclesAndKaminoIxes(
   program: Program<Marginfi>,
   kaminoProgram: Program<KaminoLending>,
   account: PublicKey,
-  connection: Connection,
-  payer: Keypair,
 ): Promise<[BankAndOracles[], TransactionInstruction[]]> {
-  let swbPullFeeds: PublicKey[] = [];
   const ixs: TransactionInstruction[] = [];
   let activeBalances: BankAndOracles[] = [];
 
@@ -371,29 +367,7 @@ export async function getOraclesAndCrankSwb(
       const setup = bankAcc.config.oracleSetup;
       const keys = bankAcc.config.oracleKeys;
 
-      if ("switchboardPull" in setup) {
-        const oracle = keys[0];
-        console.log(`[${i}] swb oracle: ${oracle}`);
-        swbPullFeeds.push(oracle);
-        activeBalances.push([bal.bankPk, oracle]);
-      } else if ("kaminoSwitchboardPull" in setup) {
-        const oracle = keys[0];
-        console.log(`[${i}] kamino swb oracle: ${oracle}`);
-        console.log(`  extra key: ${keys[1]}`);
-        swbPullFeeds.push(oracle); // still a switchboard feed
-        activeBalances.push([bal.bankPk, oracle, keys[1]]);
-
-        const kaminoReservePk: PublicKey = bankAcc.integrationAcc1;
-        let reserve =
-          await kaminoProgram.account.reserve.fetch(kaminoReservePk);
-        const ix = await simpleRefreshReserve(
-          kaminoProgram,
-          kaminoReservePk,
-          reserve.lendingMarket,
-          reserve.config.tokenInfo.scopeConfiguration.priceFeed,
-        );
-        ixs.push(ix);
-      } else if ("pythPushOracle" in setup) {
+      if ("pythPushOracle" in setup) {
         const oracle = keys[0];
         console.log(`[${i}] pyth oracle: ${oracle}`);
         activeBalances.push([bal.bankPk, oracle]);
@@ -426,72 +400,6 @@ export async function getOraclesAndCrankSwb(
         activeBalances.push([bal.bankPk, oracle]);
       }
       // TODO drift
-    }
-  }
-
-  if (swbPullFeeds.length > 0) {
-    try {
-      const swbProgram = await sb.AnchorUtils.loadProgramFromConnection(
-        // TODO fix when web3 is bumped in swb?
-        // @ts-ignore
-        connection,
-      );
-
-      const pullFeedInstances: string[] = swbPullFeeds.map((pubkey) =>
-        pubkey.toString(),
-      );
-
-      // TODO env var
-      const crossbarClient = new CrossbarClient(
-        "https://integrator-crossbar.prod.mrgn.app",
-      );
-
-      const [{ pullIxns, lookupTables }] =
-        await crossbarClient.fetchSolanaUpdates(
-          "mainnet",
-          pullFeedInstances,
-          payer.publicKey.toString(),
-          1,
-        );
-
-      let luts: AddressLookupTableAccount[] = [];
-      for (let i = 0; i < lookupTables.length; i++) {
-        const lut = await connection.getAddressLookupTable(
-          new PublicKey(lookupTables[i]),
-        );
-        if (!lut || !lut.value) {
-          console.warn(
-            `Warning: LUT ${lookupTables[i]} not found on-chain. Proceeding without it.`,
-          );
-        } else {
-          luts.push(lut.value);
-        }
-      }
-
-      const { blockhash, lastValidBlockHeight } =
-        await connection.getLatestBlockhash();
-
-      const v0Message = new TransactionMessage({
-        payerKey: payer.publicKey,
-        recentBlockhash: blockhash,
-        instructions: pullIxns,
-      }).compileToV0Message(luts);
-
-      const v0Tx = new VersionedTransaction(v0Message);
-      v0Tx.sign([payer]);
-
-      const signature = await connection.sendTransaction(v0Tx, {
-        maxRetries: 5,
-      });
-      await connection.confirmTransaction(
-        { signature, blockhash, lastValidBlockHeight },
-        "confirmed",
-      );
-
-      console.log("Swb crank (v0) tx signature:", signature);
-    } catch (err) {
-      console.log("swb crank failed");
-      console.log(err);
     }
   }
 
@@ -537,3 +445,21 @@ export const u32ToApr = (aprAsU32: number): number => {
 export const u32ToUtil = (utilAsU32: number): number => {
   return utilAsU32 / u32_MAX;
 };
+
+/**
+ * One-line summary of an error for logging. A `SendTransactionError` (or anything wrapping an
+ * axios response) stringifies into hundreds of lines of request/response dump, which buries the
+ * one line that actually says what went wrong.
+ */
+export function briefError(error: unknown): string {
+  const e = error as any;
+  const message =
+    e?.response?.data?.error?.message ?? e?.message ?? String(error);
+  const brief = String(message).split("\n")[0].slice(0, 300);
+
+  const logs: string[] | undefined = e?.logs ?? e?.transactionLogs;
+  const programErr = logs?.find(
+    (l) => l.includes("Error Message:") || l.includes("failed:"),
+  );
+  return programErr ? `${brief} | ${programErr.trim()}` : brief;
+}

@@ -55,7 +55,7 @@ import {
   JUPLEND_LENDING_PROGRAM_ID,
 } from "../juplend/lib/utils";
 import { updateLut } from "../../luts/update_lut";
-import { briefError } from "../user/crank-swb-feed-alt";
+import { briefError } from "../../lib/utils";
 
 const sendTx = true;
 

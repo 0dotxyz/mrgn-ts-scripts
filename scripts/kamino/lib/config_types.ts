@@ -19,7 +19,7 @@ export interface KaminoBankConfig {
 
   // Required: Oracle configuration
   oracle: string; // Oracle feed address
-  oracleType: KaminoOracleType; // "kaminoPythPush" or "kaminoSwitchboardPull"
+  oracleType: KaminoOracleType; // "kaminoPythPush"
 
   // Required: Risk parameters
   assetWeightInit: number; // 0.0 - 1.0 (e.g., 0.80 = 80%)
@@ -55,16 +55,14 @@ export interface DerivedConfig {
   seed?: number | null; // Final seed used
 }
 
-export type KaminoOracleType = "kaminoPythPush" | "kaminoSwitchboardPull";
+export type KaminoOracleType = "kaminoPythPush";
 
 /**
  * Convert oracle type string to the raw enum format expected by the program
  */
-export function oracleTypeToRaw(oracleType: KaminoOracleType): { kaminoPythPush: {} } | { kaminoSwitchboardPull: {} } {
+export function oracleTypeToRaw(oracleType: KaminoOracleType): { kaminoPythPush: {} } {
   if (oracleType === "kaminoPythPush") {
     return { kaminoPythPush: {} };
-  } else if (oracleType === "kaminoSwitchboardPull") {
-    return { kaminoSwitchboardPull: {} };
   }
   throw new Error(`Unknown oracle type: ${oracleType}`);
 }
@@ -104,8 +102,8 @@ export function validateConfig(config: KaminoBankConfig): void {
   }
 
   // Validate oracle type
-  if (!["kaminoPythPush", "kaminoSwitchboardPull"].includes(config.oracleType)) {
-    throw new Error(`Invalid oracleType: ${config.oracleType}. Must be "kaminoPythPush" or "kaminoSwitchboardPull"`);
+  if (!["kaminoPythPush"].includes(config.oracleType)) {
+    throw new Error(`Invalid oracleType: ${config.oracleType}. Must be "kaminoPythPush"`);
   }
 
   // Validate weights are in valid range
