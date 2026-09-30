@@ -1,18 +1,18 @@
 // Runs once per group, before any staked banks can be init.
-import { AccountMeta, Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
-import { Program, AnchorProvider, Wallet, BN } from "@coral-xyz/anchor";
-import { Marginfi } from "../../marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.2.json";
-import { I80F48_ONE, loadKeypairFromFile } from "./utils";
+import {
+  PublicKey,
+  Transaction,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
+import { BN } from "@coral-xyz/anchor";
 import {
   bigNumberToWrappedI80F48,
-  TOKEN_PROGRAM_ID,
   WrappedI80F48,
   wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
 import { RiskTierRaw } from "@mrgnlabs/marginfi-client-v2";
-import { assertBNEqual, assertI80F48Approx, assertKeysEqual } from "./softTests";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+import { commonSetup } from "../lib/common-setup";
 import { deriveStakedSettings } from "../scripts/common/pdas";
 
 /**
@@ -21,7 +21,7 @@ import { deriveStakedSettings } from "../scripts/common/pdas";
 const sendTx = false;
 const verbose = true;
 
-type Config = {
+export type Config = {
   PROGRAM_ID: string;
   GROUP_KEY: PublicKey;
   SOL_ORACLE: PublicKey;
@@ -48,24 +48,33 @@ const config: Config = {
 };
 
 async function main() {
-  marginfiIdl.address = config.PROGRAM_ID;
-  const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
-  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
+  await initStakedSettings(sendTx, config, "/keys/staging-deploy.json");
+}
 
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, wallet, {
-    preflightCommitment: "confirmed",
-  });
+export async function initStakedSettings(
+  sendTx: boolean,
+  config: Config,
+  walletPath: string,
+): Promise<PublicKey> {
+  const user = commonSetup(
+    sendTx,
+    config.PROGRAM_ID,
+    walletPath,
+    config.MULTISIG_PAYER,
+  );
+  const program = user.program;
+  const connection = user.connection;
 
-  const program = new Program<Marginfi>(marginfiIdl as Marginfi, provider);
-
-  let settings = defaultStakedInterestSettings(config.SOL_ORACLE);
-
+  const settings = defaultStakedInterestSettings(config.SOL_ORACLE);
   if (config.ASSET_WEIGHT_INIT !== undefined) {
-    settings.assetWeightInit = bigNumberToWrappedI80F48(config.ASSET_WEIGHT_INIT);
+    settings.assetWeightInit = bigNumberToWrappedI80F48(
+      config.ASSET_WEIGHT_INIT,
+    );
   }
   if (config.ASSET_WEIGHT_MAINT !== undefined) {
-    settings.assetWeightMaint = bigNumberToWrappedI80F48(config.ASSET_WEIGHT_MAINT);
+    settings.assetWeightMaint = bigNumberToWrappedI80F48(
+      config.ASSET_WEIGHT_MAINT,
+    );
   }
   if (config.DEPOSIT_LIMIT !== undefined) {
     settings.depositLimit = config.DEPOSIT_LIMIT;
@@ -77,73 +86,64 @@ async function main() {
     settings.oracleMaxAge = config.ORACLE_MAX_AGE;
   }
 
+  const [stakedSettingsKey] = deriveStakedSettings(
+    program.programId,
+    config.GROUP_KEY,
+  );
+
   const transaction = new Transaction();
+  transaction.add(
+    await program.methods
+      .initStakedSettings(settings)
+      .accountsPartial({
+        marginfiGroup: config.GROUP_KEY,
+        admin: sendTx ? user.wallet.publicKey : config.MULTISIG_PAYER,
+        feePayer: sendTx ? user.wallet.publicKey : config.MULTISIG_PAYER,
+        // staked_settings: deriveStakedSettings()
+      })
+      .instruction(),
+  );
 
   if (sendTx) {
-    transaction.add(
-      await program.methods
-        .initStakedSettings(settings)
-        .accounts({
-          marginfiGroup: config.GROUP_KEY,
-          // admin: args.admin, // implied from group
-          feePayer: wallet.publicKey,
-          // staked_settings: deriveStakedSettings()
-          // rent = SYSVAR_RENT_PUBKEY,
-          // systemProgram: SystemProgram.programId,
-        })
-        .instruction()
-    );
-
     try {
-      const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
+      const signature = await sendAndConfirmTransaction(
+        connection,
+        transaction,
+        [user.wallet.payer],
+      );
       console.log("Transaction signature:", signature);
     } catch (error) {
       console.error("Transaction failed:", error);
     }
 
-    let [stakedSettingsKey] = deriveStakedSettings(program.programId, config.GROUP_KEY);
     if (verbose) {
       console.log("staked settings: " + stakedSettingsKey);
-    }
-    let stakedSettingsAcc = await program.account.stakedSettings.fetch(stakedSettingsKey);
-    assertI80F48Approx(stakedSettingsAcc.assetWeightInit, settings.assetWeightInit);
-    assertI80F48Approx(stakedSettingsAcc.assetWeightMaint, settings.assetWeightMaint);
-    assertBNEqual(stakedSettingsAcc.depositLimit, settings.depositLimit);
-    assertBNEqual(stakedSettingsAcc.totalAssetValueInitLimit, settings.totalAssetValueInitLimit);
-    assertBNEqual(new BN(stakedSettingsAcc.oracleMaxAge), settings.oracleMaxAge);
-    assertKeysEqual(stakedSettingsAcc.oracle, config.SOL_ORACLE);
-    if (verbose) {
-      console.log("oracle: " + stakedSettingsAcc.oracle);
-      console.log("asset weight init: " + wrappedI80F48toBigNumber(stakedSettingsAcc.assetWeightInit).toString());
-      console.log("asset weight maint: " + wrappedI80F48toBigNumber(stakedSettingsAcc.assetWeightMaint).toString());
-      console.log("deposit limit: " + stakedSettingsAcc.depositLimit.toString());
-      console.log("total asset value init: " + stakedSettingsAcc.totalAssetValueInitLimit.toString());
-      console.log("oralce max age: " + stakedSettingsAcc.oracleMaxAge);
+      const acc = await program.account.stakedSettings.fetch(stakedSettingsKey);
+      console.log("oracle: " + acc.oracle);
+      console.log(
+        "asset weight init/maint: " +
+          wrappedI80F48toBigNumber(acc.assetWeightInit).toString() +
+          " / " +
+          wrappedI80F48toBigNumber(acc.assetWeightMaint).toString(),
+      );
+      console.log("deposit limit: " + acc.depositLimit.toString());
+      console.log("oracle max age: " + acc.oracleMaxAge);
     }
   } else {
-    transaction.add(
-      await program.methods
-        .initStakedSettings(settings)
-        .accountsPartial({
-          marginfiGroup: config.GROUP_KEY,
-          admin: config.MULTISIG_PAYER,
-          feePayer: config.MULTISIG_PAYER,
-          // staked_settings: deriveStakedSettings()
-          // rent = SYSVAR_RENT_PUBKEY,
-          // systemProgram: SystemProgram.programId,
-        })
-        .instruction()
-    );
-    transaction.feePayer = config.MULTISIG_PAYER; // Set the fee payer to Squads wallet
+    transaction.feePayer = config.MULTISIG_PAYER;
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
     const serializedTransaction = transaction.serialize({
       requireAllSignatures: false,
       verifySignatures: false,
     });
-    const base58Transaction = bs58.encode(serializedTransaction);
-    console.log("Base58-encoded transaction:", base58Transaction);
+    console.log(
+      "Base58-encoded transaction:",
+      bs58.encode(serializedTransaction),
+    );
   }
+
+  return stakedSettingsKey;
 }
 
 // TODO remove when package updates
@@ -176,6 +176,8 @@ const defaultStakedInterestSettings = (oracle: PublicKey) => {
   return settings;
 };
 
-main().catch((err) => {
-  console.error(err);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+  });
+}

@@ -123,3 +123,34 @@ export const deriveLiquidationRecord = (
     programId
   );
 };
+
+export const SPL_SINGLE_POOL_PROGRAM_ID = new PublicKey(
+  "SVSPxpvHdN29nkVg9rPapPNDddN5DipNLRUFhyjFThE",
+);
+
+/** SVSP keys for a validator, matching `derive_single_pool_keys_from_vote`. */
+export const deriveSinglePoolKeys = (voteAccount: PublicKey) => {
+  const [pool] = PublicKey.findProgramAddressSync(
+    [Buffer.from("pool"), voteAccount.toBuffer()],
+    SPL_SINGLE_POOL_PROGRAM_ID,
+  );
+  const derive = (seed: string) =>
+    PublicKey.findProgramAddressSync(
+      [Buffer.from(seed), pool.toBuffer()],
+      SPL_SINGLE_POOL_PROGRAM_ID,
+    )[0];
+  return {
+    pool,
+    lstMint: derive("mint"),
+    solPool: derive("stake"),
+    onramp: derive("onramp"),
+  };
+};
+
+/** The on-ramp stake account for an SVSP pool (`derive_staked_onramp_from_vote`'s last element). */
+export const deriveStakedOnrampFromPool = (stakePool: PublicKey) => {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("onramp"), stakePool.toBuffer()],
+    SPL_SINGLE_POOL_PROGRAM_ID,
+  )[0];
+};

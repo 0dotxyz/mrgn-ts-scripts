@@ -35,6 +35,7 @@ import { Environment, MarginfiAccountRaw } from "@mrgnlabs/marginfi-client-v2";
 import { Program, Provider } from "@coral-xyz/anchor";
 import { KaminoLending } from "../idl/kamino_lending";
 import { simpleRefreshReserve } from "../scripts/kamino/ixes-common";
+import { deriveSinglePoolKeys } from "../scripts/common/pdas";
 import { Marginfi } from "../idl/marginfi";
 
 export const u32_MAX: number = 4294967295;
@@ -388,10 +389,16 @@ export async function getOraclesAndKaminoIxes(
         );
         ixs.push(ix);
       } else if ("stakedWithPythPush" in setup) {
+        // 5 accounts, not 4: bank, oracle, lst mint, sol pool, on-ramp. `oracle_keys[3]` holds
+        // the on-ramp when set, otherwise the program derives it off the vote account in
+        // `integration_acc_1` (see `expected_staked_onramp`).
         const oracle = keys[0];
+        const onramp = keys[3].equals(PublicKey.default)
+          ? deriveSinglePoolKeys(bankAcc.integrationAcc1).onramp
+          : keys[3];
         console.log(`[${i}] pyth oracle: ${oracle}`);
-        console.log(`  lst pool/mint: ${keys[1]} ${keys[2]}`);
-        activeBalances.push([bal.bankPk, oracle, keys[1], keys[2]]);
+        console.log(`  lst mint/pool: ${keys[1]} ${keys[2]}  onramp: ${onramp}`);
+        activeBalances.push([bal.bankPk, oracle, keys[1], keys[2], onramp]);
       } else if ("fixed" in setup) {
         // do nothing
       } else {

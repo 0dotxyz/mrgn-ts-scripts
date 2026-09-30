@@ -43,6 +43,8 @@ type Config = {
   FEE_PAYER?: PublicKey; // If omitted, defaults to ADMIN
   BANK_MINT: PublicKey;
   SEED: number;
+  /** Defaults to ASSET_TAG_DEFAULT (0). Set to 1 for a SOL bank, etc. */
+  ASSET_TAG?: number;
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
   CLONE_FROM?: PublicKey; // Required when cloneEmode = true
 };
@@ -164,7 +166,7 @@ export async function addBank(
           operationalState: bankConfig.operationalState,
           borrowLimit: bankConfig.borrowLimit,
           riskTier: bankConfig.riskTier,
-          assetTag: bankConfig.assetTag,
+          assetTag: config.ASSET_TAG ?? bankConfig.assetTag,
           pad0: [0, 0, 0, 0, 0, 0],
           totalAssetValueInitLimit: bankConfig.totalAssetValueInitLimit,
           oracleMaxAge: bankConfig.oracleMaxAge,
