@@ -26,7 +26,6 @@ const cloneEmode = true;
 const ASSET_TAG_DEFAULT = 0;
 
 export const ORACLE_TYPE_PYTH = 3;
-const ORACLE_TYPE_SWB = 4;
 
 type Config = {
   PROGRAM_ID: string;
@@ -34,11 +33,9 @@ type Config = {
   /**
    * For Pyth, This is the feed, and is owned by rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ
    * Pyth Feed IDs can be taken from: https://www.pyth.network/developers/price-feed-ids
-   *
-   * For swb this is called the "address" if exploring at https://ondemand.switchboard.xyz
    */
   ORACLE: PublicKey;
-  /** Generally 3 (Pyth) or 4 (Switchboard) */
+  /** See `OracleSetup::from_u8`, e.g. 3 (PythPushOracle) */
   ORACLE_TYPE: number;
   /** Group admin (generally the MS on mainnet) */
   ADMIN: PublicKey;
@@ -46,6 +43,8 @@ type Config = {
   FEE_PAYER?: PublicKey; // If omitted, defaults to ADMIN
   BANK_MINT: PublicKey;
   SEED: number;
+  /** Defaults to ASSET_TAG_DEFAULT (0). Set to 1 for a SOL bank, etc. */
+  ASSET_TAG?: number;
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
   CLONE_FROM?: PublicKey; // Required when cloneEmode = true
 };
@@ -54,7 +53,7 @@ const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
   ORACLE: new PublicKey("HxZN9wAUXHpkUpLeH3x3UtCPhdsJP2EkVN4umvny4hBw"),
-  ORACLE_TYPE: ORACLE_TYPE_SWB,
+  ORACLE_TYPE: ORACLE_TYPE_PYTH,
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
   BANK_MINT: new PublicKey("rkubjTrZYioRSeXwDnhwGQzvW3qkcin72JSxUt3WMVp"),
   SEED: 0,
@@ -167,7 +166,7 @@ export async function addBank(
           operationalState: bankConfig.operationalState,
           borrowLimit: bankConfig.borrowLimit,
           riskTier: bankConfig.riskTier,
-          assetTag: bankConfig.assetTag,
+          assetTag: config.ASSET_TAG ?? bankConfig.assetTag,
           pad0: [0, 0, 0, 0, 0, 0],
           totalAssetValueInitLimit: bankConfig.totalAssetValueInitLimit,
           oracleMaxAge: bankConfig.oracleMaxAge,

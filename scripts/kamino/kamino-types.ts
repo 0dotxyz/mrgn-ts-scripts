@@ -14,12 +14,9 @@ export const FARMS_PROGRAM_ID = new PublicKey(
 export type OracleSetupRawWithKamino =
   | { none: {} }
   | { pythLegacy: {} }
-  | { switchboardV2: {} }
   | { pythPushOracle: {} }
-  | { switchboardPull: {} }
   | { stakedWithPythPush: {} }
-  | { kaminoPythPush: {} }
-  | { kaminoSwitchboardPull: {} };
+  | { kaminoPythPush: {} };
 
 export type KaminoConfigCompact = {
   oracle: PublicKey;

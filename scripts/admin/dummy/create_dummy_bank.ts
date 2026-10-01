@@ -17,7 +17,7 @@ import { cap } from "../../utils/utils";
 /**
  * Creates one or more dummy banks under a group, backed by a Fixed-price
  * oracle — convenient for exercising downstream flows (rate-limits, metadata,
- * etc.) on staging without chasing real Pyth/Switchboard feeds.
+ * etc.) on staging without chasing real Pyth feeds.
  *
  * For each entry in BANKS:
  *   1. lendingPoolAddBankWithSeed       — create bank at (group, mint, seed)

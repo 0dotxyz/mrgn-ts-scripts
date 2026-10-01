@@ -23,7 +23,7 @@ export interface DriftConfigCompact {
   assetWeightInit: WrappedI80F48;
   assetWeightMaint: WrappedI80F48;
   depositLimit: BN;
-  oracleSetup: { driftPythPull: {} } | { driftSwitchboardPull: {} };
+  oracleSetup: { driftPythPull: {} };
   operationalState: OperationalStateRaw;
   riskTier: RiskTierRaw;
   configFlags: number;

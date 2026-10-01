@@ -81,7 +81,6 @@ type Verdict = {
   reason: string;
   cacheAgeSeconds?: number;
   cachePricePositive?: boolean;
-  switchboard?: boolean;
 };
 
 const CB_FIELDS: (keyof CbSettings)[] = [
@@ -550,9 +549,6 @@ async function main() {
               0,
             )
           : undefined,
-        switchboard: Object.keys(bank.config.oracleSetup)[0]
-          ?.toLowerCase()
-          .includes("switchboard"),
       });
     });
   }
@@ -584,10 +580,7 @@ async function main() {
   }
 
   const payerKey = sendTx ? user.wallet.publicKey : ADMIN;
-  const groups = [
-    todo.filter((v) => !v.switchboard),
-    todo.filter((v) => v.switchboard),
-  ];
+  const groups = [todo];
   const ordered = groups.flat();
   const batches: TransactionInstruction[][] = [];
   for (const group of groups) {
@@ -611,9 +604,6 @@ async function main() {
   for (const [i, ixs] of batches.entries()) {
     const members = ordered.slice(cursor, cursor + ixs.length);
     cursor += ixs.length;
-    const note = members.some((v) => v.switchboard)
-      ? " [switchboard: crank within 30s of execution]"
-      : "";
 
     const { blockhash, lastValidBlockHeight } =
       await connection.getLatestBlockhash();
@@ -633,7 +623,7 @@ async function main() {
     console.log(
       `\ntx ${i + 1}/${batches.length}: ${ixs.length} banks, ${bytes} bytes: ${members
         .map((v) => v.target.entry.symbol)
-        .join(", ")}${note}`,
+        .join(", ")}`,
     );
 
     if (sendTx) {
@@ -655,9 +645,8 @@ async function main() {
 function report(verdicts: Verdict[]) {
   const width = Math.max(...verdicts.map((v) => v.target.entry.symbol.length));
   for (const v of verdicts) {
-    const oracle = v.switchboard ? " [switchboard]" : "";
     console.log(
-      `[${v.action.padEnd(6)}] ${v.target.entry.symbol.padEnd(width)} ${v.target.bank.toBase58()}  ${v.target.category}: ${v.reason}${oracle}`,
+      `[${v.action.padEnd(6)}] ${v.target.entry.symbol.padEnd(width)} ${v.target.bank.toBase58()}  ${v.target.category}: ${v.reason}`,
     );
   }
 
@@ -682,13 +671,6 @@ function report(verdicts: Verdict[]) {
     );
   }
 
-  const switchboard = verdicts.filter((v) => v.action === "enable" && v.switchboard);
-  if (switchboard.length > 0) {
-    console.warn(
-      `${switchboard.length} of them price from Switchboard pull feeds, which the keeper only cranks ` +
-        "for breaker-enabled banks; crank those feeds within the same window or their tx reverts.",
-    );
-  }
 }
 
 if (require.main === module) {

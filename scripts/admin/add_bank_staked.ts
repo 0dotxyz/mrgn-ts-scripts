@@ -17,7 +17,7 @@ import { deriveBankWithSeed, deriveStakedSettings } from "../common/pdas";
 const sendTx = true;
 const verbose = true;
 
-type Config = {
+export type Config = {
   PROGRAM_ID: string;
   GROUP_KEY: PublicKey;
   STAKE_POOL: PublicKey;
@@ -42,12 +42,11 @@ async function main() {
   await addStakedBank(sendTx, config, "/keys/staging-deploy.json");
 }
 
-async function addStakedBank(
+export async function addStakedBank(
   sendTx: boolean,
   config: Config,
   walletPath: string,
-  version?: "current",
-) {
+): Promise<PublicKey> {
   const user = commonSetup(
     sendTx,
     config.PROGRAM_ID,
@@ -151,6 +150,8 @@ async function addStakedBank(
     const base58Transaction = bs58.encode(serializedTransaction);
     console.log("Base58-encoded transaction:", base58Transaction);
   }
+
+  return bankKey;
 }
 
 if (require.main === module) {

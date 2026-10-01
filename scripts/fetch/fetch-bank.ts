@@ -427,7 +427,6 @@ const formatUtilU32ForCopy = (value: number): string =>
   value === 0 ? "0" : `utilToU32(${formatNumberLiteral(u32ToUtil(value))})`;
 
 const ORACLE_TYPE_PYTH = 3;
-const ORACLE_TYPE_SWB = 4;
 
 /**
  * turns { collateral: {} } into "collateral", { paused: {} } into "paused", etc.
@@ -453,18 +452,15 @@ async function printCopyConfigSnippet(program: any, bankKey: PublicKey) {
   // fetch group to get admin
   const group = await program.account.marginfiGroup.fetch(bank.group);
 
-  // --- ORACLE TYPE MAPPING (contract expects numbers: 3=PYTH, 4=SWB) ---
+  // --- ORACLE TYPE MAPPING (contract expects numbers, see `OracleSetup::from_u8`) ---
   const os = (bank.config as any).oracleSetup ?? {};
   let oracleTypeNumeric = 0;
-  // Treat any Pyth-like variant as PYTH, any Switchboard-like as SWB
   if (
     "pythLegacy" in os ||
     "pythPushOracle" in os ||
     "stakedWithPythPush" in os
   ) {
     oracleTypeNumeric = ORACLE_TYPE_PYTH;
-  } else if ("switchboardV2" in os || "switchboardPull" in os) {
-    oracleTypeNumeric = ORACLE_TYPE_SWB;
   }
 
   const cfg = bank.config;
@@ -495,7 +491,7 @@ async function printCopyConfigSnippet(program: any, bankKey: PublicKey) {
     ) ?? PublicKey.default
   ).toString();
   console.log(`  ORACLE: new PublicKey("${oracleKey}"),`);
-  console.log(`  ORACLE_TYPE: ${oracleTypeNumeric || 0}, // 3=PYTH, 4=SWB`);
+  console.log(`  ORACLE_TYPE: ${oracleTypeNumeric || 0}, // 3=PYTH`);
   console.log(`  ADMIN: new PublicKey("${group.admin.toString()}"),`);
   console.log(`  FEE_PAYER: new PublicKey("PLACEHOLDER_FEE_PAYER"),`);
   console.log(`  BANK_MINT: new PublicKey("${bank.mint.toString()}"),`);

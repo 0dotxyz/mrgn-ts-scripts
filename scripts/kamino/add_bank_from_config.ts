@@ -1,7 +1,7 @@
 /**
  * Add Kamino Bank from Config File
  *
- * Usage: npx tsx scripts/kamino/add_bank_from_config.ts configs/<asset>_<market>.json [--skip-oracle-validation]
+ * Usage: npx tsx scripts/kamino/add_bank_from_config.ts configs/<asset>_<market>.json
  */
 
 import {
@@ -34,7 +34,6 @@ import {
   KAMINO_SEED_START,
 } from "./lib/config_types";
 import { getNextAvailableSeed, verifySeedAvailable } from "./lib/seed_manager";
-import { validateOracle } from "./lib/validate_oracle";
 import { fetchAndValidateReserve } from "./lib/reserve_utils";
 import { generateMarkdownOutput, BankOutputData } from "./lib/output_formatter";
 import {
@@ -48,17 +47,14 @@ async function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {
     console.error(
-      "Usage: npx tsx scripts/kamino/add_bank_from_config.ts <config_path> [--skip-oracle-validation]"
+      "Usage: npx tsx scripts/kamino/add_bank_from_config.ts <config_path>"
     );
     process.exit(1);
   }
-  await addBankFromConfig(args[0], args.includes("--skip-oracle-validation"));
+  await addBankFromConfig(args[0]);
 }
 
-export async function addBankFromConfig(
-  configPath: string,
-  skipOracleValidation = false
-): Promise<void> {
+export async function addBankFromConfig(configPath: string): Promise<void> {
   // Load config
   const resolvedPath = path.isAbsolute(configPath)
     ? configPath
@@ -121,53 +117,6 @@ export async function addBankFromConfig(
     new BN(finalSeed)
   );
   console.log(`Bank address: ${bankAddress.toBase58()}`);
-
-  // 2. Oracle validation (Switchboard only)
-  let oracleReport;
-  if (config.oracleType === "kaminoSwitchboardPull" && !skipOracleValidation) {
-    console.log(`Validating Switchboard oracle (scraping page)...`);
-    oracleReport = await validateOracle(
-      user.connection,
-      config.oracle,
-      config.bankMint,
-      config.oracleType,
-      config.asset
-    );
-
-    // Log results
-    console.log(
-      `Ticker: ${oracleReport.tickerValidation?.actualTicker || "unknown"} - ${
-        oracleReport.tickerValidation?.isValid ? "VALID" : "INVALID"
-      }`
-    );
-    console.log(
-      `Authority: ${oracleReport.switchboard.authority || "unknown"} - ${
-        oracleReport.switchboard.authorityValid ? "VALID" : "INVALID"
-      }`
-    );
-    if (oracleReport.priceComparison) {
-      const pc = oracleReport.priceComparison;
-      const status = pc.isWithinTolerance ? "VALID" : "INVALID";
-      console.log(
-        `Price: Switchboard $${pc.oraclePrice?.toFixed(
-          2
-        )} vs Jupiter $${pc.jupiterPrice?.toFixed(
-          2
-        )} (${pc.deviationPercent?.toFixed(2)}% diff, ${
-          pc.tolerancePercent
-        }% tolerance) - ${status}`
-      );
-    }
-
-    // Fail if validation failed
-    if (!oracleReport.overallValid) {
-      console.error("\nERROR: Oracle validation failed:");
-      for (const error of oracleReport.errors) {
-        console.error(`  - ${error}`);
-      }
-      process.exit(1);
-    }
-  }
 
   // 3. Fetch and validate reserve
   const mintInfo = await getMint(user.connection, mint);
@@ -302,7 +251,6 @@ export async function addBankFromConfig(
     decimals,
     tokenProgram,
     reserveData,
-    oracleReport,
     simulationSuccess: simValidation.success,
     simValidation,
     computeUnits: simulation.value.unitsConsumed,

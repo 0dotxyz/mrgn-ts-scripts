@@ -73,12 +73,7 @@ async function main() {
       const firstOracleKey = bankAcc.config.oracleKeys[0];
       console.log(`• Bank ${bankPubkey.toBase58()}`);
       const os = (bankAcc.config as any).oracleSetup;
-      const oracleType =
-        "pythPushOracle" in os
-          ? "Pyth"
-          : "switchboardPull" in os
-            ? "Swb"
-            : "???";
+      const oracleType = "pythPushOracle" in os ? "Pyth" : "???";
       console.log(
         ` oracle type: ${oracleType} key: ${firstOracleKey.toBase58()}`,
       );
