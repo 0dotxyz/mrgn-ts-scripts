@@ -1,16 +1,18 @@
 import { PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 import { commonSetup } from "../../lib/common-setup";
 
-const sendTx = true;
+const sendTx = false;
 
 type Config = {
   PROGRAM_ID: string;
   BANK: PublicKey;
+  FORCE?: boolean;
 };
 
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
   BANK: new PublicKey("8qPLKaKb4F5BC6mVncKAryMp78yp5ZRGYnPkQbt9ikKt"),
+  FORCE: false,
 };
 
 async function main() {
@@ -29,7 +31,7 @@ export async function closeBank(sendTx: boolean, config: Config, walletPath: str
 
   const transaction = new Transaction().add(
     await program.methods
-      .lendingPoolCloseBank(false)
+      .lendingPoolCloseBank(config.FORCE ?? false)
       .accounts({
         bank: config.BANK,
       })
