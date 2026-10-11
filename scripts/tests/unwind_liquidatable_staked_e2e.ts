@@ -75,11 +75,12 @@ async function main() {
   await sleep(2000);
 
   console.log("\n\n\n 3. WITHDRAW FROM STAKED BANKS BY LIQUIDATEE");
-  // The debt is gone, so the remaining list shrinks as each balance closes. Rebuild it every
-  // iteration from the banks still held, or the health check reads the wrong account.
+  // `withdraw_all` closes the balance before the health check, which then walks the still-active
+  // balances in sorted order. So: the other open banks sorted, and the closing bank last (its
+  // accounts are only read for the bank's price-cache update).
   for (let i = 0; i < state.stakedBanks.length; i++) {
     const stillHeld = [
-      ...stakedRemaining.slice(i),
+      ...stakedRemaining.slice(i + 1),
       ...solCollateralRemaining,
     ];
     await withdraw(
@@ -92,7 +93,8 @@ async function main() {
         AMOUNT: new BN(0),
         WITHDRAW_ALL: true,
         ADD_COMPUTE_UNITS: true,
-        REMAINING: composeRemainingAccounts(stillHeld),
+        REMAINING: [...composeRemainingAccounts(stillHeld), ...stakedRemaining[i]],
+        LUT: config.LUT,
       },
       config.LIQUIDATEE_WALLET_PATH,
     );
@@ -111,6 +113,7 @@ async function main() {
       WITHDRAW_ALL: true,
       ADD_COMPUTE_UNITS: true,
       REMAINING: composeRemainingAccounts(solCollateralRemaining),
+      LUT: config.LUT,
     },
     config.LIQUIDATEE_WALLET_PATH,
   );
@@ -155,7 +158,7 @@ async function main() {
   ]) {
     await closeBank(
       true,
-      { PROGRAM_ID: config.PROGRAM_ID, BANK: bank },
+      { PROGRAM_ID: config.PROGRAM_ID, BANKS: [bank] },
       config.LIQUIDATOR_WALLET_PATH,
     );
     await sleep(1000);

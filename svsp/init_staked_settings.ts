@@ -97,7 +97,7 @@ export async function initStakedSettings(
       .initStakedSettings(settings)
       .accountsPartial({
         marginfiGroup: config.GROUP_KEY,
-        admin: sendTx ? user.wallet.publicKey : config.MULTISIG_PAYER,
+        governanceAdmin: sendTx ? user.wallet.publicKey : config.MULTISIG_PAYER,
         feePayer: sendTx ? user.wallet.publicKey : config.MULTISIG_PAYER,
         // staked_settings: deriveStakedSettings()
       })

@@ -1,6 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
-import { sleep, bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
+import { sleep, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { loadKeypairFromFile } from "../utils/utils";
 import { initGroup } from "../admin/init_group";
 import { initAccount } from "../user/init_account";
@@ -9,16 +9,13 @@ import { addStakedBank } from "../admin/add_bank_staked";
 import { initStakedSettings } from "../../svsp/init_staked_settings";
 import { depositRegular } from "../user/deposit_regular";
 import { borrow } from "../user/borrow";
-import { pulseHealth } from "../user/health_pulse";
+import { assertHealthCacheOk, pulseHealth } from "../user/health_pulse";
 import { composeRemainingAccounts } from "../../lib/utils";
 import { updateLut } from "../../luts/update_lut";
 import { ASSET_TAG_SOL } from "../../lib/constants";
 import { deriveSinglePoolKeys } from "../common/pdas";
-import {
-  bankConfigOptDefault,
-  BankConfigPair,
-  configBank,
-} from "../admin/config_bank";
+import { configBankGov } from "../admin/config_bank_gov";
+import { setGovernanceAdmin } from "../admin/set_governance_admin";
 import {
   BalanceRequirement,
   pkToString,
@@ -154,6 +151,21 @@ async function main() {
       ),
     });
   save();
+
+  // 0.1.12: staked settings, banks and weights need the governance admin, which a new group
+  // starts without.
+  console.log("\n\n\n 1b. SET GOVERNANCE ADMIN");
+  await setGovernanceAdmin(
+    true,
+    {
+      PROGRAM_ID: config.PROGRAM_ID,
+      GROUP: marginfiGroup,
+      NEW_GOVERNANCE_ADMIN: liquidatorWallet.publicKey,
+      SIGNER: liquidatorWallet.publicKey,
+    },
+    config.LIQUIDATOR_WALLET_PATH,
+  );
+  await sleep(2000);
 
   console.log("\n\n\n 2. INIT STAKED SETTINGS FOR THE GROUP");
   // Required before any permissionless staked bank can be added: the bank inherits its weights,
@@ -318,7 +330,6 @@ async function main() {
     MINT: config.SOL_MINT,
     ADD_COMPUTE_UNITS: true,
     KAMINO_RESERVES: [] as PublicKey[],
-    DRIFT_MARKETS: [] as number[],
     JUPLEND_STATES: [] as PublicKey[],
     NEW_REMAINING: composeRemainingAccounts(remainingAccounts),
     LUT: config.LUT,
@@ -348,30 +359,25 @@ async function main() {
   );
   // Note: this writes the staked banks directly rather than going through
   // edit_staked_settings + propagate_staked_settings. A later propagation would undo it.
-  const updatedBankConfig = bankConfigOptDefault();
-  updatedBankConfig.assetWeightInit =
-    bigNumberToWrappedI80F48(UNHEALTHY_WEIGHT);
-  updatedBankConfig.assetWeightMaint =
-    bigNumberToWrappedI80F48(UNHEALTHY_WEIGHT);
-
-  const bankEntries: BankConfigPair[] = [
-    ...stakedBanks.map((bank) => ({ bank, config: updatedBankConfig })),
-    { bank: solCollateralBank, config: updatedBankConfig },
-  ];
-  await configBank(
+  // 0.1.12: weights moved to the governance-only `lending_pool_configure_bank_gov`.
+  await configBankGov(
     true,
     {
       PROGRAM_ID: config.PROGRAM_ID,
-      ADMIN: liquidatorWallet.publicKey,
-      LUT: config.LUT,
-      BANKS: bankEntries,
+      BANKS: [...stakedBanks, solCollateralBank].map((bank) => ({
+        bank,
+        update: {
+          assetWeightInit: UNHEALTHY_WEIGHT,
+          assetWeightMaint: UNHEALTHY_WEIGHT,
+        },
+      })),
     },
     config.LIQUIDATOR_WALLET_PATH,
   );
   await sleep(1000);
 
   console.log("\n\n\n 11. CONFIRM LIQUIDATEE IS LIQUIDATABLE NOW");
-  await pulseHealth(
+  const cache = await pulseHealth(
     {
       PROGRAM_ID: config.PROGRAM_ID,
       ACCOUNT: liquidatee,
@@ -379,8 +385,16 @@ async function main() {
     },
     config.LIQUIDATEE_WALLET_PATH,
   );
-
-  console.log("Account " + liquidatee + " is now liquidatable");
+  assertHealthCacheOk(cache);
+  const healthMaint = wrappedI80F48toBigNumber(cache.assetValueMaint)
+    .minus(wrappedI80F48toBigNumber(cache.liabilityValueMaint))
+    .toNumber();
+  if (healthMaint >= 0) {
+    throw new Error(`liquidatee is still healthy: maintenance health $${healthMaint}`);
+  }
+  console.log(
+    `Account ${liquidatee} is now liquidatable (maintenance health $${healthMaint.toFixed(6)})`,
+  );
 }
 
 function serializeConfig(config: Config): any {

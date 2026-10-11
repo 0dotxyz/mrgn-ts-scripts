@@ -7,6 +7,7 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
+import { VenueRefresh, venueRefreshIxs } from "../../lib/venue_refresh";
 import { BN } from "@coral-xyz/anchor";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
@@ -47,6 +48,11 @@ type Config = {
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
   NEW_REMAINING: BankAndOracles;
   ADD_COMPUTE_UNITS: boolean;
+  /**
+   * Optional. The account's other Kamino reserves / JupLend lendings: the health
+   * check prices them and needs them refreshed in the same tx. This bank's reserve is always refreshed.
+   */
+  OTHER_REFRESH?: VenueRefresh;
 };
 
 const prodKaminoTestconfig: Config = {
@@ -151,6 +157,10 @@ export async function withdrawKamino(
     instructions.push(
       ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 })
     );
+  }
+
+  if (config.OTHER_REFRESH) {
+    instructions.push(...(await venueRefreshIxs(user, config.OTHER_REFRESH)));
   }
 
   instructions.push(

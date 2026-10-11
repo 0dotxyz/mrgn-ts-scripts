@@ -19,7 +19,6 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import {
   commonSetup,
-  registerDriftProgram,
   registerJuplendProgram,
   registerKaminoProgram,
 } from "../../lib/common-setup";
@@ -31,7 +30,6 @@ import {
   deriveLiquidityVaultAuthority,
 } from "../common/pdas";
 import {
-  ASSET_TAG_DRIFT,
   ASSET_TAG_JUPLEND,
   ASSET_TAG_KAMINO,
 } from "../../lib/constants";
@@ -42,12 +40,6 @@ import {
 } from "../kamino/ixes-common";
 import { FARMS_PROGRAM_ID, KLEND_PROGRAM_ID } from "../kamino/kamino-types";
 import { deriveUserState } from "../kamino/pdas";
-import {
-  deriveDriftSignerPDA,
-  deriveDriftStatePDA,
-  deriveSpotMarketVaultPDA,
-  DRIFT_PROGRAM_ID,
-} from "../drift/lib/utils";
 import {
   deriveJuplendCpiAccounts,
   findJuplendClaimAccountPda,
@@ -68,7 +60,6 @@ type Balances = Array<{
 type AccountBanks = Map<PublicKey, Balances>;
 type FetchedBanks = Map<string, any>; // any here is our Bank type
 type FetchedReserves = Map<string, any>; // any here is the Reserve type from Kamino IDL
-type FetchedSpotMarkets = Map<string, any>; // any here is the SpotMarket type from Drift IDL
 type FetchedLendings = Map<string, any>; // any here is the Lending type from the JupLend IDL
 
 /// Fraction of the maint-weighted debt the seizure is allowed to consume. `end_deleverage`
@@ -227,7 +218,6 @@ async function main() {
 
   let fetchedBanks: FetchedBanks = new Map();
   let fetchedReserves: FetchedReserves = new Map();
-  let fetchedSpotMarkets: FetchedSpotMarkets = new Map();
   let fetchedLendings: FetchedLendings = new Map();
 
   let repaidUsd = BigNumber(0);
@@ -266,7 +256,6 @@ async function main() {
         grandConfig.WALLET,
         fetchedBanks,
         fetchedReserves,
-        fetchedSpotMarkets,
         fetchedLendings,
       );
     } catch (error) {
@@ -338,7 +327,6 @@ export async function deleverage(
   walletPath: string,
   fetchedBanks?: FetchedBanks,
   fetchedReserves?: FetchedReserves,
-  fetchedSpotMarkets?: FetchedSpotMarkets,
   fetchedLendings?: FetchedLendings,
 ): Promise<DeleverageResult> {
   const skippedResult: DeleverageResult = {
@@ -355,7 +343,6 @@ export async function deleverage(
     undefined,
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
-  registerDriftProgram(user, DRIFT_PROGRAM_ID.toString());
   registerJuplendProgram(user, JUPLEND_LENDING_PROGRAM_ID.toString());
   const program = user.program;
   const connection = user.connection;
@@ -820,46 +807,6 @@ export async function deleverage(
           withdrawAll,
           withdrawMeta,
         ),
-      );
-    } else if (bank.config.assetTag == ASSET_TAG_DRIFT) {
-      if (!fetchedSpotMarkets.has(bank.integrationAcc1.toBase58())) {
-        console.log("Fetching spot market: ", bank.integrationAcc1.toBase58());
-        const fetched = await (
-          user.driftProgram as any
-        ).account.spotMarket.fetch(bank.integrationAcc1);
-        fetchedSpotMarkets.set(bank.integrationAcc1.toBase58(), fetched);
-      }
-      const spotMarket = fetchedSpotMarkets.get(
-        bank.integrationAcc1.toBase58(),
-      );
-
-      const [driftState] = deriveDriftStatePDA();
-      const [driftSigner] = deriveDriftSignerPDA();
-      const [driftSpotMarketVault] = deriveSpotMarketVaultPDA(
-        spotMarket.marketIndex,
-      );
-
-      instructions.push(
-        await program.methods
-          .driftWithdraw(withdrawAmount, withdrawAll)
-          .accounts({
-            marginfiAccount: config.ACCOUNT,
-            bank: bankPk,
-            destinationTokenAccount: ata,
-            driftState,
-            driftSpotMarketVault,
-            driftSigner,
-            driftOracle: spotMarket.oracle,
-            driftRewardOracle: null,
-            driftRewardSpotMarket: null,
-            driftRewardMint: null,
-            driftRewardOracle2: null,
-            driftRewardSpotMarket2: null,
-            driftRewardMint2: null,
-            tokenProgram,
-          })
-          .remainingAccounts(withdrawMeta)
-          .instruction(),
       );
     } else if (bank.config.assetTag == ASSET_TAG_JUPLEND) {
       const lending = fetchedLendings.get(bank.integrationAcc1.toBase58());

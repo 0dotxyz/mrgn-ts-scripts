@@ -8,9 +8,14 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import { bytesToF64, getOraclesAndKaminoIxes } from "../../lib/utils";
-import { commonSetup, registerKaminoProgram } from "../../lib/common-setup";
+import {
+  commonSetup,
+  registerJuplendProgram,
+  registerKaminoProgram,
+} from "../../lib/common-setup";
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { KLEND_PROGRAM_ID } from "../kamino/kamino-types";
+import { JUPLEND_LENDING_PROGRAM_ID } from "../juplend/lib/utils";
 
 export type Config = {
   PROGRAM_ID: string;
@@ -42,6 +47,7 @@ export async function pulseHealth(
     undefined,
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
+  registerJuplendProgram(user, JUPLEND_LENDING_PROGRAM_ID.toString());
   const program = user.program;
   const connection = user.connection;
 
@@ -49,6 +55,7 @@ export async function pulseHealth(
     program,
     user.kaminoProgram,
     config.ACCOUNT,
+    user.juplendProgram,
   );
 
   const oracleMeta: AccountMeta[] = activeBalances.flat().map((pubkey) => {
@@ -133,6 +140,21 @@ export async function pulseHealth(
     if (price != 0) {
       console.log("price of balance " + i + ": " + price.toFixed(10));
     }
+  }
+  return cache;
+}
+
+/**
+ * Throws unless the pulse priced every balance. `pulse_health` itself never fails: an oracle
+ * problem is recorded in the cache (`mrgn_err` / `internal_err`) and the values are left at zero,
+ * so a caller that reads health off the cache must check this first.
+ */
+export function assertHealthCacheOk(cache: any) {
+  if (cache.mrgnErr !== 0 || cache.internalErr !== 0) {
+    throw new Error(
+      `health cache has errors: mrgn_err ${cache.mrgnErr}, internal_err ${cache.internalErr} ` +
+        `(balance index ${cache.errIndex}); fix the oracle / venue refresh before going on`,
+    );
   }
 }
 

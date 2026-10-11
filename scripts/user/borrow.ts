@@ -17,7 +17,6 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import {
   commonSetup,
-  registerDriftProgram,
   registerJuplendProgram,
   registerKaminoProgram,
 } from "../../lib/common-setup";
@@ -25,10 +24,6 @@ import { BankAndOracles } from "../../lib/utils";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { KLEND_PROGRAM_ID } from "../kamino/kamino-types";
 import { simpleRefreshReserve } from "../kamino/ixes-common";
-import {
-  DRIFT_PROGRAM_ID,
-  makeUpdateSpotMarketCumulativeInterestIx,
-} from "../drift/lib/utils";
 import {
   JUPLEND_LENDING_PROGRAM_ID,
   makeJuplendNativeUpdateRateIx,
@@ -55,9 +50,6 @@ type Config = {
 
   // Optional, if Kamino positions's health is required for borrow
   KAMINO_RESERVES?: PublicKey[];
-
-  // Optional, if Drift positions's health is required for borrow
-  DRIFT_MARKETS?: number[];
 
   // Optional, if Juplend positions's health is required for borrow
   JUPLEND_STATES?: PublicKey[];
@@ -149,7 +141,6 @@ export async function borrow(
     config.MULTISIG,
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
-  registerDriftProgram(user, DRIFT_PROGRAM_ID.toString());
   registerJuplendProgram(user, JUPLEND_LENDING_PROGRAM_ID.toString());
   const program = user.program;
   const connection = user.connection;
@@ -223,20 +214,6 @@ export async function borrow(
           reserve,
           reserveAcc.lendingMarket,
           reserveAcc.config.tokenInfo.scopeConfiguration.priceFeed, // NOTE: depends on the config, but in practice it's always 'scope'
-        ),
-      );
-    }
-  }
-
-  if (config.DRIFT_MARKETS) {
-    const spotMarkets = config.DRIFT_MARKETS ?? [];
-    for (let i = 0; i < spotMarkets.length; i++) {
-      const marketIndex = config.DRIFT_MARKETS[i];
-
-      instructions.push(
-        await makeUpdateSpotMarketCumulativeInterestIx(
-          user.driftProgram,
-          marketIndex,
         ),
       );
     }
