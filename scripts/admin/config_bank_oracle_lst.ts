@@ -119,7 +119,7 @@ export async function configureLstOracle(
     const ix = await program.methods
       .lendingPoolConfigureBankOracle(cfg.setup, cfg.oracle)
       .accountsPartial({
-        admin: configCommon.ADMIN,
+        governanceAdmin: configCommon.ADMIN,
         bank: cfg.bank,
       })
       .remainingAccounts(remaining)

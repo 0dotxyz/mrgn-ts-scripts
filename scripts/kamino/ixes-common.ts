@@ -79,7 +79,7 @@ export const makeAddKaminoBankIx = (
     })
     .accountsPartial({
       bank: bankKey,
-      admin: accounts.admin,
+      governanceAdmin: accounts.admin,
     })
     .remainingAccounts([oracleMeta, reserveMeta])
     .instruction();

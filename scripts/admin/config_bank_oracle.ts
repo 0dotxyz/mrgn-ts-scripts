@@ -83,7 +83,7 @@ async function main() {
     const ix = await program.methods
       .lendingPoolConfigureBankOracle(cfg.oracleType, cfg.oracle)
       .accountsPartial({
-        admin: configCommon.ADMIN,
+        governanceAdmin: configCommon.ADMIN,
         bank: cfg.bank,
       })
       .remainingAccounts(remaining)

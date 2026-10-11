@@ -37,7 +37,7 @@ type Config = {
   ORACLE: PublicKey;
   /** See `OracleSetup::from_u8`, e.g. 3 (PythPushOracle) */
   ORACLE_TYPE: number;
-  /** Group admin (generally the MS on mainnet) */
+  /** Group governance admin (generally the timelocked MS on mainnet) */
   ADMIN: PublicKey;
   /** Pays flat sol fee to init and rent (generally the MS on mainnet) */
   FEE_PAYER?: PublicKey; // If omitted, defaults to ADMIN
@@ -177,7 +177,7 @@ export async function addBank(
       )
       .accountsPartial({
         marginfiGroup: config.GROUP_KEY,
-        admin: config.ADMIN,
+        governanceAdmin: config.ADMIN,
         feePayer: config.FEE_PAYER ?? config.ADMIN,
         bankMint: config.BANK_MINT,
         tokenProgram,
@@ -187,7 +187,7 @@ export async function addBank(
       .lendingPoolConfigureBankOracle(config.ORACLE_TYPE, config.ORACLE)
       .accountsPartial({
         group: config.GROUP_KEY,
-        admin: config.ADMIN,
+        governanceAdmin: config.ADMIN,
         bank: bankKey,
       })
       .remainingAccounts([oracleMeta])
@@ -203,7 +203,7 @@ export async function addBank(
           copyToBank: bankKey,
         })
         .accountsPartial({
-          signer: config.ADMIN,
+          governanceAdmin: config.ADMIN,
         })
         .instruction(),
     );
