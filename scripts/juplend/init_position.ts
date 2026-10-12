@@ -26,7 +26,7 @@ import {
   deriveLiquidityVaultAuthority,
 } from "../common/pdas";
 import { commonSetup } from "../../lib/common-setup";
-import { bs58 } from "@switchboard-xyz/common";
+import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 import { readFileSync } from "fs";
 import { join } from "path";

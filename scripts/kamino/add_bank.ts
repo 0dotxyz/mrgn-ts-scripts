@@ -40,7 +40,7 @@ type Config = {
   ORACLE: PublicKey;
   /** Oracle used by Kamino reserve refresh/init (can differ from ORACLE). Only used if toInit is true. */
   RESERVE_ORACLE?: PublicKey;
-  /** { kaminoPythPush: {} } (6) or  { kaminoSwitchboardPull: {} } (7) */
+  /** { kaminoPythPush: {} } (6) */
   ORACLE_TYPE: OracleSetupRawWithKamino;
   /** Group admin (generally the MS on mainnet) */
   ADMIN: PublicKey;
@@ -62,7 +62,7 @@ const config: Config = {
   // CASH (Prime market)
   ORACLE: new PublicKey("5QModpg2kw1EwWPZHHSAHc5wozGyhYuSQ5K544tsMvF8"),
   RESERVE_ORACLE: new PublicKey("3NJYftD5sjVfxSnUdZ1wVML8f3aC6mp1CXCL6L7TnU8C"),
-  ORACLE_TYPE: { kaminoSwitchboardPull: {} },
+  ORACLE_TYPE: { kaminoPythPush: {} },
   BANK_MINT: new PublicKey("CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH"),
   KAMINO_RESERVE: new PublicKey("GCRm26EuqzHtH8U3zTsXMEnq864qAGkkcAjMBL4dw9XC"),
   KAMINO_MARKET: new PublicKey("CqAoLuqWtavaVE8deBjMKe8ZfSt9ghR6Vb8nfsyabyHA"), // prime

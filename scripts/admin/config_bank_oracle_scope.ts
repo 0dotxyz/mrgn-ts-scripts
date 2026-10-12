@@ -13,8 +13,12 @@ import { commonSetup } from "../../lib/common-setup";
  * is identified by the pair (account, entry index) rather than by the account alone. That is why
  * this has its own instruction instead of going through `configure_bank_oracle`.
  *
- * `oracle` becomes `oracle_keys[0]` and is also the single remaining account. `entryIndex` becomes
+ * `oracle` becomes `oracle_keys[0]` and the first remaining account. `entryIndex` becomes
  * `scope_entry_index`. Scope carries no confidence interval, so risk is expressed through weights.
+ *
+ * The setup follows the bank's asset tag: `Scope` for default/SOL banks, `ScopeKamino` and
+ * `ScopeJuplend` (0.1.12) for Kamino and JupLend banks, which also pass their reserve or lending
+ * account (`venue`, already in `oracle_keys[1]` from bank creation) after the feed.
  *
  * The entry must already be populated: a never-refreshed record is all zeroes and is rejected.
  *
@@ -23,7 +27,7 @@ import { commonSetup } from "../../lib/common-setup";
 const sendTx = false;
 
 /** Shared settings across all entries */
-type SharedConfig = {
+export type SharedConfig = {
   PROGRAM_ID: string;
   ADMIN: PublicKey;
   MULTISIG?: PublicKey; // May be omitted if not using squads
@@ -35,12 +39,14 @@ const configCommon: SharedConfig = {
   MULTISIG: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
-type BankOracleConfig = {
+export type BankOracleConfig = {
   bank: PublicKey;
   /** Scope `OraclePrices` account -> `oracle_keys[0]`. */
   oracle: PublicKey;
   /** Record within that account -> `scope_entry_index`. */
   entryIndex: number;
+  /** Kamino reserve or JupLend lending account; set for Kamino/JupLend banks only. */
+  venue?: PublicKey;
 };
 
 /** One entry per bank to update */
@@ -53,10 +59,19 @@ const configs: BankOracleConfig[] = [
 ];
 
 async function main() {
+  await configureScopeOracle(sendTx, configCommon, "./keys/zerotrade_admin.json", configs);
+}
+
+export async function configureScopeOracle(
+  sendTx: boolean,
+  configCommon: SharedConfig,
+  walletPath: string,
+  configs: BankOracleConfig[],
+) {
   const user = commonSetup(
     sendTx,
     configCommon.PROGRAM_ID,
-    "./keys/zerotrade_admin.json",
+    walletPath,
     configCommon.MULTISIG,
   );
   const program = user.program;
@@ -66,15 +81,15 @@ async function main() {
   const transaction = new Transaction();
 
   for (const cfg of configs) {
-    // Remaining accounts: the Scope OraclePrices account, same key as `oracle`.
-    const remaining: AccountMeta[] = [
-      { pubkey: cfg.oracle, isSigner: false, isWritable: false },
-    ];
+    // Remaining accounts: the Scope OraclePrices account (same key as `oracle`), then the venue.
+    const remaining: AccountMeta[] = [cfg.oracle, ...(cfg.venue ? [cfg.venue] : [])].map(
+      (pubkey) => ({ pubkey, isSigner: false, isWritable: false }),
+    );
 
     const ix = await program.methods
       .lendingPoolConfigureBankOracleScope(cfg.oracle, cfg.entryIndex)
       .accountsPartial({
-        admin: configCommon.ADMIN,
+        governanceAdmin: configCommon.ADMIN,
         bank: cfg.bank,
       })
       .remainingAccounts(remaining)

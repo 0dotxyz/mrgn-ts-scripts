@@ -9,22 +9,22 @@ import { depositKamino } from "../kamino/deposit_kamino";
 import { addBank, ORACLE_TYPE_PYTH } from "../admin/add_bank";
 import { depositRegular } from "../user/deposit_regular";
 import { borrow } from "../user/borrow";
-import { composeRemainingAccounts } from "../../lib/utils";
-import { commonSetup } from "../../lib/common-setup";
 import {
-  bankConfigOptDefault,
-  BankConfigPair,
-  configBank,
-} from "../admin/config_bank";
+  composeRemainingAccounts,
+  getOraclesAndKaminoIxes,
+} from "../../lib/utils";
+import { commonSetup, registerKaminoProgram } from "../../lib/common-setup";
+import { configBankGov } from "../admin/config_bank_gov";
+import { setGovernanceAdmin } from "../admin/set_governance_admin";
+import { configureScopeOracle } from "../admin/config_bank_oracle_scope";
+import { KLEND_PROGRAM_ID } from "../kamino/kamino-types";
 import {
-  bigNumberToWrappedI80F48,
   getAssociatedTokenAddressSync,
   sleep,
+  wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
-import { pulseHealth } from "../user/health_pulse";
+import { assertHealthCacheOk, pulseHealth } from "../user/health_pulse";
 import { writeFileSync } from "fs";
-import { addDriftBank } from "../drift/add_bank";
-import { depositDrift } from "../drift/deposit";
 import { addJuplendBank } from "../juplend/add_bank";
 import { depositJuplend } from "../juplend/deposit";
 import { initJuplendPosition } from "../juplend/init_position";
@@ -34,12 +34,16 @@ import {
   setFixedOraclePrice,
 } from "../admin/config_bank_fixed_price";
 import {
+  ORACLE_SETUP_PT_FIXED,
   ORACLE_SETUP_PT_PYTH,
   setPtOracle,
 } from "../admin/config_bank_oracle_pt";
 import {
   configureLstOracle,
+  ORACLE_SETUP_KAMINO_LST,
   ORACLE_SETUP_KAMINO_MSOL,
+  ORACLE_SETUP_PYTH_LST,
+  ORACLE_SETUP_PYTH_MSOL,
 } from "../admin/config_bank_oracle_lst";
 
 export type Config = {
@@ -52,8 +56,6 @@ export type Config = {
   PT_BASE_ORACLE: PublicKey;
   KAMINO_COLLATERAL_MINT: PublicKey;
   KAMINO_COLLATERAL_ORACLE: PublicKey;
-  DRIFT_COLLATERAL_MINT: PublicKey;
-  DRIFT_COLLATERAL_ORACLE: PublicKey;
   JUPLEND_COLLATERAL_MINT: PublicKey;
   JUPLEND_COLLATERAL_ORACLE: PublicKey;
   DEBT_MINT: PublicKey;
@@ -69,11 +71,19 @@ export type Config = {
   MSOL_KAMINO_MARKET: PublicKey;
   MSOL_KAMINO_RESERVE_ORACLE: PublicKey;
   MSOL_KAMINO_FARM_STATE: PublicKey;
-  DRIFT_SPOT_MARKET: PublicKey;
-  DRIFT_MARKET_INDEX: number;
-  DRIFT_ORACLE: PublicKey; // The oracle Drift uses, which is different from DRIFT_COLLATERAL_ORACLE (which WE use).
   JUPLEND_LENDING: PublicKey;
   JUPLEND_F_TOKEN_MINT: PublicKey;
+  /** SPL stake-pool LST for PythLST / KaminoLST, and its stake pool (the LST/SOL rate). */
+  JITOSOL_MINT: PublicKey;
+  JITOSOL_STAKE_POOL: PublicKey;
+  JITOSOL_KAMINO_RESERVE: PublicKey;
+  JITOSOL_KAMINO_MARKET: PublicKey;
+  JITOSOL_KAMINO_RESERVE_ORACLE: PublicKey;
+  JITOSOL_KAMINO_FARM_STATE: PublicKey;
+  /** Scope OraclePrices account and the entries Kamino itself uses for USDC and USDT. */
+  SCOPE_PRICES: PublicKey;
+  SCOPE_USDC_ENTRY: number;
+  SCOPE_USDT_ENTRY: number;
   LUT: PublicKey;
 };
 
@@ -88,7 +98,11 @@ export type State = {
   kaminoObligations: PublicKey[];
   kaminoMsolBanks: PublicKey[];
   kaminoMsolObligations: PublicKey[];
-  driftBanks: PublicKey[];
+  kaminoLstBanks: PublicKey[];
+  kaminoLstObligations: PublicKey[];
+  pythMsolBanks: PublicKey[];
+  pythLstBanks: PublicKey[];
+  scopeBanks: PublicKey[];
   juplendBanks: PublicKey[];
 };
 
@@ -103,31 +117,49 @@ type SerializedState = {
   kaminoObligations?: string[];
   kaminoMsolBanks?: string[];
   kaminoMsolObligations?: string[];
-  driftBanks?: string[];
+  kaminoLstBanks?: string[];
+  kaminoLstObligations?: string[];
+  pythMsolBanks?: string[];
+  pythLstBanks?: string[];
+  scopeBanks?: string[];
   juplendBanks?: string[];
 };
 
-// Once we lift the constraints on the program side, we can use up to 16 in total.
-const P0_BANKS = 2; // + 1 for debt
-const PT_BANKS = 2; // PTPyth
-const KAMINO_BANKS = 2;
-const KAMINO_MSOL_BANKS = 2; // KaminoMSOL
-const DRIFT_BANKS = 0;
-const JUPLEND_BANKS = 4;
+// 16 balances per account, and since 0.1.12 at most 4 "costly" ones (Kamino, Solend, JupLend
+// and staked positions together). The layout covers every oracle setup added in 0.1.11/0.1.12 that
+// has a usable venue on stage, with the costly ones holding exactly 4.
+const P0_BANKS = 2; // Fixed. + 1 for debt
+const PT_BANKS = 2; // first PTPyth, the rest PTFixed
+const PYTH_MSOL_BANKS = 1; // PythMSOL
+const PYTH_LST_BANKS = 1; // PythLST (JitoSOL)
+const SCOPE_BANKS = 1; // Scope (USDC)
+const KAMINO_BANKS = 1; // costly. ScopeKamino (USDC)
+const KAMINO_MSOL_BANKS = 1; // costly. KaminoMSOL
+const KAMINO_LST_BANKS = 1; // costly. KaminoLST (JitoSOL)
+const JUPLEND_BANKS = 1; // costly. ScopeJuplend (USDT)
 // JuplendLST would go here, but JupLend lists no SPL stake-pool LST, and JuplendLST requires the
 // bank mint to equal the stake pool's `pool_mint`. Nothing to point it at yet.
 const JUPLEND_LST_BANKS = 0;
+if (KAMINO_BANKS + KAMINO_MSOL_BANKS + KAMINO_LST_BANKS + JUPLEND_BANKS > 4) {
+  throw new Error("more than 4 costly positions; the program rejects the 5th deposit");
+}
+
+/** Scope entries are refreshed by Kamino's crank every ~30-60s; 70s (add_bank's default) is tight. */
+const SCOPE_ORACLE_MAX_AGE = 300;
 
 const P0_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDC
 const PT_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 PT, ~$0.10
 const KAMINO_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDC
 const KAMINO_MSOL_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 mSOL
-const DRIFT_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDS
+const PYTH_MSOL_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 mSOL
+const PYTH_LST_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 JitoSOL
+const KAMINO_LST_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 JitoSOL
+const SCOPE_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDC
 const JUPLEND_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDT
 const DEBT_DEPOSIT = new BN(6 * 10 ** 5); // 0.6 PyUSD, by the liquidator
 
-// Note: current setup assumes you have ~1 USDC, ~1 USDS, ~1 USDT, plus a little PT-fragSOL and
-// mSOL on your liquidatee's balances,
+// Note: current setup assumes you have ~1 USDC, ~1 USDT, plus a little PT-bulkSOL, mSOL and JitoSOL
+// on your liquidatee's balances,
 // and at least 0.9 PyUSD on your liquidator's balances. Plus significant amount of SOL
 // for transactions and for rent (>1 SOL in liquidator's case).
 
@@ -153,12 +185,6 @@ const config: Config = {
   KAMINO_COLLATERAL_ORACLE: new PublicKey(
     "Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX",
   ), // usdc PythPull
-  DRIFT_COLLATERAL_MINT: new PublicKey(
-    "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
-  ), // usds
-  DRIFT_COLLATERAL_ORACLE: new PublicKey(
-    "DyYBBWEi9xZvgNAeMDCiFnmC1U9gqgVsJDXkL5WETpoX",
-  ), // usds PythPull
   JUPLEND_COLLATERAL_MINT: new PublicKey(
     "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
   ), // usdt
@@ -194,17 +220,31 @@ const config: Config = {
   MSOL_KAMINO_FARM_STATE: new PublicKey(
     "11111111111111111111111111111111",
   ), // no farm on this reserve
-  DRIFT_SPOT_MARKET: new PublicKey(
-    "hX9tXtcFomQ38TvtbpzdsNGwoGRBqkNg4J4hNDcET2t",
-  ),
-  DRIFT_MARKET_INDEX: 28, // usds
-  DRIFT_ORACLE: new PublicKey("5Km85n3s9Zs5wEoXYWuHbpoDzst4EBkS5f1XuQJGG1DL"), // usds
   JUPLEND_LENDING: new PublicKey(
     "F7tLdeF2YZZex9MR8HgGggyFiz7UU2UgUube2tmfwNPE",
   ), // usdt
   JUPLEND_F_TOKEN_MINT: new PublicKey(
     "Cmn4v2wipYV41dkakDvCgFJpxhtaaKt11NyWV8pjSE8A",
   ), // usdt
+  JITOSOL_MINT: new PublicKey("J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn"),
+  JITOSOL_STAKE_POOL: new PublicKey(
+    "Jito4APyf642JPZPx3hGc6WWJ8zPKtRbRs4P815Awbb",
+  ),
+  JITOSOL_KAMINO_RESERVE: new PublicKey(
+    "EVbyPKrHG6WBfm4dLxLMJpUDY43cCAcHSpV3KYjKsktW",
+  ),
+  JITOSOL_KAMINO_MARKET: new PublicKey(
+    "7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF",
+  ), // kamino main
+  JITOSOL_KAMINO_RESERVE_ORACLE: new PublicKey(
+    "3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH",
+  ),
+  JITOSOL_KAMINO_FARM_STATE: new PublicKey(
+    "11111111111111111111111111111111",
+  ), // no farm on this reserve
+  SCOPE_PRICES: new PublicKey("3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH"),
+  SCOPE_USDC_ENTRY: 13, // the entry Kamino's USDC reserve prices from
+  SCOPE_USDT_ENTRY: 16, // the entry Kamino's USDT reserves price from
   LUT: new PublicKey("UzGyBno8GEZDapsj1FAy11aquXby1wkxeeDa4Y5TdPN"), // stage
 };
 
@@ -223,13 +263,19 @@ async function main() {
   await warnOnMissingBalances(config, [
     { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "USDC",
       mint: config.P0_COLLATERAL_MINT,
-      needed: P0_DEPOSIT.muln(P0_BANKS).add(twice(KAMINO_BANKS, KAMINO_DEPOSIT)) },
+      needed: P0_DEPOSIT.muln(P0_BANKS)
+        .add(twice(KAMINO_BANKS, KAMINO_DEPOSIT))
+        .add(SCOPE_DEPOSIT.muln(SCOPE_BANKS)) },
     { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "PT",
       mint: config.PT_COLLATERAL_MINT, needed: PT_DEPOSIT.muln(PT_BANKS) },
     { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "mSOL",
-      mint: config.MSOL_MINT, needed: KAMINO_MSOL_DEPOSIT.muln(KAMINO_MSOL_BANKS) },
-    { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "USDS",
-      mint: config.DRIFT_COLLATERAL_MINT, needed: twice(DRIFT_BANKS, DRIFT_DEPOSIT) },
+      mint: config.MSOL_MINT,
+      needed: KAMINO_MSOL_DEPOSIT.muln(KAMINO_MSOL_BANKS)
+        .add(PYTH_MSOL_DEPOSIT.muln(PYTH_MSOL_BANKS)) },
+    { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "JitoSOL",
+      mint: config.JITOSOL_MINT,
+      needed: KAMINO_LST_DEPOSIT.muln(KAMINO_LST_BANKS)
+        .add(PYTH_LST_DEPOSIT.muln(PYTH_LST_BANKS)) },
     { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "USDT",
       mint: config.JUPLEND_COLLATERAL_MINT, needed: twice(JUPLEND_BANKS, JUPLEND_DEPOSIT) },
     { who: "Liquidator", owner: liquidatorWallet.publicKey, label: "PyUSD",
@@ -251,6 +297,20 @@ async function main() {
     marginfiGroup: pkToString(marginfiGroup),
   };
   writeJsonFile("liquidation_e2e_state.json", state);
+
+  // 0.1.12: banks, oracles and weights need the governance admin, which a new group starts without.
+  console.log("\n\n\n 1b. SET GOVERNANCE ADMIN");
+  await setGovernanceAdmin(
+    true,
+    {
+      PROGRAM_ID: config.PROGRAM_ID,
+      GROUP: marginfiGroup,
+      NEW_GOVERNANCE_ADMIN: liquidatorWallet.publicKey,
+      SIGNER: liquidatorWallet.publicKey,
+    },
+    config.LIQUIDATOR_WALLET_PATH,
+  );
+  await sleep(2000);
 
   console.log("\n\n\n 2. INIT MARGINFI ACCOUNTS");
   const liquidator = await initAccount(
@@ -368,18 +428,29 @@ async function main() {
   state.ptBanks = ptBanks.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
 
-  console.log("\n\n\n 5c. SET PTPyth ORACLES FOR PT BANKS");
+  console.log("\n\n\n 5c. SET PT ORACLES (first PTPyth, the rest PTFixed)");
   await setPtOracle(
     true,
     configCommon,
     config.LIQUIDATOR_WALLET_PATH,
-    ptBanks.map((bank) => ({
-      bank,
-      setup: ORACLE_SETUP_PT_PYTH,
-      price: 0.9,
-      oracle: config.PT_BASE_ORACLE,
-      vault: config.PT_EXPONENT_VAULT,
-    })),
+    ptBanks.map((bank, i) =>
+      i === 0
+        ? {
+            bank,
+            setup: ORACLE_SETUP_PT_PYTH,
+            price: 0.9,
+            oracle: config.PT_BASE_ORACLE,
+            vault: config.PT_EXPONENT_VAULT,
+          }
+        : {
+            // PTFixed assumes a $1 underlying, so this SOL-denominated PT is priced far below
+            // market. Fine for exercising the setup; it only shrinks the bank's collateral value.
+            bank,
+            setup: ORACLE_SETUP_PT_FIXED,
+            price: 0.9,
+            vault: config.PT_EXPONENT_VAULT,
+          },
+    ),
   );
   await sleep(1000);
 
@@ -395,6 +466,89 @@ async function main() {
     ptDepositConfig.BANK = ptBanks[i];
     await depositRegular(true, ptDepositConfig, config.LIQUIDATEE_WALLET_PATH);
     await sleep(1000);
+  }
+
+  console.log("\n\n\n 5e. ADD PythMSOL / PythLST / Scope BANKS");
+  // Created with a plain Pyth feed (SOL/USD, or USDC for Scope) and switched right after.
+  const addRegularBank = async (mint: PublicKey, oracle: PublicKey, seed: number) => {
+    const bank = await addBank(
+      true,
+      {
+        PROGRAM_ID: config.PROGRAM_ID,
+        GROUP_KEY: marginfiGroup,
+        ORACLE: oracle,
+        ORACLE_TYPE: ORACLE_TYPE_PYTH,
+        ADMIN: liquidatorWallet.publicKey,
+        BANK_MINT: mint,
+        SEED: seed,
+      },
+      config.LIQUIDATOR_WALLET_PATH,
+    );
+    await sleep(1000);
+    return bank;
+  };
+  const pythMsolBanks: PublicKey[] = [];
+  for (let i = 0; i < PYTH_MSOL_BANKS; i++) {
+    pythMsolBanks.push(await addRegularBank(config.MSOL_MINT, config.MSOL_BASE_ORACLE, 1 + i));
+  }
+  const pythLstBanks: PublicKey[] = [];
+  for (let i = 0; i < PYTH_LST_BANKS; i++) {
+    pythLstBanks.push(await addRegularBank(config.JITOSOL_MINT, config.MSOL_BASE_ORACLE, 1 + i));
+  }
+  const scopeBanks: PublicKey[] = [];
+  for (let i = 0; i < SCOPE_BANKS; i++) {
+    // P0 banks use USDC seeds 1..P0_BANKS.
+    scopeBanks.push(
+      await addRegularBank(config.P0_COLLATERAL_MINT, config.KAMINO_COLLATERAL_ORACLE, 1 + P0_BANKS + i),
+    );
+  }
+  state.pythMsolBanks = pythMsolBanks.map(pkToString);
+  state.pythLstBanks = pythLstBanks.map(pkToString);
+  state.scopeBanks = scopeBanks.map(pkToString);
+  writeJsonFile("liquidation_e2e_state.json", state);
+
+  console.log("\n\n\n 5f. SET PythMSOL / PythLST / Scope ORACLES");
+  await configureLstOracle(true, configCommon, config.LIQUIDATOR_WALLET_PATH, [
+    ...pythMsolBanks.map((bank) => ({
+      bank,
+      oracle: config.MSOL_BASE_ORACLE,
+      multiplier: config.MARINADE_STATE,
+      setup: ORACLE_SETUP_PYTH_MSOL,
+    })),
+    ...pythLstBanks.map((bank) => ({
+      bank,
+      oracle: config.MSOL_BASE_ORACLE, // SOL/USD
+      multiplier: config.JITOSOL_STAKE_POOL,
+      setup: ORACLE_SETUP_PYTH_LST,
+    })),
+  ]);
+  await sleep(1000);
+  await configureScopeOracle(
+    true,
+    configCommon,
+    config.LIQUIDATOR_WALLET_PATH,
+    scopeBanks.map((bank) => ({
+      bank,
+      oracle: config.SCOPE_PRICES,
+      entryIndex: config.SCOPE_USDC_ENTRY,
+    })),
+  );
+  await sleep(1000);
+
+  console.log("\n\n\n 5g. DEPOSIT TO PythMSOL / PythLST / Scope BANKS BY LIQUIDATEE");
+  for (const [banks, mint, amount] of [
+    [pythMsolBanks, config.MSOL_MINT, PYTH_MSOL_DEPOSIT],
+    [pythLstBanks, config.JITOSOL_MINT, PYTH_LST_DEPOSIT],
+    [scopeBanks, config.P0_COLLATERAL_MINT, SCOPE_DEPOSIT],
+  ] as [PublicKey[], PublicKey, BN][]) {
+    for (const bank of banks) {
+      await depositRegular(
+        true,
+        { PROGRAM_ID: config.PROGRAM_ID, BANK: bank, ACCOUNT: liquidatee, AMOUNT: amount, MINT: mint },
+        config.LIQUIDATEE_WALLET_PATH,
+      );
+      await sleep(1000);
+    }
   }
 
   console.log("\n\n\n 6. ADD KAMINO (USDC) BANKS");
@@ -428,6 +582,20 @@ async function main() {
   // ];
   state.kaminoBanks = kaminoBanks.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
+
+  console.log("\n\n\n 6b. SET ScopeKamino ORACLES");
+  await configureScopeOracle(
+    true,
+    configCommon,
+    config.LIQUIDATOR_WALLET_PATH,
+    kaminoBanks.map((bank) => ({
+      bank,
+      oracle: config.SCOPE_PRICES,
+      entryIndex: config.SCOPE_USDC_ENTRY,
+      venue: config.KAMINO_RESERVE,
+    })),
+  );
+  await sleep(1000);
 
   console.log("\n\n\n 7. INIT KAMINO OBLIGATIONS");
   let kaminoObligationConfig = {
@@ -585,51 +753,82 @@ async function main() {
     await sleep(1000);
   }
 
-  console.log("\n\n\n 9. ADD DRIFT (USDS) BANKS");
-  let driftBankConfig = {
-    PROGRAM_ID: config.PROGRAM_ID,
-    GROUP_KEY: marginfiGroup,
-    BANK_MINT: config.DRIFT_COLLATERAL_MINT,
-    DRIFT_MARKET_INDEX: config.DRIFT_MARKET_INDEX,
-    ORACLE: config.DRIFT_COLLATERAL_ORACLE,
-    ORACLE_SETUP: { driftPythPull: {} },
-    DRIFT_ORACLE: config.DRIFT_ORACLE,
-    ADMIN: liquidatorWallet.publicKey,
-    SEED: new BN(0),
-  };
-  let driftBanks: PublicKey[] = [];
-  for (let i = 0; i < DRIFT_BANKS; i++) {
-    driftBankConfig.SEED = new BN(i);
-    driftBanks.push(
-      await addDriftBank(true, driftBankConfig, config.LIQUIDATOR_WALLET_PATH),
+  console.log("\n\n\n 8f. ADD KAMINO JitoSOL BANKS (KaminoLST)");
+  const kaminoLstBanks: PublicKey[] = [];
+  for (let i = 0; i < KAMINO_LST_BANKS; i++) {
+    kaminoLstBanks.push(
+      await addKaminoBank(
+        true,
+        {
+          PROGRAM_ID: config.PROGRAM_ID,
+          GROUP_KEY: marginfiGroup,
+          ORACLE: config.MSOL_BASE_ORACLE, // SOL/USD; reset to KaminoLST below
+          ORACLE_TYPE: { kaminoPythPush: {} },
+          ADMIN: liquidatorWallet.publicKey,
+          BANK_MINT: config.JITOSOL_MINT,
+          KAMINO_RESERVE: config.JITOSOL_KAMINO_RESERVE,
+          KAMINO_MARKET: config.JITOSOL_KAMINO_MARKET,
+          SEED: 242 + i,
+        },
+        config.LIQUIDATOR_WALLET_PATH,
+        false,
+      ),
     );
     await sleep(1000);
   }
-  // let driftBanks = [
-  //   new PublicKey("7n9nfzjP97rQaLd7SeWkHQzvoq1gTdgdYbRrxoqybY3J"),
-  //   new PublicKey("8s5kpf86xERXw9D19i6fAQwe9kEfMJoPwAnPR6TYmY5u"),
-  // ];
-  state.driftBanks = driftBanks.map(pkToString);
+  state.kaminoLstBanks = kaminoLstBanks.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
 
-  console.log("\n\n\n 10. DEPOSIT TO ALL DRIFT BANKS BY LIQUIDATEE");
-  let driftDepositConfig = {
-    PROGRAM_ID: config.PROGRAM_ID,
-    BANK: kaminoBanks[0],
-    ACCOUNT: liquidatee,
-    AMOUNT: DRIFT_DEPOSIT,
-    DRIFT_MARKET_INDEX: config.DRIFT_MARKET_INDEX,
-    DRIFT_ORACLE: config.DRIFT_ORACLE,
-  };
+  console.log("\n\n\n 8g. SET KaminoLST ORACLES");
+  await configureLstOracle(
+    true,
+    configCommon,
+    config.LIQUIDATOR_WALLET_PATH,
+    kaminoLstBanks.map((bank) => ({
+      bank,
+      oracle: config.MSOL_BASE_ORACLE, // SOL/USD
+      multiplier: config.JITOSOL_STAKE_POOL,
+      setup: ORACLE_SETUP_KAMINO_LST,
+    })),
+  );
+  await sleep(1000);
 
-  // The last bank gets 2x more. This is needed to test that the profit-oriented liquidator
-  // will choose exactly it for as the liquidation "target".
-  for (let i = 0; i < driftBanks.length; i++) {
-    if (i == driftBanks.length - 1) {
-      driftDepositConfig.AMOUNT = driftDepositConfig.AMOUNT.mul(new BN(2));
-    }
-    driftDepositConfig.BANK = driftBanks[i];
-    await depositDrift(true, driftDepositConfig, config.LIQUIDATEE_WALLET_PATH);
+  console.log("\n\n\n 8h. INIT KAMINO JitoSOL OBLIGATIONS");
+  const kaminoLstObligations: PublicKey[] = [];
+  for (const bank of kaminoLstBanks) {
+    kaminoLstObligations.push(
+      await initKaminoObligation(
+        true,
+        {
+          PROGRAM_ID: config.PROGRAM_ID,
+          GROUP_KEY: marginfiGroup,
+          ADMIN: liquidatorWallet.publicKey,
+          BANK: bank,
+          ADD_COMPUTE_UNITS: true,
+          RESERVE_ORACLE: config.JITOSOL_KAMINO_RESERVE_ORACLE,
+        },
+        config.LIQUIDATOR_WALLET_PATH,
+      ),
+    );
+    await sleep(1000);
+  }
+  state.kaminoLstObligations = kaminoLstObligations.map(pkToString);
+  writeJsonFile("liquidation_e2e_state.json", state);
+
+  console.log("\n\n\n 8i. DEPOSIT TO ALL KAMINO JitoSOL BANKS BY LIQUIDATEE");
+  for (const bank of kaminoLstBanks) {
+    await depositKamino(
+      true,
+      {
+        PROGRAM_ID: config.PROGRAM_ID,
+        BANK: bank,
+        ACCOUNT: liquidatee,
+        AMOUNT: KAMINO_LST_DEPOSIT,
+        KAMINO_MARKET: config.JITOSOL_KAMINO_MARKET,
+        RESERVE_ORACLE: config.JITOSOL_KAMINO_RESERVE_ORACLE,
+      },
+      config.LIQUIDATEE_WALLET_PATH,
+    );
     await sleep(1000);
   }
 
@@ -672,6 +871,34 @@ async function main() {
   // ];
   state.juplendBanks = juplendBanks.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
+
+  console.log("\n\n\n 11b. SET ScopeJuplend ORACLES");
+  await configureScopeOracle(
+    true,
+    configCommon,
+    config.LIQUIDATOR_WALLET_PATH,
+    juplendBanks.map((bank) => ({
+      bank,
+      oracle: config.SCOPE_PRICES,
+      entryIndex: config.SCOPE_USDT_ENTRY,
+      venue: config.JUPLEND_LENDING,
+    })),
+  );
+  await sleep(1000);
+
+  console.log("\n\n\n 11c. RAISE ORACLE MAX AGE ON SCOPE-PRICED BANKS");
+  await configBankGov(
+    true,
+    {
+      PROGRAM_ID: config.PROGRAM_ID,
+      BANKS: [...scopeBanks, ...kaminoBanks, ...juplendBanks].map((bank) => ({
+        bank,
+        update: { oracleMaxAge: SCOPE_ORACLE_MAX_AGE },
+      })),
+    },
+    config.LIQUIDATOR_WALLET_PATH,
+  );
+  await sleep(1000);
 
   console.log("\n\n\n 12. INIT JUPLEND POSITIONS");
   let juplendPositionConfig = {
@@ -748,47 +975,20 @@ async function main() {
   await sleep(1000);
 
   console.log("\n\n\n 16. BORROW FROM DEBT BANK BY LIQUIDATEE");
-  let remainingAccounts: PublicKey[][] = [];
-  for (let i = 0; i < p0Banks.length; i++) {
-    remainingAccounts.push([p0Banks[i]]);
-  }
-  for (let i = 0; i < ptBanks.length; i++) {
-    remainingAccounts.push([
-      ptBanks[i],
-      config.PT_BASE_ORACLE,
-      config.PT_EXPONENT_VAULT,
-    ]);
-  }
-  for (let i = 0; i < kaminoBanks.length; i++) {
-    remainingAccounts.push([
-      kaminoBanks[i],
-      config.KAMINO_COLLATERAL_ORACLE,
-      config.KAMINO_RESERVE,
-    ]);
-  }
-  for (let i = 0; i < kaminoMsolBanks.length; i++) {
-    remainingAccounts.push([
-      kaminoMsolBanks[i],
-      config.MSOL_BASE_ORACLE,
-      config.MSOL_KAMINO_RESERVE,
-      config.MARINADE_STATE,
-    ]);
-  }
-  for (let i = 0; i < driftBanks.length; i++) {
-    remainingAccounts.push([
-      driftBanks[i],
-      config.DRIFT_COLLATERAL_ORACLE,
-      config.DRIFT_SPOT_MARKET,
-    ]);
-  }
-  for (let i = 0; i < juplendBanks.length; i++) {
-    remainingAccounts.push([
-      juplendBanks[i],
-      config.JUPLEND_COLLATERAL_ORACLE,
-      config.JUPLEND_LENDING,
-    ]);
-  }
-  remainingAccounts.push([debtBank, config.DEBT_ORACLE]);
+  // Every collateral position is already open, so read the per-bank accounts off the liquidatee
+  // itself (each oracle setup takes a different number) and add the debt bank, which only becomes
+  // active with this borrow.
+  const user = commonSetup(true, config.PROGRAM_ID, config.LIQUIDATEE_WALLET_PATH);
+  registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
+  const [collateralAccounts] = await getOraclesAndKaminoIxes(
+    user.program,
+    user.kaminoProgram,
+    liquidatee,
+  );
+  const remainingAccounts: PublicKey[][] = [
+    ...collateralAccounts,
+    [debtBank, config.DEBT_ORACLE],
+  ];
 
   let borrowConfig = {
     PROGRAM_ID: config.PROGRAM_ID,
@@ -800,8 +1000,8 @@ async function main() {
     KAMINO_RESERVES: [
       ...(KAMINO_BANKS > 0 ? [config.KAMINO_RESERVE] : []),
       ...(KAMINO_MSOL_BANKS > 0 ? [config.MSOL_KAMINO_RESERVE] : []),
+      ...(KAMINO_LST_BANKS > 0 ? [config.JITOSOL_KAMINO_RESERVE] : []),
     ],
-    DRIFT_MARKETS: DRIFT_BANKS > 0 ? [config.DRIFT_MARKET_INDEX] : [],
     JUPLEND_STATES: JUPLEND_BANKS > 0 ? [config.JUPLEND_LENDING] : [],
     NEW_REMAINING: composeRemainingAccounts(remainingAccounts),
     LUT: config.LUT,
@@ -830,63 +1030,28 @@ async function main() {
   console.log(
     "\n\n\n 17. SET ALL COLLATERAL BANKS' ASSET WEIGHT TO 0.1 TO RENDER LIQUIDATEE UNHEALTHY",
   );
-  let updatedBankConfig = bankConfigOptDefault();
-  // updatedBankConfig.oracleMaxAge = 300;
-  updatedBankConfig.assetWeightInit = bigNumberToWrappedI80F48(0.1);
-  updatedBankConfig.assetWeightMaint = bigNumberToWrappedI80F48(0.1);
-
-  let configBankConfig = {
-    PROGRAM_ID: config.PROGRAM_ID,
-    ADMIN: liquidatorWallet.publicKey,
-    LUT: config.LUT, // copied from config_bank.ts
-    BANKS: [] as BankConfigPair[],
-  };
-
-  // config all banks in bulk
-  let bankEntries = [
-    // {
-    //   bank: debtBank,
-    //   config: updatedBankConfig,
-    // },
-  ];
-  for (let i = 0; i < p0Banks.length; i++) {
-    bankEntries.push({
-      bank: p0Banks[i],
-      config: updatedBankConfig,
-    });
-  }
-  for (let i = 0; i < ptBanks.length; i++) {
-    bankEntries.push({
-      bank: ptBanks[i],
-      config: updatedBankConfig,
-    });
-  }
-  for (let i = 0; i < kaminoBanks.length; i++) {
-    bankEntries.push({
-      bank: kaminoBanks[i],
-      config: updatedBankConfig,
-    });
-  }
-  for (let i = 0; i < kaminoMsolBanks.length; i++) {
-    bankEntries.push({
-      bank: kaminoMsolBanks[i],
-      config: updatedBankConfig,
-    });
-  }
-  for (let i = 0; i < driftBanks.length; i++) {
-    bankEntries.push({
-      bank: driftBanks[i],
-      config: updatedBankConfig,
-    });
-  }
-  for (let i = 0; i < juplendBanks.length; i++) {
-    bankEntries.push({
-      bank: juplendBanks[i],
-      config: updatedBankConfig,
-    });
-  }
-  configBankConfig.BANKS = bankEntries;
-  await configBank(true, configBankConfig, config.LIQUIDATOR_WALLET_PATH);
+  // 0.1.12: weights moved to the governance-only `lending_pool_configure_bank_gov`.
+  await configBankGov(
+    true,
+    {
+      PROGRAM_ID: config.PROGRAM_ID,
+      BANKS: [
+        ...p0Banks,
+        ...ptBanks,
+        ...pythMsolBanks,
+        ...pythLstBanks,
+        ...scopeBanks,
+        ...kaminoBanks,
+        ...kaminoMsolBanks,
+        ...kaminoLstBanks,
+        ...juplendBanks,
+      ].map((bank) => ({
+        bank,
+        update: { assetWeightInit: 0.1, assetWeightMaint: 0.1 },
+      })),
+    },
+    config.LIQUIDATOR_WALLET_PATH,
+  );
   await sleep(1000);
 
   console.log("\n\n\n 18. CONFIRM LIQUIDATEE IS LIQUIDATABLE NOW");
@@ -895,9 +1060,17 @@ async function main() {
     ACCOUNT: liquidatee,
     LUT: config.LUT, // copied from health_pulse.ts
   };
-  await pulseHealth(pulseHealthConfig, config.LIQUIDATEE_WALLET_PATH);
-
-  console.log("Account " + liquidatee + " is now liquidatable");
+  const cache = await pulseHealth(pulseHealthConfig, config.LIQUIDATEE_WALLET_PATH);
+  assertHealthCacheOk(cache);
+  const healthMaint = wrappedI80F48toBigNumber(cache.assetValueMaint)
+    .minus(wrappedI80F48toBigNumber(cache.liabilityValueMaint))
+    .toNumber();
+  if (healthMaint >= 0) {
+    throw new Error(`liquidatee is still healthy: maintenance health $${healthMaint}`);
+  }
+  console.log(
+    `Account ${liquidatee} is now liquidatable (maintenance health $${healthMaint.toFixed(6)})`,
+  );
 }
 
 type BalanceRequirement = {
@@ -981,8 +1154,6 @@ function serializeConfig(config: Config): any {
     PT_BASE_ORACLE: pkToString(config.PT_BASE_ORACLE),
     KAMINO_COLLATERAL_MINT: pkToString(config.KAMINO_COLLATERAL_MINT),
     KAMINO_COLLATERAL_ORACLE: pkToString(config.KAMINO_COLLATERAL_ORACLE),
-    DRIFT_COLLATERAL_MINT: pkToString(config.DRIFT_COLLATERAL_MINT),
-    DRIFT_COLLATERAL_ORACLE: pkToString(config.DRIFT_COLLATERAL_ORACLE),
     JUPLEND_COLLATERAL_MINT: pkToString(config.JUPLEND_COLLATERAL_MINT),
     JUPLEND_COLLATERAL_ORACLE: pkToString(config.JUPLEND_COLLATERAL_ORACLE),
     DEBT_MINT: pkToString(config.DEBT_MINT),
@@ -998,11 +1169,17 @@ function serializeConfig(config: Config): any {
     MSOL_KAMINO_MARKET: pkToString(config.MSOL_KAMINO_MARKET),
     MSOL_KAMINO_RESERVE_ORACLE: pkToString(config.MSOL_KAMINO_RESERVE_ORACLE),
     MSOL_KAMINO_FARM_STATE: pkToString(config.MSOL_KAMINO_FARM_STATE),
-    DRIFT_SPOT_MARKET: pkToString(config.DRIFT_SPOT_MARKET),
-    DRIFT_MARKET_INDEX: config.DRIFT_MARKET_INDEX,
-    DRIFT_ORACLE: pkToString(config.DRIFT_ORACLE),
     JUPLEND_LENDING: pkToString(config.JUPLEND_LENDING),
     JUPLEND_F_TOKEN_MINT: pkToString(config.JUPLEND_F_TOKEN_MINT),
+    JITOSOL_MINT: pkToString(config.JITOSOL_MINT),
+    JITOSOL_STAKE_POOL: pkToString(config.JITOSOL_STAKE_POOL),
+    JITOSOL_KAMINO_RESERVE: pkToString(config.JITOSOL_KAMINO_RESERVE),
+    JITOSOL_KAMINO_MARKET: pkToString(config.JITOSOL_KAMINO_MARKET),
+    JITOSOL_KAMINO_RESERVE_ORACLE: pkToString(config.JITOSOL_KAMINO_RESERVE_ORACLE),
+    JITOSOL_KAMINO_FARM_STATE: pkToString(config.JITOSOL_KAMINO_FARM_STATE),
+    SCOPE_PRICES: pkToString(config.SCOPE_PRICES),
+    SCOPE_USDC_ENTRY: config.SCOPE_USDC_ENTRY,
+    SCOPE_USDT_ENTRY: config.SCOPE_USDT_ENTRY,
     LUT: pkToString(config.LUT),
   };
 }
@@ -1013,6 +1190,8 @@ function writeJsonFile(path: string, obj: any) {
   console.log(`✔ wrote ${path}`);
 }
 
-main().catch((err) => {
-  console.error(err);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+  });
+}

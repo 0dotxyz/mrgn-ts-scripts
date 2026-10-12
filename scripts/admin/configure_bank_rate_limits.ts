@@ -15,7 +15,6 @@ import {
 import { BN } from "@coral-xyz/anchor";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import BigNumber from "bignumber.js";
-import * as sb from "@switchboard-xyz/on-demand";
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 
 import { commonSetup } from "../../lib/common-setup";
@@ -201,13 +200,12 @@ export async function ensureLutHasKeys(
   return refreshed.value;
 }
 
-type OracleKind = "pyth" | "switchboard" | "fixed" | "unsupported";
+type OracleKind = "pyth" | "fixed" | "unsupported";
 
 function classifyOracle(setup: string): OracleKind {
   const lower = setup.toLowerCase();
   if (lower === "fixed" || lower.startsWith("fixed")) return "fixed";
   if (lower.includes("pyth")) return "pyth";
-  if (lower.includes("switchboard")) return "switchboard";
   return "unsupported";
 }
 
@@ -251,7 +249,6 @@ async function resolvePrices(
   const symbols = new Map<string, string>();
   const fallbackPriced = new Set<string>();
   const pyth: BankInfo[] = [];
-  const swb: BankInfo[] = [];
 
   // Fixed-price banks use the price stored in bank config; everything else
   // is priced per bank by the api.0.xyz realprice resolver, with on-chain
@@ -295,9 +292,6 @@ async function resolvePrices(
       case "pyth":
         pyth.push(b);
         break;
-      case "switchboard":
-        swb.push(b);
-        break;
     }
   }
 
@@ -316,25 +310,6 @@ async function resolvePrices(
         new BigNumber(msg.price.toString()).multipliedBy(
           new BigNumber(10).pow(msg.exponent),
         ),
-      );
-    }
-  }
-
-  if (swb.length > 0) {
-    // SWB SDK was typed against a different @solana/web3.js version; it works
-    // fine with ours at runtime.
-    // @ts-ignore
-    const swbProgram = await sb.AnchorUtils.loadProgramFromConnection(connection);
-    const feeds = await swbProgram.account.pullFeedAccountData.fetchMultiple(
-      swb.map((b) => b.oracleKey),
-    );
-    const SWB_SCALE = new BigNumber(10).pow(18);
-    for (let i = 0; i < swb.length; i++) {
-      const acc = feeds[i] as { result?: { value?: BN } } | null;
-      if (!acc?.result?.value) continue;
-      prices.set(
-        swb[i].address.toBase58(),
-        new BigNumber(acc.result.value.toString()).dividedBy(SWB_SCALE),
       );
     }
   }

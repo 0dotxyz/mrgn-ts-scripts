@@ -6,13 +6,8 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import type { WrappedI80F48 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
-import { commonSetup, registerDriftProgram } from "../../lib/common-setup";
+import { commonSetup } from "../../lib/common-setup";
 import { getTokenBalance, u32ToApr, u32ToUtil } from "../../lib/utils";
-import {
-  DRIFT_PRECISION_DECIMALS,
-  DRIFT_PROGRAM_ID,
-  DRIFT_SCALED_BALANCE_DECIMALS,
-} from "../drift/lib/utils";
 import { ORACLE_TYPE_FIXED } from "../../lib/constants";
 
 // If true, prints this bank's settings in a format to be copy-pasted into add_bank
@@ -125,28 +120,6 @@ async function printBankInfo(bankKey: PublicKey) {
     console.table([
       { Property: "Reserve", Value: bank.integrationAcc1.toString() },
       { Property: "Obligation", Value: bank.integrationAcc2.toString() },
-    ]);
-  }
-
-  if (bank.config.assetTag === 4) {
-    registerDriftProgram(user, DRIFT_PROGRAM_ID.toString());
-    // Avoid TS2589 (deep instantiation) errors rom Anchor's massive generated account types.
-    const driftProgram = user.driftProgram as any;
-    const market = await driftProgram.account.spotMarket.fetch(
-      bank.integrationAcc1,
-    );
-    exchangeRate =
-      market.cumulativeDepositInterest.toNumber() /
-      10 ** DRIFT_PRECISION_DECIMALS;
-    console.log("Drift Info:");
-    console.table([
-      { Property: "Spot Market", Value: bank.integrationAcc1.toString() },
-      { Property: "User", Value: bank.integrationAcc2.toString() },
-      { Property: "User Stats", Value: bank.integrationAcc3.toString() },
-      {
-        Property: "Exchange Rate",
-        Value: market.cumulativeDepositInterest.toString(),
-      },
     ]);
   }
 
@@ -427,7 +400,6 @@ const formatUtilU32ForCopy = (value: number): string =>
   value === 0 ? "0" : `utilToU32(${formatNumberLiteral(u32ToUtil(value))})`;
 
 const ORACLE_TYPE_PYTH = 3;
-const ORACLE_TYPE_SWB = 4;
 
 /**
  * turns { collateral: {} } into "collateral", { paused: {} } into "paused", etc.
@@ -453,18 +425,15 @@ async function printCopyConfigSnippet(program: any, bankKey: PublicKey) {
   // fetch group to get admin
   const group = await program.account.marginfiGroup.fetch(bank.group);
 
-  // --- ORACLE TYPE MAPPING (contract expects numbers: 3=PYTH, 4=SWB) ---
+  // --- ORACLE TYPE MAPPING (contract expects numbers, see `OracleSetup::from_u8`) ---
   const os = (bank.config as any).oracleSetup ?? {};
   let oracleTypeNumeric = 0;
-  // Treat any Pyth-like variant as PYTH, any Switchboard-like as SWB
   if (
     "pythLegacy" in os ||
     "pythPushOracle" in os ||
     "stakedWithPythPush" in os
   ) {
     oracleTypeNumeric = ORACLE_TYPE_PYTH;
-  } else if ("switchboardV2" in os || "switchboardPull" in os) {
-    oracleTypeNumeric = ORACLE_TYPE_SWB;
   }
 
   const cfg = bank.config;
@@ -495,7 +464,7 @@ async function printCopyConfigSnippet(program: any, bankKey: PublicKey) {
     ) ?? PublicKey.default
   ).toString();
   console.log(`  ORACLE: new PublicKey("${oracleKey}"),`);
-  console.log(`  ORACLE_TYPE: ${oracleTypeNumeric || 0}, // 3=PYTH, 4=SWB`);
+  console.log(`  ORACLE_TYPE: ${oracleTypeNumeric || 0}, // 3=PYTH`);
   console.log(`  ADMIN: new PublicKey("${group.admin.toString()}"),`);
   console.log(`  FEE_PAYER: new PublicKey("PLACEHOLDER_FEE_PAYER"),`);
   console.log(`  BANK_MINT: new PublicKey("${bank.mint.toString()}"),`);
