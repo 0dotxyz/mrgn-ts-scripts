@@ -6,8 +6,8 @@ import {
 } from "../../lib/utils";
 import { commonSetup, registerKaminoProgram } from "../../lib/common-setup";
 import { KLEND_PROGRAM_ID } from "../kamino/kamino-types";
-import { appendFileSync, readFileSync } from "fs";
-import { fetchLiqRecord } from "../fetch/fetch-liq-record";
+import { dumpLiquidatee } from "./e2e_helpers";
+import { readFileSync } from "fs";
 import { repay } from "../user/repay";
 import { withdrawKamino } from "../kamino/withdraw_kamino";
 import { withdraw } from "../user/withdraw";
@@ -233,7 +233,7 @@ async function main() {
    * closable (last liquidation + 60 days, or "now" if it was never liquidated)
    * to liquidatees_pending_closing.txt so it can be finished manually later.
    */
-  await dumpLiquidatee(config, state);
+  await dumpLiquidatee(config.PROGRAM_ID, config.LIQUIDATEE_WALLET_PATH, state.liquidatee);
 
   console.log("\n\n\n 6. CLOSE ALL BANKS");
   const allBanks = [
@@ -258,47 +258,6 @@ async function main() {
   }
 
   console.log("Cleanup finished.");
-}
-
-async function dumpLiquidatee(config: Config, state: State) {
-  const { liqRecordKey, record } = await fetchLiqRecord(
-    { PROGRAM_ID: config.PROGRAM_ID, MARGINFI_ACCOUNT: state.liquidatee },
-    config.LIQUIDATEE_WALLET_PATH,
-  );
-
-  const lastLiquidation = record.entries.reduce(
-    (max: number, entry) => Math.max(max, Number(entry.timestamp)),
-    0,
-  );
-
-  // 60 days of inactivity are required before the liq record (and then the
-  // account) can be closed. If never liquidated, it can be closed immediately.
-  const INACTIVITY_PERIOD_SECS = 60 * 24 * 60 * 60;
-  const closableAfter =
-    lastLiquidation > 0 ? lastLiquidation + INACTIVITY_PERIOD_SECS : 0;
-
-  const closableAfterIso =
-    closableAfter > 0
-      ? new Date(closableAfter * 1000).toISOString()
-      : "now (never liquidated)";
-
-  const line =
-    `${state.liquidatee.toString()}\t` +
-    `lastLiquidation=${lastLiquidation}\t` +
-    `closableAfter=${closableAfter}\t` +
-    `closableAfterIso=${closableAfterIso}\n`;
-
-  appendFileSync("liquidatees_pending_closing.txt", line);
-
-  console.log(
-    "LIQUIDATEE PENDING CLOSE (dumped to liquidatees_pending_closing.txt)",
-  );
-  console.log("liquidatee:      " + state.liquidatee.toString());
-  console.log("liq record:      " + liqRecordKey.toString());
-  console.log("last liquidation: " + lastLiquidation);
-  console.log(
-    "closable after:  " + closableAfter + " (" + closableAfterIso + ")",
-  );
 }
 
 const pkFromString = (s: any) => new PublicKey(s);

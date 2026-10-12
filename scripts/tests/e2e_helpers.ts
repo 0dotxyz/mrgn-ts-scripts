@@ -1,8 +1,9 @@
 import { PublicKey } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
 import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
-import { writeFileSync } from "fs";
+import { appendFileSync, writeFileSync } from "fs";
 import { commonSetup } from "../../lib/common-setup";
+import { deriveLiquidationRecord } from "../common/pdas";
 
 export type BalanceRequirement = {
   who: string;
@@ -68,6 +69,39 @@ export function toUi(amount: BN, decimals: number): string {
 
 export function pkToString(pk: PublicKey | string): string {
   return typeof pk === "string" ? pk : pk.toBase58();
+}
+
+/**
+ * A liquidated account cannot be closed until its liquidation record has sat inactive for 60 days
+ * and been closed. Records the liquidatee and the time it becomes closable in
+ * liquidatees_pending_closing.txt so the cleanup can be finished later.
+ */
+export async function dumpLiquidatee(
+  programId: string,
+  walletPath: string,
+  liquidatee: PublicKey,
+) {
+  const { program } = commonSetup(true, programId, walletPath);
+  const [liqRecordKey] = deriveLiquidationRecord(program.programId, liquidatee);
+  const record: any = await program.account.liquidationRecord.fetchNullable(liqRecordKey);
+  const lastLiquidation = (record?.entries ?? []).reduce(
+    (max: number, entry: any) => Math.max(max, Number(entry.timestamp)),
+    0,
+  );
+  const INACTIVITY_PERIOD_SECS = 60 * 24 * 60 * 60;
+  const closableAfter = lastLiquidation > 0 ? lastLiquidation + INACTIVITY_PERIOD_SECS : 0;
+  const closableAfterIso =
+    closableAfter > 0 ? new Date(closableAfter * 1000).toISOString() : "now (never liquidated)";
+
+  appendFileSync(
+    "liquidatees_pending_closing.txt",
+    `${liquidatee.toBase58()}\tlastLiquidation=${lastLiquidation}\t` +
+      `closableAfter=${closableAfter}\tclosableAfterIso=${closableAfterIso}\n`,
+  );
+  console.log("LIQUIDATEE PENDING CLOSE (dumped to liquidatees_pending_closing.txt)");
+  console.log("liquidatee:       " + liquidatee.toBase58());
+  console.log("liq record:       " + liqRecordKey.toBase58());
+  console.log("closable after:   " + closableAfterIso);
 }
 
 export function writeJsonFile(path: string, obj: any) {

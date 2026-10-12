@@ -8,6 +8,7 @@ import { repay } from "../user/repay";
 import { withdraw } from "../user/withdraw";
 import { closeAccount } from "../user/close_account";
 import { closeBank } from "../admin/close_bank";
+import { dumpLiquidatee } from "./e2e_helpers";
 
 /**
  * Reverses create_tagged_liquidatable_e2e.ts. A liquidation may already have moved part of the
@@ -32,11 +33,13 @@ async function main() {
   const liquidator = pk(state.liquidator);
   const collateralMint = pk(config.COLLATERAL_MINT);
   const debtMint = pk(config.DEBT_MINT);
-  const debtOracle = pk(config.DEBT_ORACLE);
 
   const user = commonSetup(true, config.PROGRAM_ID, config.LIQUIDATOR_WALLET_PATH);
+  const exists = async (account: PublicKey) =>
+    (await user.program.account.marginfiAccount.fetchNullable(account)) !== null;
   const held = async (account: PublicKey, bank: PublicKey) => {
-    const acc: any = await user.program.account.marginfiAccount.fetch(account);
+    const acc: any = await user.program.account.marginfiAccount.fetchNullable(account);
+    if (!acc) return { assets: false, liabs: false };
     const b = acc.lendingAccount.balances.find(
       (x: any) => x.active && x.bankPk.equals(bank),
     );
@@ -47,7 +50,7 @@ async function main() {
   };
 
   const collateral: PublicKey[] = [collateralBank];
-  const debt: PublicKey[] = [debtBank, debtOracle];
+  const debt: PublicKey[] = [debtBank];
 
   console.log("\n\n\n 1. REPAY PyUSD DEBT BY LIQUIDATEE");
   if ((await held(liquidatee, debtBank)).liabs) {
@@ -113,18 +116,23 @@ async function main() {
   }
 
   console.log("\n\n\n 4. CLOSE ACCOUNTS");
-  await closeAccount(
-    true,
-    { PROGRAM_ID: config.PROGRAM_ID, ACCOUNT: liquidatee },
-    config.LIQUIDATEE_WALLET_PATH,
-  );
-  await sleep(1000);
-  await closeAccount(
-    true,
-    { PROGRAM_ID: config.PROGRAM_ID, ACCOUNT: liquidator },
-    config.LIQUIDATOR_WALLET_PATH,
-  );
-  await sleep(1000);
+  // A create run that failed at account init leaves the state file pointing at an account that
+  // was never created.
+  for (const [account, walletPath] of [
+    [liquidatee, config.LIQUIDATEE_WALLET_PATH],
+    [liquidator, config.LIQUIDATOR_WALLET_PATH],
+  ] as [PublicKey, string][]) {
+    if (!(await exists(account))) {
+      console.log(`${account.toBase58()} does not exist, skipping`);
+      continue;
+    }
+    await closeAccount(true, { PROGRAM_ID: config.PROGRAM_ID, ACCOUNT: account }, walletPath);
+    await sleep(1000);
+  }
+  // Once liquidated, the account outlives this run: its record must sit idle for 60 days first.
+  if (await exists(liquidatee)) {
+    await dumpLiquidatee(config.PROGRAM_ID, config.LIQUIDATEE_WALLET_PATH, liquidatee);
+  }
 
   console.log("\n\n\n 5. CLOSE BANKS");
   await closeBank(

@@ -146,14 +146,19 @@ export async function pulseHealth(
 
 /**
  * Throws unless the pulse priced every balance. `pulse_health` itself never fails: an oracle
- * problem is recorded in the cache (`mrgn_err` / `internal_err`) and the values are left at zero,
- * so a caller that reads health off the cache must check this first.
+ * problem is recorded in the cache and the values are left at zero, so a caller that reads health
+ * off the cache must check this first. The program's own flags are the test: `ENGINE_OK` is set
+ * whenever the risk engine ran (an unhealthy account still records `mrgn_err` 6009,
+ * RiskEngineInitRejected) and `ORACLE_OK` is cleared on any oracle or internal error.
  */
 export function assertHealthCacheOk(cache: any) {
-  if (cache.mrgnErr !== 0 || cache.internalErr !== 0) {
+  const ENGINE_OK = 2;
+  const ORACLE_OK = 4;
+  if ((cache.flags & ENGINE_OK) === 0 || (cache.flags & ORACLE_OK) === 0) {
     throw new Error(
-      `health cache has errors: mrgn_err ${cache.mrgnErr}, internal_err ${cache.internalErr} ` +
-        `(balance index ${cache.errIndex}); fix the oracle / venue refresh before going on`,
+      `health cache is not usable: flags ${cache.flags}, mrgn_err ${cache.mrgnErr}, ` +
+        `internal_err ${cache.internalErr} (balance index ${cache.errIndex}); ` +
+        `fix the oracle / venue refresh before going on`,
     );
   }
 }

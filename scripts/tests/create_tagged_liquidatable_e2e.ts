@@ -30,12 +30,15 @@ import {
  * it (`marginfi_account_tag_liq_record`, 0.1.12) so the premium a receivership liquidator may take
  * grows over time until it is.
  *
- * Shape: 10 USDC collateral (Fixed $1) against 8.9 PyUSD debt, liability weight 1. The collateral's
+ * Shape: 10 USDC collateral against 9.45 PyUSD debt, liability weight 1, both banks at a Fixed $1
+ * price: stage Pyth feeds are only cranked on demand and go stale within minutes, and this test is
+ * about the premium schedule, not oracles. The collateral's
  * maintenance weight is then lowered until maintenance health is -TARGET_DEFICIT. The account stays
- * solvent ($10 > $8.9), so the tag premium grows, and holds more than the $5 closeout threshold, so
+ * solvent ($10 > $9.45), so the tag premium grows, and holds more than the $5 closeout threshold, so
  * a liquidation must leave it unhealthy. That second rule is what caps the repayable amount at
  * `deficit / (l - w * (1 + premium))`, which is tiny at the base premium and opens up as the
- * premium grows.
+ * premium approaches `l / w - 1`. Borrowing 9.45 against 10 puts that pole at ~6.4%, just above
+ * the 5% base, so Eva's threshold is reached a couple of hours after tagging instead of ~14.
  */
 export type Config = {
   PROGRAM_ID: string;
@@ -46,7 +49,8 @@ export type Config = {
   /** Only used to create the bank; the bank is switched to a Fixed $1 price right after. */
   COLLATERAL_PLACEHOLDER_ORACLE: PublicKey;
   DEBT_MINT: PublicKey;
-  DEBT_ORACLE: PublicKey;
+  /** Only used to create the bank; the bank is switched to a Fixed $1 price right after. */
+  DEBT_PLACEHOLDER_ORACLE: PublicKey;
 };
 
 export type State = {
@@ -58,19 +62,19 @@ export type State = {
 };
 
 const COLLATERAL_DEPOSIT = new BN(10 * 10 ** 6); // 10 USDC, by the liquidatee
-const DEBT_DEPOSIT = new BN(9_500_000); // 9.5 PyUSD, by the liquidator
-const BORROW_AMOUNT = new BN(8_900_000); // 8.9 PyUSD, by the liquidatee
+const DEBT_DEPOSIT = new BN(12_000_000); // 12 PyUSD, by the liquidator
+const BORROW_AMOUNT = new BN(9_450_000); // 9.45 PyUSD, by the liquidatee
 
-/** Weights while borrowing, so 8.9 fits under 0.9 * $10 of collateral. */
-const COLLATERAL_WEIGHT_INIT = 0.9;
-const COLLATERAL_WEIGHT_MAINT = 0.95;
+/** Weights while borrowing, so 9.45 fits under 0.96 * $10 of collateral. */
+const COLLATERAL_WEIGHT_INIT = 0.96;
+const COLLATERAL_WEIGHT_MAINT = 0.97;
 const DEBT_LIABILITY_WEIGHT = 1;
 
 /** Maintenance health to leave the liquidatee at, in USD. Large enough to survive PyUSD noise. */
 const TARGET_DEFICIT = 0.05;
 
-/** Eva's MIN_PROFIT, only used for the schedule printed at the end. */
-const EVA_MIN_PROFIT = 0.5;
+/** Eva's MIN_PROFIT, only used for the schedule printed at the end. Run Eva with the same value. */
+const EVA_MIN_PROFIT = 0.2;
 
 /** Program constants (marginfi-v2 `constants.rs`). */
 const LIQUIDATION_BONUS_FEE_MINIMUM = 0.05;
@@ -80,14 +84,16 @@ const LIQUIDATION_CLOSEOUT_DOLLAR_THRESHOLD = 5;
 
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  LIQUIDATOR_WALLET_PATH: "/.config/stage/id.json",
+  LIQUIDATOR_WALLET_PATH: "/.config/deleverager/id.json",
   LIQUIDATEE_WALLET_PATH: "/.config/liquidatee/id.json",
   COLLATERAL_MINT: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), // usdc
   COLLATERAL_PLACEHOLDER_ORACLE: new PublicKey(
     "Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX",
   ), // usdc PythPull
   DEBT_MINT: new PublicKey("2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"), // pyusd (t22)
-  DEBT_ORACLE: new PublicKey("F1huL4wkpzHLezvKMXQMgrL6SN7CkG9fYWm4VWSmVbjw"), // pyusd PythPull
+  DEBT_PLACEHOLDER_ORACLE: new PublicKey(
+    "F1huL4wkpzHLezvKMXQMgrL6SN7CkG9fYWm4VWSmVbjw",
+  ), // pyusd PythPull
 };
 
 const STATE_FILE = "liquidation_tagged_e2e_state.json";
@@ -182,13 +188,20 @@ async function main() {
     {
       PROGRAM_ID: config.PROGRAM_ID,
       GROUP_KEY: marginfiGroup,
-      ORACLE: config.DEBT_ORACLE,
+      ORACLE: config.DEBT_PLACEHOLDER_ORACLE,
       ORACLE_TYPE: ORACLE_TYPE_PYTH,
       ADMIN: liquidatorWallet.publicKey,
       BANK_MINT: config.DEBT_MINT,
       SEED: 0,
     },
     config.LIQUIDATOR_WALLET_PATH,
+  );
+  await sleep(2000);
+  await setFixedOraclePrice(
+    true,
+    { PROGRAM_ID: config.PROGRAM_ID, ADMIN: liquidatorWallet.publicKey },
+    config.LIQUIDATOR_WALLET_PATH,
+    [{ bank: debtBank, price: 1 }],
   );
   state.collateralBank = pkToString(collateralBank);
   state.debtBank = pkToString(debtBank);
@@ -245,6 +258,12 @@ async function main() {
   state.liquidatee = pkToString(liquidatee);
   writeJsonFile(STATE_FILE, state);
   await sleep(1000);
+  // initAccount logs a failed send instead of throwing; stop here rather than at the deposit.
+  for (const account of [liquidator, liquidatee]) {
+    if (!(await admin.program.account.marginfiAccount.fetchNullable(account))) {
+      throw new Error(`account ${account} was not created (see the error above); run the unwind`);
+    }
+  }
 
   console.log("\n\n\n 6. DEPOSITS");
   await depositRegular(
@@ -273,10 +292,7 @@ async function main() {
   await sleep(1000);
 
   console.log("\n\n\n 7. BORROW PyUSD BY LIQUIDATEE");
-  const remaining = composeRemainingAccounts([
-    [collateralBank],
-    [debtBank, config.DEBT_ORACLE],
-  ]);
+  const remaining = composeRemainingAccounts([[collateralBank], [debtBank]]);
   await borrow(
     true,
     {
@@ -301,6 +317,9 @@ async function main() {
   );
   await sleep(2000);
   const before = await readHealth(admin, liquidatee);
+  if (before.liabsMaint === 0) {
+    throw new Error("no debt on the account: the borrow in step 7 failed, see its error above");
+  }
   const collateralValue = before.assetsMaint / COLLATERAL_WEIGHT_MAINT;
   const weight = (before.liabsMaint - TARGET_DEFICIT) / collateralValue;
   console.log(
@@ -475,7 +494,6 @@ function serializeConfig(c: Config) {
     COLLATERAL_MINT: c.COLLATERAL_MINT.toBase58(),
     COLLATERAL_PLACEHOLDER_ORACLE: c.COLLATERAL_PLACEHOLDER_ORACLE.toBase58(),
     DEBT_MINT: c.DEBT_MINT.toBase58(),
-    DEBT_ORACLE: c.DEBT_ORACLE.toBase58(),
   };
 }
 
