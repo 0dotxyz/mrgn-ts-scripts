@@ -22,45 +22,45 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   BANKS: [
-    "6os7THfmjSXjxvZ488GNJAkTtTMY56vj1FfdDwocds6i", // PT-hyUSD DEFAULT
-    "BYZ4ZPjNw8Ha2o6DcNLUPfmuuacTno9j135XeYRubHfA", // dSOL DRIFT
-    "2D1dc9jo8CNjgVG4qTKpRuGA83zrXv9iuSHV9BWZ7Js9", // INF DRIFT
-    "HSWzj4oipYaMD7DtpiFcBs3oH5ZwDp4PUTtzPCJNMSd4", // JitoSOL DRIFT
-    "8yH6soQM2SUFjkRQiBo5UDLbLTWPCYEsyT22Xdi1sfh7", // mSOL DRIFT
-    "BsvoBGsejZTbkUckZtdQDav3PGvbatCoZTfJgB48CsCK", // PYUSD DRIFT
-    "CwbdVVmGfR4H9bQ39vmeKjt9Gd128iFGrc9Jvht2oPx6", // SOL DRIFT
-    "FKrkgcTCduBvnitwqg5GPnfK7M4aBNuZDjZZeeUhz7Uv", // syrupUSDC DRIFT
-    "5GZmPEr6czroe3ax29D2FHyKuT64ixj5evB2NqWjUk1d", // USDC DRIFT
-    "BpEDE4y44E3JYhNoRycxiPxr4UnhtG5qAKX5AVtG7Wp5", // USDS DRIFT
-    "HWSRiriCeJ8MZEWaQWb5dtztjEtLTinu5EfjcXyT8RPv", // USDS KAMINO
-    "BZAm4qGscR8gg5bmWrEq6BTofgaZPbg7Fwfa7rFghEXL", // BONK STAKED
-    "4watsWcjTBAwsrZpArwQbnNX4bQ1yeHBxgdbrGT4eMu9", // COMPASS STAKED
-    "4irzCCsU53ffh9XB7NxGzbbHjvSR7FTfPbn6KoXkt7kX", // DEFICORP STAKED
-    "CmBDHSVuodmUnanbBVFvY9cauLeosbdFQn9bJANMVYUG", // HANABI STAKED
-    "HzS8RqaQ5syk6EHbVi7h9rFYN48PpxykUXEs6w9wNfNP", // HYDEX STAKED
-    "6q5DB86DhCBQt5bqzZwgopV8EA96aCnngu5ebR1ooDFq", // KIWAMI STAKED
-    "J9trpcrVdFjVNg6VFrdF1XPGgjftQKZhbbWsxertdv9V", // LNTRN STAKED
-    "91jkdp4cF8vCDhjwude3SGSGrmVWFk5vTAtR6fsGVAfy", // LOTUS STAKED
-    // "2foqT8wWzWRduyV37uRdj81DijkNMKzYD3D6JPfir7La", // LUX STAKED
-    // "9Hs4E6ACNw6Hmwjvm1duXzbaWmvXxSxN11agw4updEn1", // MADLAD STAKED
-    // "4C2vPweGNpiE6kTEbYvcbUBHNWxrn4ErQYaqWm5zDexx", // MAVAN STAKED
-    // "Hco1P3dGRXz3ZGFvMkbDgghZQy47Tp7vp7koSYRvP6nm", // MRGN3 STAKED
-    // "9d7MTvcz1VMB1rK6H73quMxkR26dLPz5HDaac2eGRjQx", // NYMS STAKED
-    // "GdtggomQth6cxuYPdiVhBbcX7VC9rnDDwLMfxipxE2Po", // OPAL STAKED
-    // "72BS34HkCgq8RWQR7kuVVmiJMtKqSxG4CHX6ZXpSCwg7", // ORANGEFIN STAKED
-    // "6V4vCK3n3JVncfpS16mW8ceLoNPatvu61pKxFmWx8adi", // PRIVATE STAKED
-    // "H6CT1aiCgSNw9S6aq38npEhdoN2UPhSKe8Lj9fQqqjuu", // ROSS STAKED
-    // "Dfr6Sf44ftecaJaoJMzFQABdkt3CEHfBwut1WyacRzaE", // SOLAYER STAKED
-    // "7bLfrb4fWVYkVpZ9rg7dBUwKRAqLyiivCW4ahMMGcKyS", // SOLJAPAN STAKED
-    // "3F3QXT3BtkegaBfFjn2odKLurFYLHJHJ99xKV2TRTvrk", // SPECTRUM STAKED
-    // "8c269gkonvATm93nviuYiriCQ829f7ypx3aScYDR1YoQ", // STARKE STAKED
-    // "CK8qRAcmvkDXaqX2S5GkgTCZT5pCz34me1neQhpJYe1Z", // STRONGHOLD STAKED
-    // "EGTfrYiuWpPPZ4yfY9tCxnK6QMkY7pzVie9DxK772iGe", // SUPER STAKED
-    // "GLSCJ39N82Xo21621jMheinvjQLrBrkG7gzo2C5L1y6y", // TOPAZ STAKED
-    // "FCi8unSVCwJd3QkrhTtv6LTTjw1c4zV65D5cG5N1rAG6", // VALID STAKED
-    // "5sJCKePwAhyD3mzrzLRDM2PkFMc85nnvvarxHLsvWvpg", // WATCHTOWER STAKED
-    // "FsdWEJzHXkUXejWnb7c1p9UJtF69hVWQNNoakjoXyRCJ", // ANAGRAM STAKED
-    // "CFmvdtEPQJPVqS1QRkeRcdQm2itAPk6k8hSJbmt88Sjc", // EMERALD STAKED
+  //   "6os7THfmjSXjxvZ488GNJAkTtTMY56vj1FfdDwocds6i", // PT-hyUSD DEFAULT
+  //   "BYZ4ZPjNw8Ha2o6DcNLUPfmuuacTno9j135XeYRubHfA", // dSOL DRIFT
+  //   "2D1dc9jo8CNjgVG4qTKpRuGA83zrXv9iuSHV9BWZ7Js9", // INF DRIFT
+  //   "HSWzj4oipYaMD7DtpiFcBs3oH5ZwDp4PUTtzPCJNMSd4", // JitoSOL DRIFT
+  //   "8yH6soQM2SUFjkRQiBo5UDLbLTWPCYEsyT22Xdi1sfh7", // mSOL DRIFT
+  //   "BsvoBGsejZTbkUckZtdQDav3PGvbatCoZTfJgB48CsCK", // PYUSD DRIFT
+  //   "CwbdVVmGfR4H9bQ39vmeKjt9Gd128iFGrc9Jvht2oPx6", // SOL DRIFT
+  //   "FKrkgcTCduBvnitwqg5GPnfK7M4aBNuZDjZZeeUhz7Uv", // syrupUSDC DRIFT
+  //   "5GZmPEr6czroe3ax29D2FHyKuT64ixj5evB2NqWjUk1d", // USDC DRIFT
+  //   "BpEDE4y44E3JYhNoRycxiPxr4UnhtG5qAKX5AVtG7Wp5", // USDS DRIFT
+  //   "HWSRiriCeJ8MZEWaQWb5dtztjEtLTinu5EfjcXyT8RPv", // USDS KAMINO
+  //   "BZAm4qGscR8gg5bmWrEq6BTofgaZPbg7Fwfa7rFghEXL", // BONK STAKED
+  //   "4watsWcjTBAwsrZpArwQbnNX4bQ1yeHBxgdbrGT4eMu9", // COMPASS STAKED
+  //   "4irzCCsU53ffh9XB7NxGzbbHjvSR7FTfPbn6KoXkt7kX", // DEFICORP STAKED
+  //   "CmBDHSVuodmUnanbBVFvY9cauLeosbdFQn9bJANMVYUG", // HANABI STAKED
+  //   "HzS8RqaQ5syk6EHbVi7h9rFYN48PpxykUXEs6w9wNfNP", // HYDEX STAKED
+  //   "6q5DB86DhCBQt5bqzZwgopV8EA96aCnngu5ebR1ooDFq", // KIWAMI STAKED
+  //   "J9trpcrVdFjVNg6VFrdF1XPGgjftQKZhbbWsxertdv9V", // LNTRN STAKED
+  //   "91jkdp4cF8vCDhjwude3SGSGrmVWFk5vTAtR6fsGVAfy", // LOTUS STAKED
+    "2foqT8wWzWRduyV37uRdj81DijkNMKzYD3D6JPfir7La", // LUX STAKED
+    "9Hs4E6ACNw6Hmwjvm1duXzbaWmvXxSxN11agw4updEn1", // MADLAD STAKED
+    "4C2vPweGNpiE6kTEbYvcbUBHNWxrn4ErQYaqWm5zDexx", // MAVAN STAKED
+    "Hco1P3dGRXz3ZGFvMkbDgghZQy47Tp7vp7koSYRvP6nm", // MRGN3 STAKED
+    "9d7MTvcz1VMB1rK6H73quMxkR26dLPz5HDaac2eGRjQx", // NYMS STAKED
+    "GdtggomQth6cxuYPdiVhBbcX7VC9rnDDwLMfxipxE2Po", // OPAL STAKED
+    "72BS34HkCgq8RWQR7kuVVmiJMtKqSxG4CHX6ZXpSCwg7", // ORANGEFIN STAKED
+    "6V4vCK3n3JVncfpS16mW8ceLoNPatvu61pKxFmWx8adi", // PRIVATE STAKED
+    "H6CT1aiCgSNw9S6aq38npEhdoN2UPhSKe8Lj9fQqqjuu", // ROSS STAKED
+    "Dfr6Sf44ftecaJaoJMzFQABdkt3CEHfBwut1WyacRzaE", // SOLAYER STAKED
+    "7bLfrb4fWVYkVpZ9rg7dBUwKRAqLyiivCW4ahMMGcKyS", // SOLJAPAN STAKED
+    "3F3QXT3BtkegaBfFjn2odKLurFYLHJHJ99xKV2TRTvrk", // SPECTRUM STAKED
+    "8c269gkonvATm93nviuYiriCQ829f7ypx3aScYDR1YoQ", // STARKE STAKED
+    "CK8qRAcmvkDXaqX2S5GkgTCZT5pCz34me1neQhpJYe1Z", // STRONGHOLD STAKED
+    "EGTfrYiuWpPPZ4yfY9tCxnK6QMkY7pzVie9DxK772iGe", // SUPER STAKED
+    "GLSCJ39N82Xo21621jMheinvjQLrBrkG7gzo2C5L1y6y", // TOPAZ STAKED
+    "FCi8unSVCwJd3QkrhTtv6LTTjw1c4zV65D5cG5N1rAG6", // VALID STAKED
+    "5sJCKePwAhyD3mzrzLRDM2PkFMc85nnvvarxHLsvWvpg", // WATCHTOWER STAKED
+    "FsdWEJzHXkUXejWnb7c1p9UJtF69hVWQNNoakjoXyRCJ", // ANAGRAM STAKED
+    "CFmvdtEPQJPVqS1QRkeRcdQm2itAPk6k8hSJbmt88Sjc", // EMERALD STAKED
     // Do not close: operational and added in Jun-Jul 2026.
     // "9LiRrrzgnu84wL6ftqGGDBZfjGmYSNCnExmL4gKf9mzr", // PYUSD KAMINO (operational, Mar 2026)
     // "77tvwSNZUMnXJmETfyXRiJKUPDZyheaGUXS8EBcnVimk", // PT-rkuSOL-31OCT26 DEFAULT
