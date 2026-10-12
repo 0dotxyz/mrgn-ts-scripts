@@ -210,6 +210,11 @@ const grandConfig = {
   /** Wallet holding the tokens used to repay. Must be the group's risk admin. */
   WALLET: "/.config/deleverager/id.json",
   /**
+   * "collateral" mode only: when the wallet cannot cover a debt, repay what it holds and seize
+   * proportionally instead of stopping the run. Re-run with more funds to finish the remainder.
+   */
+  PARTIAL: false,
+  /**
    * Resume point: skip every account until this one (inclusive). Set it to the pubkey the last
    * run stopped on after topping the wallet back up. Empty string starts from the beginning.
    */
@@ -219,6 +224,7 @@ const grandConfig = {
 type Config = {
   PROGRAM_ID: string;
   MODE: Mode;
+  PARTIAL: boolean;
   BANK: PublicKey;
   ACCOUNT: PublicKey;
   BALANCES: Balances;
@@ -256,6 +262,7 @@ async function main() {
     const config: Config = {
       PROGRAM_ID: grandConfig.PROGRAM_ID,
       MODE: grandConfig.MODE,
+      PARTIAL: grandConfig.PARTIAL,
       BANK: grandConfig.BANK,
       ACCOUNT: accountPk,
       BALANCES: balances,
@@ -684,6 +691,41 @@ export async function deleverage(
       let native = repayAll
         ? debtNative.integerValue(BigNumber.ROUND_CEIL)
         : toCover.dividedBy(perNative).integerValue(BigNumber.ROUND_CEIL);
+      const tokenless =
+        isRiskAdmin &&
+        (BigInt(bank.flags.toString()) & TOKENLESS_REPAYMENTS_ALLOWED) !== 0n;
+      if (config.PARTIAL && !tokenless) {
+        // Cap at what the wallet holds (less the funding buffer and what earlier debts of this
+        // account already claimed), leaving at least one liability share if it falls short.
+        const tokenProgram = (await connection.getAccountInfo(bank.mint)).owner;
+        const ata = getAssociatedTokenAddressSync(bank.mint, user.wallet.publicKey, true, tokenProgram);
+        const held = (await connection.getAccountInfo(ata))
+          ? BigNumber((await connection.getTokenAccountBalance(ata)).value.amount)
+          : BigNumber(0);
+        const claimed = repays
+          .filter((r) => r.bank.mint.equals(bank.mint))
+          .reduce((sum, r) => sum.plus(r.native), BigNumber(0));
+        const available = held
+          .multipliedBy(10_000)
+          .dividedBy(10_000 + REPAY_FUNDING_BUFFER_BPS)
+          .integerValue(BigNumber.ROUND_FLOOR)
+          .minus(claimed);
+        if (available.lt(native)) {
+          const oneShare = wrappedI80F48toBigNumber(bank.liabilityShareValue).integerValue(
+            BigNumber.ROUND_CEIL,
+          );
+          native = BigNumber.min(
+            available,
+            debtNative.integerValue(BigNumber.ROUND_FLOOR).minus(oneShare),
+          );
+          repayAll = false;
+          if (native.lte(0)) {
+            console.log(`No ${bank.mint.toBase58()} left to repay with, skipping this debt`);
+            continue;
+          }
+          console.log(`PARTIAL: wallet covers only ${native.toString()} native of this debt`);
+        }
+      }
       if (emodeBoosted && repayAll && idx === debts.length - 1) {
         repayAll = false;
         const leftNative = wrappedI80F48toBigNumber(bank.liabilityShareValue).integerValue(
@@ -697,14 +739,15 @@ export async function deleverage(
       toCover = toCover.minus(repaidWeighted);
       liabValue = liabValue.plus(repaidWeighted.multipliedBy(SEIZE_MARGIN));
       liabUsd = liabUsd.plus(native.dividedBy(10 ** bank.mintDecimals).multipliedBy(price));
-      const tokenless =
-        isRiskAdmin &&
-        (BigInt(bank.flags.toString()) & TOKENLESS_REPAYMENTS_ALLOWED) !== 0n;
       repays.push({ bankPk, bank, native, repayAll, tokenless });
       console.log(
         `Repay ${repayAll ? "ALL" : "PARTIAL"} ${native.toString()} native of ${bank.mint.toBase58()} ` +
           `(bank ${bankPk.toBase58()})${tokenless ? " TOKENLESS" : ""}`,
       );
+    }
+    if (repays.length === 0) {
+      console.log("Nothing to repay with on this account, skipping");
+      return skippedResult;
     }
     // Debt fully covered by less than all of BANK: the withdraw loop takes a matching part.
     // Otherwise all of BANK goes; make sure the loop withdraws everything rather than a
