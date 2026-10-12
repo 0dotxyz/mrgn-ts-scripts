@@ -11,12 +11,16 @@ type Config = {
   BANK: PublicKey;
   // Whether to only include the accounts with active liability positions in the bank
   ONLY_LIABS: boolean;
+  // Whether to only include the accounts using the bank as collateral (asset position) while
+  // borrowing anything, e.g. to deleverage everyone a ReduceOnly collateral bank still backs
+  ONLY_COLLATERAL_BACKING_DEBT: boolean;
 };
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   BANK: new PublicKey("3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq"),
   ONLY_LIABS: false,
+  ONLY_COLLATERAL_BACKING_DEBT: true,
 };
 
 // ---- Layout constants ----
@@ -146,9 +150,8 @@ async function main() {
 
       const asset = wrappedI80F48toBigNumber(b.assetShares).toNumber();
       const liab = wrappedI80F48toBigNumber(b.liabilityShares).toNumber();
-      const hasEmissions = !wrappedI80F48toBigNumber(
-        b.emissionsOutstanding,
-      ).isZero();
+      // 0.1.12 repurposed `emissions_outstanding` as `premium_outstanding`; emissions are gone.
+      const hasEmissions = false;
 
       if (liab > 0) {
         hasAnyLiabilities = true;
@@ -183,7 +186,10 @@ async function main() {
 
     // Account must contain a position in this BANK to be included in main output / file
     if (hasThisBank) {
-      if (!config.ONLY_LIABS || hasTargetBankLiability) {
+      if (
+        (!config.ONLY_LIABS || hasTargetBankLiability) &&
+        (!config.ONLY_COLLATERAL_BACKING_DEBT || (hasTargetBankAsset && hasAnyLiabilities))
+      ) {
         jsonOutput.push(accountEntry);
       }
       if (targetBankAssetShares > MIN_SHARES) {

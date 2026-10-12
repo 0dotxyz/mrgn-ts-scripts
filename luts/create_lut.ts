@@ -24,6 +24,7 @@ type Config = {
 
 // prod: 4GcLy4cdMzQ16WUB9Q8fBwBgaohTXT2F1oLGTMfhdjW8
 // stage: UzGyBno8GEZDapsj1FAy11aquXby1wkxeeDa4Y5TdPN
+// deleverager: 3S5KoqRRSEhWSsmfszFnKHaEAE9Yxt5dEMNHm65xqpX8
 const config: Config = {
   PLACEHOLDER: new PublicKey("J3oBkTkDXU3TcAggJEa3YeBZE5om5yNAdTtLVNXFD47"),
 };
@@ -34,7 +35,7 @@ async function main() {
   console.log("api: " + apiUrl);
   const connection = new Connection(apiUrl, "confirmed");
   const wallet = loadKeypairFromFile(
-    process.env.HOME + "/.config/stage/id.json"
+    process.env.HOME + "/.config/deleverager/id.json"
   );
 
   const transaction = new Transaction();
