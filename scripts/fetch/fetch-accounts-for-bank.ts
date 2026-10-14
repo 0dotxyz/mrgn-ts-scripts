@@ -18,9 +18,9 @@ type Config = {
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  BANK: new PublicKey("3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq"),
-  ONLY_LIABS: false,
-  ONLY_COLLATERAL_BACKING_DEBT: true,
+  BANK: new PublicKey("FWZbU8TSPyjyrWQASzujo7FjgF9f3GEkjaFAtbKWqjMH"), // sUSD
+  ONLY_LIABS: true,
+  ONLY_COLLATERAL_BACKING_DEBT: false,
 };
 
 // ---- Layout constants ----

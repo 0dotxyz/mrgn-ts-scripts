@@ -158,6 +158,8 @@ function deriveStakedOnramp(voteAccount: PublicKey): PublicKey {
 /// is funded. `repay_all` settles the debt as of execution, which is a few slots after this check,
 /// so it covers interest accrued in between.
 const REPAY_FUNDING_BUFFER_BPS = 10;
+/** PARTIAL mode stops the run once the wallet can no longer repay at least this much (USD). */
+const PARTIAL_MIN_REPAY_USD = 10;
 
 /// Group pubkey -> fetched group, shared across `deleverage` calls (only read for `riskAdmin`).
 const fetchedGroups = new Map<string, any>();
@@ -198,20 +200,21 @@ type Mode = "liability" | "collateral";
 
 const grandConfig = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  MODE: "collateral" as Mode,
-  BANK: new PublicKey("3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq"), // zBTC
+  MODE: "liability" as Mode,
+  BANK: new PublicKey("FWZbU8TSPyjyrWQASzujo7FjgF9f3GEkjaFAtbKWqjMH"), // sUSD
   LUT: new PublicKey("3S5KoqRRSEhWSsmfszFnKHaEAE9Yxt5dEMNHm65xqpX8"),
 
   /**
    * Produced by fetch-accounts-for-bank.ts (ONLY_LIABS for "liability" mode,
    * ONLY_COLLATERAL_BACKING_DEBT for "collateral" mode).
    */
-  DUMP: "logs/3RVamPQE3nDViuUU7wdZJgnru7Q93cRzdysXA8kjxMiq_accounts.json",
+  DUMP: "logs/FWZbU8TSPyjyrWQASzujo7FjgF9f3GEkjaFAtbKWqjMH_accounts.json",
   /** Wallet holding the tokens used to repay. Must be the group's risk admin. */
   WALLET: "/.config/deleverager/id.json",
   /**
    * "collateral" mode only: when the wallet cannot cover a debt, repay what it holds and seize
    * proportionally instead of stopping the run. Re-run with more funds to finish the remainder.
+   * Stops once the wallet can cover less than PARTIAL_MIN_REPAY_USD of an account's debt.
    */
   PARTIAL: false,
   /**
@@ -610,16 +613,20 @@ export async function deleverage(
   }
 
   /**
-   * "collateral" mode prices from a simulated `pulse_health`: the per-balance (biased) prices the
+   * Prices come from a simulated `pulse_health`: the per-balance (biased) prices the
    * program itself computes, written to the account's health cache. Bank caches can be days old
    * (a quiet bank's is only refreshed when someone touches it), and sizing from a stale one
    * over-seizes and trips WorseHealthPostLiquidation. Banks the pulse could not price (e.g. a
    * ReduceOnly collateral bank the init pass weighs at zero) fall back to the cache.
    */
-  const livePrices =
-    config.MODE === "collateral"
-      ? await pulsePrices(program, connection, user.wallet.publicKey, config, remainingAccounts, instructions)
-      : new Map<string, BigNumber>();
+  const livePrices = await pulsePrices(
+    program,
+    connection,
+    user.wallet.publicKey,
+    config,
+    remainingAccounts,
+    instructions,
+  );
   const priceFor = (bankPk: PublicKey, bank: any) => {
     const live = livePrices.get(bankPk.toBase58());
     return live ? { price: live, conf: BigNumber(0) } : bankPrice(bank);
@@ -675,6 +682,8 @@ export async function deleverage(
       ),
     );
 
+    // First debt the wallet fell short on, reported if the account ends up below the minimum.
+    let shortfall: InsufficientRepayFunds | undefined;
     for (const [idx, { bankPk, shares }] of debts.entries()) {
       if (toCover.lte(0)) break;
       const bank = fetchedBanks.get(bankPk.toBase58());
@@ -711,6 +720,19 @@ export async function deleverage(
           .integerValue(BigNumber.ROUND_FLOOR)
           .minus(claimed);
         if (available.lt(native)) {
+          const needed = native
+            .plus(claimed)
+            .multipliedBy(10_000 + REPAY_FUNDING_BUFFER_BPS)
+            .dividedBy(10_000)
+            .integerValue(BigNumber.ROUND_CEIL);
+          shortfall ??= new InsufficientRepayFunds(
+            config.ACCOUNT,
+            needed.minus(held),
+            held,
+            needed,
+            bank.mintDecimals,
+            bank.mint,
+          );
           const oneShare = wrappedI80F48toBigNumber(bank.liabilityShareValue).integerValue(
             BigNumber.ROUND_CEIL,
           );
@@ -744,6 +766,10 @@ export async function deleverage(
         `Repay ${repayAll ? "ALL" : "PARTIAL"} ${native.toString()} native of ${bank.mint.toBase58()} ` +
           `(bank ${bankPk.toBase58()})${tokenless ? " TOKENLESS" : ""}`,
       );
+    }
+    if (shortfall && liabUsd.lt(PARTIAL_MIN_REPAY_USD)) {
+      console.log(`PARTIAL: wallet covers only $${liabUsd.toFixed(2)} of this account's debt, stopping`);
+      throw shortfall;
     }
     if (repays.length === 0) {
       console.log("Nothing to repay with on this account, skipping");
@@ -887,6 +913,10 @@ export async function deleverage(
     );
   }
 
+  /** Collateral skipped because its bank lacks the liquidity to pay it out. */
+  let illiquid = false;
+  /** Set once a partial withdraw covers what is left of the debt. */
+  let covered = false;
   for (const { bankPk, shares, hasEmissions } of banksToWithdrawFrom) {
     const bank = fetchedBanks.get(bankPk.toBase58());
     if (wrappedI80F48toBigNumber(bank.config.assetWeightInit).isZero()) {
@@ -927,6 +957,27 @@ export async function deleverage(
       continue;
     }
 
+    // A fully utilized bank rejects any withdraw that leaves its assets below its liabilities
+    // (IllegalUtilizationRatio), so seize from the next bank instead.
+    const takeNative = liabValue.gt(seizableValue)
+      ? seizableTokens
+      : seizableTokens.multipliedBy(liabValue.dividedBy(seizableValue));
+    const liquidity = wrappedI80F48toBigNumber(bank.totalAssetShares)
+      .multipliedBy(shareValue)
+      .minus(
+        wrappedI80F48toBigNumber(bank.totalLiabilityShares).multipliedBy(
+          wrappedI80F48toBigNumber(bank.liabilityShareValue),
+        ),
+      );
+    if (takeNative.gt(liquidity)) {
+      console.log(
+        `Bank liquidity ${liquidity.toFixed(0)} native is below the ${takeNative.toFixed(0)} ` +
+          "to seize, skipping this bank",
+      );
+      illiquid = true;
+      continue;
+    }
+
     let withdrawAmount: BN;
     let withdrawAll: boolean;
     if (liabValue.gt(seizableValue)) {
@@ -943,6 +994,7 @@ export async function deleverage(
         // Such small values may cause WorseHealthPostLiquidation but give no practical sense for
         // withdrawing. The remaining debt is already covered, so no later bank is needed either.
         console.log("Remaining liab value is dust, nothing left to seize");
+        covered = true;
         break;
       }
 
@@ -967,6 +1019,7 @@ export async function deleverage(
       );
       console.log("Withdrawing: ", withdrawAmount.toString());
       withdrawAll = false;
+      covered = true;
       // Note: no `break` here. The withdraw instruction is built below; the loop is terminated
       // after it is pushed, by the `if (withdrawAll)` check at the end of this block.
     }
@@ -1130,6 +1183,13 @@ export async function deleverage(
     } else {
       break;
     }
+  }
+
+  if (illiquid && !covered && liabValue.gte(DUST_LIAB_VALUE)) {
+    // The rest of the collateral cannot cover the debt; repaying now would forgive the
+    // shortfall. Retry once the skipped banks have liquidity again.
+    console.log("Collateral is stuck in banks without liquidity, skipping this account");
+    return skippedResult;
   }
 
   const endMeta: AccountMeta[] = remainingAccounts.map(([bankPk]) => ({
