@@ -7,7 +7,7 @@ import {
 import { commonSetup, registerKaminoProgram } from "../../lib/common-setup";
 import { KLEND_PROGRAM_ID } from "../kamino/kamino-types";
 import { dumpLiquidatee } from "./e2e_helpers";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync, rmSync } from "fs";
 import { repay } from "../user/repay";
 import { withdrawKamino } from "../kamino/withdraw_kamino";
 import { withdraw } from "../user/withdraw";
@@ -26,8 +26,11 @@ import { withdrawJuplend } from "../juplend/withdraw";
  * Health checks price every open position in Live mode, so each withdraw also refreshes the Kamino
  * reserves and JupLend rates still open. Order: debt, then regular banks, then Kamino, then
  * JupLend last, when nothing else needs refreshing.
+ *
+ * `reset` (reset_liquidatable_user_e2e.ts) stops once the liquidatees are empty, keeping the group,
+ * banks and liquidator for the next create run.
  */
-async function main() {
+export async function unwind(reset: boolean) {
   const raw_config = readFileSync("liquidation_e2e_config.json", "utf8");
   const config = parseConfig(raw_config);
   const raw_state = readFileSync("liquidation_e2e_state.json", "utf8");
@@ -38,7 +41,7 @@ async function main() {
 
   type KaminoVenue = { reserve: PublicKey; market: PublicKey; reserveOracle: PublicKey; mint: PublicKey };
   const kaminoVenues = new Map<string, KaminoVenue>();
-  state.kaminoBanks.forEach((b) =>
+  [...state.kaminoBanks, ...state.kaminoPythBanks].forEach((b) =>
     kaminoVenues.set(b.toBase58(), {
       reserve: config.KAMINO_RESERVE,
       market: config.KAMINO_MARKET,
@@ -62,11 +65,19 @@ async function main() {
       mint: config.JITOSOL_MINT,
     }),
   );
-  const juplend = new Set(state.juplendBanks.map((b) => b.toBase58()));
+  const juplend = new Set(
+    [...state.juplendBanks, ...state.fixedJuplendBanks].map((b) => b.toBase58()),
+  );
 
+  // A create run that stopped early may not have opened them all.
+  const liquidatees = [state.liquidatee, ...state.sandwichLiquidatees].filter(
+    (k): k is PublicKey => k !== undefined,
+  );
+  /** The liquidatee being unwound: the 14-position one, then each sandwich liquidatee. */
+  let liquidatee = liquidatees[0];
   /** The liquidatee's open balances, each as `[bank, oracle accounts...]`. */
   const openGroups = async () =>
-    (await getOraclesAndKaminoIxes(user.program, user.kaminoProgram, state.liquidatee))[0];
+    (await getOraclesAndKaminoIxes(user.program, user.kaminoProgram, liquidatee))[0];
   /** Health-check accounts for withdrawing `bank`: every other open balance, then `bank` last. */
   const remainingFor = (groups: PublicKey[][], bank: PublicKey) => {
     const own = groups.find((g) => g[0].equals(bank))!;
@@ -86,121 +97,154 @@ async function main() {
     };
   };
 
-  console.log("\n\n\n 1. UPDATE LUT");
-  const allKeys = composeRemainingAccounts(await openGroups());
-  for (let start = 0; start < allKeys.length; start += 10) {
-    await updateLut(
-      true,
-      { LUT: config.LUT, KEYS: allKeys.slice(start, start + 10) },
-      config.LIQUIDATOR_WALLET_PATH,
+  for (liquidatee of liquidatees) {
+    console.log(`\n\n\n UNWINDING LIQUIDATEE ${liquidatee}`);
+    console.log("\n\n\n 1. UPDATE LUT");
+    const allKeys = composeRemainingAccounts(await openGroups());
+    for (let start = 0; start < allKeys.length; start += 10) {
+      await updateLut(
+        true,
+        { LUT: config.LUT, KEYS: allKeys.slice(start, start + 10) },
+        config.LIQUIDATOR_WALLET_PATH,
+      );
+      await sleep(1000);
+    }
+
+    console.log("\n\n\n 2. REPAY DEBT BY LIQUIDATEE");
+    const liquidateeAcc: any = await user.program.account.marginfiAccount.fetch(liquidatee);
+    const debtBalance = liquidateeAcc.lendingAccount.balances.find(
+      (b: any) => b.active && b.bankPk.equals(state.debtBank),
     );
-    await sleep(1000);
-  }
-
-  console.log("\n\n\n 2. REPAY DEBT BY LIQUIDATEE");
-  const liquidateeAcc: any = await user.program.account.marginfiAccount.fetch(state.liquidatee);
-  const debtBalance = liquidateeAcc.lendingAccount.balances.find(
-    (b: any) => b.active && b.bankPk.equals(state.debtBank),
-  );
-  if (debtBalance && wrappedI80F48toBigNumber(debtBalance.liabilityShares).gt(0)) {
-    await repay(
-      true,
-      {
-        PROGRAM_ID: config.PROGRAM_ID,
-        BANK: state.debtBank,
-        ACCOUNT: state.liquidatee,
-        AMOUNT: new BN(0), // doesn't matter, since we repay all
-        REPAY_ALL: true,
-        MINT: config.DEBT_MINT,
-        ADD_COMPUTE_UNITS: false,
-        // Repay runs no health check; only the closing bank is passed.
-        NEW_REMAINING: [state.debtBank, config.DEBT_ORACLE],
-      },
-      config.LIQUIDATEE_WALLET_PATH,
-    );
-    await sleep(2000);
-  } else {
-    console.log("no debt left");
-  }
-
-  console.log("\n\n\n 3. WITHDRAW EVERY REMAINING COLLATERAL BY LIQUIDATEE");
-  const rank = (bank: PublicKey) =>
-    juplend.has(bank.toBase58()) ? 2 : kaminoVenues.has(bank.toBase58()) ? 1 : 0;
-  for (;;) {
-    const open = await openGroups();
-    const groups = open.filter((g) => !g[0].equals(state.debtBank));
-    if (groups.length === 0) break;
-    groups.sort((a, b) => rank(a[0]) - rank(b[0]));
-    const bank = groups[0][0];
-    const remaining = remainingFor(open, bank);
-    const refresh = refreshFor(open, bank);
-    console.log(`\n withdrawing all from ${bank.toBase58()}`);
-
-    if (juplend.has(bank.toBase58())) {
-      await withdrawJuplend(
+    if (debtBalance && wrappedI80F48toBigNumber(debtBalance.liabilityShares).gt(0)) {
+      await repay(
         true,
         {
           PROGRAM_ID: config.PROGRAM_ID,
-          BANK: bank,
-          ACCOUNT: state.liquidatee,
-          AMOUNT: new BN(0),
-          WITHDRAW_ALL: true,
-          LUT: config.LUT,
-          NEW_REMAINING: remaining,
-          ADD_COMPUTE_UNITS: true,
+          BANK: state.debtBank,
+          ACCOUNT: liquidatee,
+          AMOUNT: new BN(0), // doesn't matter, since we repay all
+          REPAY_ALL: true,
+          MINT: config.DEBT_MINT,
+          ADD_COMPUTE_UNITS: false,
+          // Repay runs no health check; only the closing bank is passed.
+          NEW_REMAINING: [state.debtBank, config.DEBT_ORACLE],
         },
         config.LIQUIDATEE_WALLET_PATH,
       );
-    } else if (kaminoVenues.has(bank.toBase58())) {
-      const venue = kaminoVenues.get(bank.toBase58())!;
-      await withdrawKamino(
-        true,
-        {
-          PROGRAM_ID: config.PROGRAM_ID,
-          BANK: bank,
-          ACCOUNT: state.liquidatee,
-          AMOUNT: new BN(0),
-          WITHDRAW_ALL: true,
-          BANK_MINT: venue.mint,
-          KAMINO_RESERVE: venue.reserve,
-          KAMINO_MARKET: venue.market,
-          RESERVE_ORACLE: venue.reserveOracle,
-          LUT: config.LUT,
-          NEW_REMAINING: remaining,
-          ADD_COMPUTE_UNITS: true,
-          OTHER_REFRESH: refresh,
-        },
-        config.LIQUIDATEE_WALLET_PATH,
-      );
+      await sleep(2000);
     } else {
-      const bankAcc: any = await user.program.account.bank.fetch(bank);
-      await withdraw(
-        true,
-        {
-          PROGRAM_ID: config.PROGRAM_ID,
-          BANK: bank,
-          ACCOUNT: state.liquidatee,
-          MINT: bankAcc.mint,
-          AMOUNT: new BN(0),
-          WITHDRAW_ALL: true,
-          REMAINING: remaining,
-          ADD_COMPUTE_UNITS: true,
-          REFRESH: refresh,
-          LUT: config.LUT,
-        },
-        config.LIQUIDATEE_WALLET_PATH,
-      );
+      console.log("no debt left");
     }
-    await sleep(2000);
 
-    const after = (await openGroups()).map((g) => g[0].toBase58());
-    if (after.includes(bank.toBase58())) {
-      throw new Error(`withdraw from ${bank.toBase58()} did not close the balance; stopping`);
+    console.log("\n\n\n 3. WITHDRAW EVERY REMAINING COLLATERAL BY LIQUIDATEE");
+    const rank = (bank: PublicKey) =>
+      juplend.has(bank.toBase58()) ? 2 : kaminoVenues.has(bank.toBase58()) ? 1 : 0;
+    const attempts = new Map<string, number>();
+    for (;;) {
+      const open = await openGroups();
+      const groups = open.filter((g) => !g[0].equals(state.debtBank));
+      if (groups.length === 0) break;
+      groups.sort((a, b) => rank(a[0]) - rank(b[0]));
+      const bank = groups[0][0];
+      const remaining = remainingFor(open, bank);
+      const refresh = refreshFor(open, bank);
+      console.log(`\n withdrawing all from ${bank.toBase58()}`);
+
+      if (juplend.has(bank.toBase58())) {
+        await withdrawJuplend(
+          true,
+          {
+            PROGRAM_ID: config.PROGRAM_ID,
+            BANK: bank,
+            ACCOUNT: liquidatee,
+            AMOUNT: new BN(0),
+            WITHDRAW_ALL: true,
+            LUT: config.LUT,
+            NEW_REMAINING: remaining,
+            ADD_COMPUTE_UNITS: true,
+          },
+          config.LIQUIDATEE_WALLET_PATH,
+        );
+      } else if (kaminoVenues.has(bank.toBase58())) {
+        const venue = kaminoVenues.get(bank.toBase58())!;
+        await withdrawKamino(
+          true,
+          {
+            PROGRAM_ID: config.PROGRAM_ID,
+            BANK: bank,
+            ACCOUNT: liquidatee,
+            AMOUNT: new BN(0),
+            WITHDRAW_ALL: true,
+            BANK_MINT: venue.mint,
+            KAMINO_RESERVE: venue.reserve,
+            KAMINO_MARKET: venue.market,
+            RESERVE_ORACLE: venue.reserveOracle,
+            LUT: config.LUT,
+            NEW_REMAINING: remaining,
+            ADD_COMPUTE_UNITS: true,
+            OTHER_REFRESH: refresh,
+          },
+          config.LIQUIDATEE_WALLET_PATH,
+        );
+      } else {
+        const bankAcc: any = await user.program.account.bank.fetch(bank);
+        await withdraw(
+          true,
+          {
+            PROGRAM_ID: config.PROGRAM_ID,
+            BANK: bank,
+            ACCOUNT: liquidatee,
+            MINT: bankAcc.mint,
+            AMOUNT: new BN(0),
+            WITHDRAW_ALL: true,
+            REMAINING: remaining,
+            ADD_COMPUTE_UNITS: true,
+            REFRESH: refresh,
+            LUT: config.LUT,
+          },
+          config.LIQUIDATEE_WALLET_PATH,
+        );
+      }
+      await sleep(2000);
+
+      const after = (await openGroups()).map((g) => g[0].toBase58());
+      if (after.includes(bank.toBase58())) {
+        // Usually the tx just didn't land (expired blockhash); the next pass retries the same bank.
+        const tries = (attempts.get(bank.toBase58()) ?? 0) + 1;
+        attempts.set(bank.toBase58(), tries);
+        if (tries >= 3) {
+          throw new Error(`withdraw from ${bank.toBase58()} did not close the balance; stopping`);
+        }
+        console.log(`balance still open after attempt ${tries}, retrying`);
+      }
     }
+  }
+
+  /**
+   * The liquidatee account can no longer be closed immediately: its liquidation
+   * record must first sit inactive for at least 60 days (from the last
+   * liquidation), then be closed, and only then can the account be closed.
+   *
+   * This dumps the liquidatee pubkey and the timestamp after which it becomes
+   * closable (last liquidation + 60 days, or "now" if it was never liquidated)
+   * to liquidatees_pending_closing.txt so it can be finished manually later.
+   */
+  const dumped = existsSync("liquidatees_pending_closing.txt")
+    ? readFileSync("liquidatees_pending_closing.txt", "utf8")
+    : "";
+  for (const account of liquidatees) {
+    if (dumped.includes(account.toBase58())) continue; // listed by an earlier unwind
+    await dumpLiquidatee(config.PROGRAM_ID, config.LIQUIDATEE_WALLET_PATH, account);
+  }
+
+  if (reset) {
+    console.log("Reset finished: the group, banks and liquidator are kept for the next create run.");
+    return;
   }
 
   console.log("\n\n\n 4. WITHDRAW FROM DEBT BANK BY LIQUIDATOR");
-  await withdraw(
+  // A create run that stopped early may not have reached the debt bank.
+  if (!state.debtBank.equals(PublicKey.default)) await withdraw(
     true,
     {
       PROGRAM_ID: config.PROGRAM_ID,
@@ -217,23 +261,13 @@ async function main() {
   await sleep(1000);
 
   console.log("\n\n\n 5. CLOSE LIQUIDATOR ACCOUNT");
-  await closeAccount(
+  // Already gone if an earlier unwind of this run got this far.
+  if (await user.connection.getAccountInfo(state.liquidator)) await closeAccount(
     true,
     { PROGRAM_ID: config.PROGRAM_ID, ACCOUNT: state.liquidator },
     config.LIQUIDATOR_WALLET_PATH,
   );
   await sleep(1000);
-
-  /**
-   * The liquidatee account can no longer be closed immediately: its liquidation
-   * record must first sit inactive for at least 60 days (from the last
-   * liquidation), then be closed, and only then can the account be closed.
-   *
-   * This dumps the liquidatee pubkey and the timestamp after which it becomes
-   * closable (last liquidation + 60 days, or "now" if it was never liquidated)
-   * to liquidatees_pending_closing.txt so it can be finished manually later.
-   */
-  await dumpLiquidatee(config.PROGRAM_ID, config.LIQUIDATEE_WALLET_PATH, state.liquidatee);
 
   console.log("\n\n\n 6. CLOSE ALL BANKS");
   const allBanks = [
@@ -246,18 +280,31 @@ async function main() {
     ...state.kaminoMsolBanks,
     ...state.kaminoLstBanks,
     ...state.juplendBanks,
+    ...state.kaminoPythBanks,
+    ...state.fixedJuplendBanks,
     state.debtBank,
   ];
-  for (let start = 0; start < allBanks.length; start += 5) {
+  // Skip banks a stopped create run never got to create (its failed adds are still in the state).
+  const infos = await user.connection.getMultipleAccountsInfo(allBanks);
+  const existingBanks = allBanks.filter((_, i) => infos[i]?.owner.equals(user.program.programId));
+  for (let start = 0; start < existingBanks.length; start += 5) {
     await closeBank(
       true,
-      { PROGRAM_ID: config.PROGRAM_ID, BANKS: allBanks.slice(start, start + 5), FORCE: true },
+      { PROGRAM_ID: config.PROGRAM_ID, BANKS: existingBanks.slice(start, start + 5), FORCE: true },
       config.LIQUIDATOR_WALLET_PATH,
     );
     await sleep(1000);
   }
 
-  console.log("Cleanup finished.");
+  // With every bank gone the state file only describes a dead setup; drop it so the next create
+  // starts fresh instead of refusing to reuse it.
+  const left = (await user.connection.getMultipleAccountsInfo(existingBanks)).filter(Boolean);
+  if (left.length === 0) {
+    rmSync("liquidation_e2e_state.json");
+    console.log("Cleanup finished; removed liquidation_e2e_state.json.");
+  } else {
+    console.log(`Cleanup finished, but ${left.length} bank(s) are still open; kept the state file.`);
+  }
 }
 
 const pkFromString = (s: any) => new PublicKey(s);
@@ -311,12 +358,12 @@ export function parseState(raw: string): State {
   return {
     marginfiGroup: pkFromString(json.marginfiGroup),
     liquidator: pkFromString(json.liquidator),
-    liquidatee: pkFromString(json.liquidatee),
-    debtBank: pkFromString(json.debtBank),
-    p0Banks: json.p0Banks.map(pkFromString),
+    liquidatee: json.liquidatee ? pkFromString(json.liquidatee) : undefined,
+    debtBank: json.debtBank ? pkFromString(json.debtBank) : PublicKey.default,
+    p0Banks: (json.p0Banks ?? []).map(pkFromString),
     ptBanks: (json.ptBanks ?? []).map(pkFromString),
-    kaminoBanks: json.kaminoBanks.map(pkFromString),
-    kaminoObligations: json.kaminoObligations.map(pkFromString),
+    kaminoBanks: (json.kaminoBanks ?? []).map(pkFromString),
+    kaminoObligations: (json.kaminoObligations ?? []).map(pkFromString),
     kaminoMsolBanks: (json.kaminoMsolBanks ?? []).map(pkFromString),
     kaminoMsolObligations: (json.kaminoMsolObligations ?? []).map(pkFromString),
     kaminoLstBanks: (json.kaminoLstBanks ?? []).map(pkFromString),
@@ -324,12 +371,15 @@ export function parseState(raw: string): State {
     pythMsolBanks: (json.pythMsolBanks ?? []).map(pkFromString),
     pythLstBanks: (json.pythLstBanks ?? []).map(pkFromString),
     scopeBanks: (json.scopeBanks ?? []).map(pkFromString),
-    juplendBanks: json.juplendBanks.map(pkFromString),
+    juplendBanks: (json.juplendBanks ?? []).map(pkFromString),
+    kaminoPythBanks: (json.kaminoPythBanks ?? []).map(pkFromString),
+    fixedJuplendBanks: (json.fixedJuplendBanks ?? []).map(pkFromString),
+    sandwichLiquidatees: (json.sandwichLiquidatees ?? []).map(pkFromString),
   };
 }
 
 if (require.main === module) {
-  main().catch((err) => {
+  unwind(false).catch((err) => {
     console.error(err);
   });
 }

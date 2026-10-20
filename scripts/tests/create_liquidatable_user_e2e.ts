@@ -1,4 +1,4 @@
-import { PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey, SendTransactionError } from "@solana/web3.js";
 import { loadKeypairFromFile } from "../utils/utils";
 import { initGroup } from "../admin/init_group";
 import { initAccount } from "../user/init_account";
@@ -24,7 +24,7 @@ import {
   wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
 import { assertHealthCacheOk, pulseHealth } from "../user/health_pulse";
-import { writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { addJuplendBank } from "../juplend/add_bank";
 import { depositJuplend } from "../juplend/deposit";
 import { initJuplendPosition } from "../juplend/init_position";
@@ -90,7 +90,7 @@ export type Config = {
 export type State = {
   marginfiGroup: PublicKey;
   liquidator: PublicKey;
-  liquidatee: PublicKey;
+  liquidatee?: PublicKey; // unset while a create run has not opened it yet
   debtBank: PublicKey;
   p0Banks: PublicKey[];
   ptBanks: PublicKey[];
@@ -104,6 +104,9 @@ export type State = {
   pythLstBanks: PublicKey[];
   scopeBanks: PublicKey[];
   juplendBanks: PublicKey[];
+  kaminoPythBanks: PublicKey[];
+  fixedJuplendBanks: PublicKey[];
+  sandwichLiquidatees: PublicKey[];
 };
 
 type SerializedState = {
@@ -123,6 +126,9 @@ type SerializedState = {
   pythLstBanks?: string[];
   scopeBanks?: string[];
   juplendBanks?: string[];
+  kaminoPythBanks?: string[];
+  fixedJuplendBanks?: string[];
+  sandwichLiquidatees?: string[];
 };
 
 // 16 balances per account, and since 0.1.12 at most 4 "costly" ones (Kamino, Solend, JupLend
@@ -156,16 +162,56 @@ const PYTH_LST_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 JitoSOL
 const KAMINO_LST_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 JitoSOL
 const SCOPE_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDC
 const JUPLEND_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDT
-const DEBT_DEPOSIT = new BN(6 * 10 ** 5); // 0.6 PyUSD, by the liquidator
+const DEBT_DEPOSIT = new BN(6 * 10 ** 6); // 6 PyUSD, by the liquidator: covers every borrow below
+/** PyUSD's push feed only updates every ~19 min while its price is flat; prod allows 1200s too. */
+const DEBT_ORACLE_MAX_AGE = 1200;
 
-// Note: current setup assumes you have ~1 USDC, ~1 USDT, plus a little PT-bulkSOL, mSOL and JitoSOL
-// on your liquidatee's balances,
-// and at least 0.9 PyUSD on your liquidator's balances. Plus significant amount of SOL
+// Besides the 14-position liquidatee (too big for eva's one-tx sandwich at 64 locked accounts, so it
+// exercises the [buy][liquidate] fallback), one "sandwich" liquidatee per oracle setup holds a single
+// collateral against a PyUSD debt. Each is small enough for the one-tx liquidation.
+const SANDWICH_USD = new BN(15 * 10 ** 5); // 1.5 USDC / USDT
+const SANDWICH_LST = new BN(11 * 10 ** 6); // 0.011 mSOL / JitoSOL
+const SANDWICH_BORROW = new BN(6 * 10 ** 5); // 0.6 PyUSD each
+
+// Note: current setup assumes you have ~6 USDC, ~4 USDT, plus a little PT-bulkSOL and ~0.025 mSOL
+// and JitoSOL on your liquidatee's balances,
+// and at least 6 PyUSD on your liquidator's balances. Plus significant amount of SOL
 // for transactions and for rent (>1 SOL in liquidator's case).
+
+/** Collateral weights a reused setup restores before borrowing: the lowest of the bank defaults. */
+const REUSED_WEIGHT_INIT = 0.6;
+const REUSED_WEIGHT_MAINT = 0.75;
+/** SOL for rent and fees. A fresh setup pays for the group and 21 banks; a reused one barely any. */
+const LIQUIDATOR_SOL_FRESH = new BN(1.2 * 10 ** 9);
+const LIQUIDATOR_SOL_REUSED = new BN(0.05 * 10 ** 9);
+/** 10 marginfi accounts (~0.017 SOL each), plus the two Kamino obligation seeds on a fresh setup. */
+const LIQUIDATEE_SOL = new BN(0.25 * 10 ** 9);
+
+// Run book (before every program release):
+// 1. Run this script. The first run creates the group and banks; later runs reuse the ones in
+//    liquidation_e2e_state.json and only open fresh liquidatees.
+// 2. Point eva's MARGINFI_GROUP_KEY at the group it prints and let eva liquidate every liquidatee.
+// 3. Run reset_liquidatable_user_e2e.ts: it empties the liquidatees and keeps the group and banks.
+// unwind_liquidatable_user_e2e.ts tears everything down instead (bank rent back, the group's lost).
+const STATE_FILE = "liquidation_e2e_state.json";
+/** The bank lists a finished setup records, with how many banks each holds. */
+const SETUP_BANKS: [keyof SerializedState, number][] = [
+  ["p0Banks", P0_BANKS],
+  ["ptBanks", PT_BANKS],
+  ["pythMsolBanks", PYTH_MSOL_BANKS],
+  ["pythLstBanks", PYTH_LST_BANKS],
+  ["scopeBanks", SCOPE_BANKS],
+  ["kaminoBanks", KAMINO_BANKS],
+  ["kaminoMsolBanks", KAMINO_MSOL_BANKS],
+  ["kaminoLstBanks", KAMINO_LST_BANKS],
+  ["juplendBanks", JUPLEND_BANKS],
+  ["kaminoPythBanks", 1],
+  ["fixedJuplendBanks", 1],
+];
 
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  LIQUIDATOR_WALLET_PATH: "/.config/stage/id.json",
+  LIQUIDATOR_WALLET_PATH: "/.config/deleverager/id.json",
   LIQUIDATEE_WALLET_PATH: "/.config/liquidatee/id.json",
   P0_COLLATERAL_MINT: new PublicKey(
     "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
@@ -245,7 +291,7 @@ const config: Config = {
   SCOPE_PRICES: new PublicKey("3t4JZcueEzTbVP6kLxXrL3VpWx45jDer4eqysweBchNH"),
   SCOPE_USDC_ENTRY: 13, // the entry Kamino's USDC reserve prices from
   SCOPE_USDT_ENTRY: 16, // the entry Kamino's USDT reserves price from
-  LUT: new PublicKey("UzGyBno8GEZDapsj1FAy11aquXby1wkxeeDa4Y5TdPN"), // stage
+  LUT: new PublicKey("3S5KoqRRSEhWSsmfszFnKHaEAE9Yxt5dEMNHm65xqpX8"), // deleverager
 };
 
 async function main() {
@@ -257,6 +303,36 @@ async function main() {
   );
   writeJsonFile("liquidation_e2e_config.json", serializeConfig(config));
 
+  // The helpers below log a failed send ("Transaction failed: ...") and carry on, leaving a
+  // half-built fixture. Stop the run at the first one instead.
+  const logError = console.error;
+  console.error = (...args: any[]) => {
+    logError(...args);
+    if (String(args[0]).startsWith("Transaction failed")) {
+      throw new Error("a transaction failed (see above); stopping. Unwind, fix and re-run");
+    }
+  };
+  // A preflight that fails with no logs never reached a program (e.g. the RPC has not seen the
+  // blockhash yet), so nothing was sent and resending the same signed tx is safe.
+  const sendRaw = Connection.prototype.sendRawTransaction;
+  Connection.prototype.sendRawTransaction = async function (...args) {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await sendRaw.apply(this, args);
+      } catch (e) {
+        const transient = e instanceof SendTransactionError && e.transactionLogs?.length === 0;
+        if (!transient || attempt >= 3) throw e;
+        console.log(`preflight failed before any program ran, retrying (${attempt}/2)`);
+        await sleep(2000);
+      }
+    }
+  };
+
+  const reused = await loadReusableState(config);
+  if (reused) {
+    console.log(`\nReusing the group and banks in ${STATE_FILE} (group ${reused.marginfiGroup})`);
+  }
+
   console.log("\n\n\n 0. CHECK WALLET BALANCES");
   // Banks that give the last one 2x use (n + 1) deposits in total.
   const twice = (n: number, amt: BN) => (n > 0 ? amt.muln(n + 1) : new BN(0));
@@ -265,42 +341,59 @@ async function main() {
       mint: config.P0_COLLATERAL_MINT,
       needed: P0_DEPOSIT.muln(P0_BANKS)
         .add(twice(KAMINO_BANKS, KAMINO_DEPOSIT))
-        .add(SCOPE_DEPOSIT.muln(SCOPE_BANKS)) },
+        .add(SCOPE_DEPOSIT.muln(SCOPE_BANKS))
+        .add(SANDWICH_USD.muln(3)) }, // Fixed, Scope, KaminoPythPush
     { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "PT",
       mint: config.PT_COLLATERAL_MINT, needed: PT_DEPOSIT.muln(PT_BANKS) },
     { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "mSOL",
       mint: config.MSOL_MINT,
       needed: KAMINO_MSOL_DEPOSIT.muln(KAMINO_MSOL_BANKS)
-        .add(PYTH_MSOL_DEPOSIT.muln(PYTH_MSOL_BANKS)) },
+        .add(PYTH_MSOL_DEPOSIT.muln(PYTH_MSOL_BANKS))
+        .add(SANDWICH_LST.muln(2)) // PythMSOL, KaminoMSOL
+        .addn(reused ? 0 : 100 * KAMINO_MSOL_BANKS) }, // obligation seeds
     { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "JitoSOL",
       mint: config.JITOSOL_MINT,
       needed: KAMINO_LST_DEPOSIT.muln(KAMINO_LST_BANKS)
-        .add(PYTH_LST_DEPOSIT.muln(PYTH_LST_BANKS)) },
+        .add(PYTH_LST_DEPOSIT.muln(PYTH_LST_BANKS))
+        .add(SANDWICH_LST.muln(2)) // PythLST, KaminoLST
+        .addn(reused ? 0 : 100 * KAMINO_LST_BANKS) }, // obligation seeds
     { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "USDT",
-      mint: config.JUPLEND_COLLATERAL_MINT, needed: twice(JUPLEND_BANKS, JUPLEND_DEPOSIT) },
+      mint: config.JUPLEND_COLLATERAL_MINT,
+      needed: twice(JUPLEND_BANKS, JUPLEND_DEPOSIT).add(SANDWICH_USD.muln(2)) }, // ScopeJuplend, FixedJuplend
     { who: "Liquidator", owner: liquidatorWallet.publicKey, label: "PyUSD",
-      mint: config.DEBT_MINT, needed: DEBT_DEPOSIT },
+      mint: config.DEBT_MINT, needed: reused ? new BN(0) : DEBT_DEPOSIT }, // stays in the bank
+  ]);
+  await assertSolBalances(config, [
+    { who: "Liquidator", owner: liquidatorWallet.publicKey,
+      needed: reused ? LIQUIDATOR_SOL_REUSED : LIQUIDATOR_SOL_FRESH },
+    { who: "Liquidatee", owner: liquidateeWallet.publicKey, needed: LIQUIDATEE_SOL },
   ]);
 
   console.log("\n\n\n 1. INIT GROUP");
-  const marginfiGroup = await initGroup(
-    true,
-    { PROGRAM_ID: config.PROGRAM_ID, ADMIN_KEY: liquidatorWallet.publicKey },
-    config.LIQUIDATOR_WALLET_PATH,
-  );
+  const marginfiGroup = reused
+    ? new PublicKey(reused.marginfiGroup)
+    : await initGroup(
+        true,
+        { PROGRAM_ID: config.PROGRAM_ID, ADMIN_KEY: liquidatorWallet.publicKey },
+        config.LIQUIDATOR_WALLET_PATH,
+      );
   console.log("group: " + marginfiGroup);
-  await sleep(10000);
+  if (!reused) await sleep(10000);
   // const marginfiGroup = new PublicKey(
   //   "27z17WWf7DFkR8VaS5s5QyJ3poaEZJrUgEBvBWGVFdaf",
   // );
-  let state: SerializedState = {
-    marginfiGroup: pkToString(marginfiGroup),
-  };
+  // A reused setup keeps its banks; this run's liquidatees replace the (reset) previous ones.
+  let state: SerializedState = reused
+    ? { ...reused, liquidatee: undefined, sandwichLiquidatees: [] }
+    : { marginfiGroup: pkToString(marginfiGroup) };
   writeJsonFile("liquidation_e2e_state.json", state);
+  /** A list from the reused setup, or an empty one the creation steps below fill. */
+  const banksOf = (key: keyof SerializedState): PublicKey[] =>
+    reused ? ((reused[key] as string[]) ?? []).map((k) => new PublicKey(k)) : [];
 
   // 0.1.12: banks, oracles and weights need the governance admin, which a new group starts without.
   console.log("\n\n\n 1b. SET GOVERNANCE ADMIN");
-  await setGovernanceAdmin(
+  if (!reused) await setGovernanceAdmin(
     true,
     {
       PROGRAM_ID: config.PROGRAM_ID,
@@ -313,15 +406,17 @@ async function main() {
   await sleep(2000);
 
   console.log("\n\n\n 2. INIT MARGINFI ACCOUNTS");
-  const liquidator = await initAccount(
-    true,
-    {
-      PROGRAM_ID: config.PROGRAM_ID,
-      GROUP: marginfiGroup,
-      AUTHORITY: liquidatorWallet.publicKey,
-    },
-    config.LIQUIDATOR_WALLET_PATH,
-  );
+  const liquidator = reused
+    ? new PublicKey(reused.liquidator!)
+    : await initAccount(
+        true,
+        {
+          PROGRAM_ID: config.PROGRAM_ID,
+          GROUP: marginfiGroup,
+          AUTHORITY: liquidatorWallet.publicKey,
+        },
+        config.LIQUIDATOR_WALLET_PATH,
+      );
   console.log("liquidator: " + liquidator);
   await sleep(1000);
   // const liquidator = new PublicKey(
@@ -358,8 +453,8 @@ async function main() {
     SEED: 1,
   };
 
-  let p0Banks: PublicKey[] = [];
-  for (let i = 0; i < P0_BANKS; i++) {
+  let p0Banks: PublicKey[] = banksOf("p0Banks");
+  for (let i = 0; !reused && i < P0_BANKS; i++) {
     p0BankConfig.SEED = 1 + i;
     p0Banks.push(
       await addBank(true, p0BankConfig, config.LIQUIDATOR_WALLET_PATH),
@@ -379,7 +474,7 @@ async function main() {
     ADMIN: liquidatorWallet.publicKey,
   };
   const configs = p0Banks.map(pkToBankOracleConfig);
-  await setFixedOraclePrice(
+  if (!reused) await setFixedOraclePrice(
     true,
     configCommon,
     config.LIQUIDATOR_WALLET_PATH,
@@ -413,8 +508,8 @@ async function main() {
     BANK_MINT: config.PT_COLLATERAL_MINT,
     SEED: 1,
   };
-  let ptBanks: PublicKey[] = [];
-  for (let i = 0; i < PT_BANKS; i++) {
+  let ptBanks: PublicKey[] = banksOf("ptBanks");
+  for (let i = 0; !reused && i < PT_BANKS; i++) {
     ptBankConfig.SEED = 1 + i;
     ptBanks.push(
       await addBank(true, ptBankConfig, config.LIQUIDATOR_WALLET_PATH),
@@ -429,7 +524,7 @@ async function main() {
   writeJsonFile("liquidation_e2e_state.json", state);
 
   console.log("\n\n\n 5c. SET PT ORACLES (first PTPyth, the rest PTFixed)");
-  await setPtOracle(
+  if (!reused) await setPtOracle(
     true,
     configCommon,
     config.LIQUIDATOR_WALLET_PATH,
@@ -487,16 +582,16 @@ async function main() {
     await sleep(1000);
     return bank;
   };
-  const pythMsolBanks: PublicKey[] = [];
-  for (let i = 0; i < PYTH_MSOL_BANKS; i++) {
+  const pythMsolBanks: PublicKey[] = banksOf("pythMsolBanks");
+  for (let i = 0; !reused && i < PYTH_MSOL_BANKS; i++) {
     pythMsolBanks.push(await addRegularBank(config.MSOL_MINT, config.MSOL_BASE_ORACLE, 1 + i));
   }
-  const pythLstBanks: PublicKey[] = [];
-  for (let i = 0; i < PYTH_LST_BANKS; i++) {
+  const pythLstBanks: PublicKey[] = banksOf("pythLstBanks");
+  for (let i = 0; !reused && i < PYTH_LST_BANKS; i++) {
     pythLstBanks.push(await addRegularBank(config.JITOSOL_MINT, config.MSOL_BASE_ORACLE, 1 + i));
   }
-  const scopeBanks: PublicKey[] = [];
-  for (let i = 0; i < SCOPE_BANKS; i++) {
+  const scopeBanks: PublicKey[] = banksOf("scopeBanks");
+  for (let i = 0; !reused && i < SCOPE_BANKS; i++) {
     // P0 banks use USDC seeds 1..P0_BANKS.
     scopeBanks.push(
       await addRegularBank(config.P0_COLLATERAL_MINT, config.KAMINO_COLLATERAL_ORACLE, 1 + P0_BANKS + i),
@@ -508,7 +603,7 @@ async function main() {
   writeJsonFile("liquidation_e2e_state.json", state);
 
   console.log("\n\n\n 5f. SET PythMSOL / PythLST / Scope ORACLES");
-  await configureLstOracle(true, configCommon, config.LIQUIDATOR_WALLET_PATH, [
+  if (!reused) await configureLstOracle(true, configCommon, config.LIQUIDATOR_WALLET_PATH, [
     ...pythMsolBanks.map((bank) => ({
       bank,
       oracle: config.MSOL_BASE_ORACLE,
@@ -523,7 +618,7 @@ async function main() {
     })),
   ]);
   await sleep(1000);
-  await configureScopeOracle(
+  if (!reused) await configureScopeOracle(
     true,
     configCommon,
     config.LIQUIDATOR_WALLET_PATH,
@@ -563,8 +658,8 @@ async function main() {
     KAMINO_MARKET: config.KAMINO_MARKET,
     SEED: 42,
   };
-  let kaminoBanks: PublicKey[] = [];
-  for (let i = 0; i < KAMINO_BANKS; i++) {
+  let kaminoBanks: PublicKey[] = banksOf("kaminoBanks");
+  for (let i = 0; !reused && i < KAMINO_BANKS; i++) {
     kaminoBankConfig.SEED = 42 + i;
     kaminoBanks.push(
       await addKaminoBank(
@@ -584,7 +679,7 @@ async function main() {
   writeJsonFile("liquidation_e2e_state.json", state);
 
   console.log("\n\n\n 6b. SET ScopeKamino ORACLES");
-  await configureScopeOracle(
+  if (!reused) await configureScopeOracle(
     true,
     configCommon,
     config.LIQUIDATOR_WALLET_PATH,
@@ -608,8 +703,8 @@ async function main() {
     RESERVE_ORACLE: config.KAMINO_RESERVE_ORACLE,
     FARM_STATE: config.KAMINO_FARM_STATE,
   };
-  let kaminoObligations: PublicKey[] = [];
-  for (let i = 0; i < kaminoBanks.length; i++) {
+  let kaminoObligations: PublicKey[] = banksOf("kaminoObligations");
+  for (let i = 0; !reused && i < kaminoBanks.length; i++) {
     kaminoObligationConfig.BANK = kaminoBanks[i];
     kaminoObligations.push(
       await initKaminoObligation(
@@ -667,8 +762,8 @@ async function main() {
     KAMINO_MARKET: config.MSOL_KAMINO_MARKET,
     SEED: 142,
   };
-  let kaminoMsolBanks: PublicKey[] = [];
-  for (let i = 0; i < KAMINO_MSOL_BANKS; i++) {
+  let kaminoMsolBanks: PublicKey[] = banksOf("kaminoMsolBanks");
+  for (let i = 0; !reused && i < KAMINO_MSOL_BANKS; i++) {
     kaminoMsolBankConfig.SEED = 142 + i;
     kaminoMsolBanks.push(
       await addKaminoBank(
@@ -688,7 +783,7 @@ async function main() {
   writeJsonFile("liquidation_e2e_state.json", state);
 
   console.log("\n\n\n 8c. SET KaminoMSOL ORACLES");
-  await configureLstOracle(
+  if (!reused) await configureLstOracle(
     true,
     configCommon,
     config.LIQUIDATOR_WALLET_PATH,
@@ -712,8 +807,8 @@ async function main() {
     RESERVE_ORACLE: config.MSOL_KAMINO_RESERVE_ORACLE,
     FARM_STATE: config.MSOL_KAMINO_FARM_STATE,
   };
-  let kaminoMsolObligations: PublicKey[] = [];
-  for (let i = 0; i < kaminoMsolBanks.length; i++) {
+  let kaminoMsolObligations: PublicKey[] = banksOf("kaminoMsolObligations");
+  for (let i = 0; !reused && i < kaminoMsolBanks.length; i++) {
     kaminoMsolObligationConfig.BANK = kaminoMsolBanks[i];
     kaminoMsolObligations.push(
       await initKaminoObligation(
@@ -754,8 +849,8 @@ async function main() {
   }
 
   console.log("\n\n\n 8f. ADD KAMINO JitoSOL BANKS (KaminoLST)");
-  const kaminoLstBanks: PublicKey[] = [];
-  for (let i = 0; i < KAMINO_LST_BANKS; i++) {
+  const kaminoLstBanks: PublicKey[] = banksOf("kaminoLstBanks");
+  for (let i = 0; !reused && i < KAMINO_LST_BANKS; i++) {
     kaminoLstBanks.push(
       await addKaminoBank(
         true,
@@ -780,7 +875,7 @@ async function main() {
   writeJsonFile("liquidation_e2e_state.json", state);
 
   console.log("\n\n\n 8g. SET KaminoLST ORACLES");
-  await configureLstOracle(
+  if (!reused) await configureLstOracle(
     true,
     configCommon,
     config.LIQUIDATOR_WALLET_PATH,
@@ -794,8 +889,8 @@ async function main() {
   await sleep(1000);
 
   console.log("\n\n\n 8h. INIT KAMINO JitoSOL OBLIGATIONS");
-  const kaminoLstObligations: PublicKey[] = [];
-  for (const bank of kaminoLstBanks) {
+  const kaminoLstObligations: PublicKey[] = banksOf("kaminoLstObligations");
+  for (const bank of reused ? [] : kaminoLstBanks) {
     kaminoLstObligations.push(
       await initKaminoObligation(
         true,
@@ -807,7 +902,8 @@ async function main() {
           ADD_COMPUTE_UNITS: true,
           RESERVE_ORACLE: config.JITOSOL_KAMINO_RESERVE_ORACLE,
         },
-        config.LIQUIDATOR_WALLET_PATH,
+        // Seeds the obligation with 100 native JitoSOL from the signer, like the mSOL one above.
+        config.LIQUIDATEE_WALLET_PATH,
       ),
     );
     await sleep(1000);
@@ -851,8 +947,8 @@ async function main() {
     ORACLE_MAX_AGE: 300,
     CONFIG_FLAGS: 0,
   };
-  let juplendBanks: PublicKey[] = [];
-  for (let i = 0; i < JUPLEND_BANKS; i++) {
+  let juplendBanks: PublicKey[] = banksOf("juplendBanks");
+  for (let i = 0; !reused && i < JUPLEND_BANKS; i++) {
     juplendBankConfig.SEED = new BN(i);
     juplendBanks.push(
       await addJuplendBank(
@@ -873,7 +969,7 @@ async function main() {
   writeJsonFile("liquidation_e2e_state.json", state);
 
   console.log("\n\n\n 11b. SET ScopeJuplend ORACLES");
-  await configureScopeOracle(
+  if (!reused) await configureScopeOracle(
     true,
     configCommon,
     config.LIQUIDATOR_WALLET_PATH,
@@ -887,7 +983,7 @@ async function main() {
   await sleep(1000);
 
   console.log("\n\n\n 11c. RAISE ORACLE MAX AGE ON SCOPE-PRICED BANKS");
-  await configBankGov(
+  if (!reused) await configBankGov(
     true,
     {
       PROGRAM_ID: config.PROGRAM_ID,
@@ -906,7 +1002,7 @@ async function main() {
     BANK: juplendBanks[0],
     BANK_MINT: config.JUPLEND_COLLATERAL_MINT,
   };
-  for (let i = 0; i < juplendBanks.length; i++) {
+  for (let i = 0; !reused && i < juplendBanks.length; i++) {
     juplendPositionConfig.BANK = juplendBanks[i];
     await initJuplendPosition(
       true,
@@ -949,15 +1045,22 @@ async function main() {
     BANK_MINT: config.DEBT_MINT,
     SEED: 0,
   };
-  const debtBank = await addBank(
-    true,
-    bankConfig,
-    config.LIQUIDATOR_WALLET_PATH,
-  );
+  const debtBank = reused
+    ? new PublicKey(reused.debtBank!)
+    : await addBank(true, bankConfig, config.LIQUIDATOR_WALLET_PATH);
   await sleep(1000);
   // const debtBank = new PublicKey("HrL7JdYsCBjuJaZXJ86RGgs7eeDbNWdYK3MhSk2W8HSW");
   state.debtBank = pkToString(debtBank);
   writeJsonFile("liquidation_e2e_state.json", state);
+  if (!reused) await configBankGov(
+    true,
+    {
+      PROGRAM_ID: config.PROGRAM_ID,
+      BANKS: [{ bank: debtBank, update: { oracleMaxAge: DEBT_ORACLE_MAX_AGE } }],
+    },
+    config.LIQUIDATOR_WALLET_PATH,
+  );
+  await sleep(1000);
 
   console.log("\n\n\n 15. DEPOSIT TO DEBT BANK BY LIQUIDATOR");
   let regularDepositConfig = {
@@ -967,12 +1070,30 @@ async function main() {
     AMOUNT: DEBT_DEPOSIT,
     MINT: config.DEBT_MINT,
   };
-  await depositRegular(
+  // A reused setup keeps the liquidator's deposit; the reset repaid every borrow back into it.
+  if (!reused) await depositRegular(
     true,
     regularDepositConfig,
     config.LIQUIDATOR_WALLET_PATH,
   );
   await sleep(1000);
+
+  if (reused) {
+    // The previous run lowered every collateral weight to 0.1 (step 17); borrowing needs them back.
+    console.log("\n\n\n 15b. RESTORE BORROWING WEIGHTS ON THE REUSED BANKS");
+    await configBankGov(
+      true,
+      {
+        PROGRAM_ID: config.PROGRAM_ID,
+        BANKS: SETUP_BANKS.flatMap(([key]) => banksOf(key)).map((bank) => ({
+          bank,
+          update: { assetWeightInit: REUSED_WEIGHT_INIT, assetWeightMaint: REUSED_WEIGHT_MAINT },
+        })),
+      },
+      config.LIQUIDATOR_WALLET_PATH,
+    );
+    await sleep(1000);
+  }
 
   console.log("\n\n\n 16. BORROW FROM DEBT BANK BY LIQUIDATEE");
   // Every collateral position is already open, so read the per-bank accounts off the liquidatee
@@ -1027,6 +1148,128 @@ async function main() {
   await borrow(true, borrowConfig, config.LIQUIDATEE_WALLET_PATH);
   await sleep(5000);
 
+  console.log("\n\n\n 16b. ADD KaminoPythPush / FixedJuplend BANKS (SANDWICH LIQUIDATEES ONLY)");
+  // The 14-position liquidatee already holds 4 costly positions, so these two only back sandwiches.
+  const kaminoPythBanks: PublicKey[] = banksOf("kaminoPythBanks");
+  const fixedJuplendBanks: PublicKey[] = banksOf("fixedJuplendBanks");
+  if (!reused) {
+    const kaminoPythBank = await addKaminoBank(
+      true,
+      { ...kaminoBankConfig, SEED: 42 + KAMINO_BANKS }, // left on its kaminoPythPush setup
+      config.LIQUIDATOR_WALLET_PATH,
+      false,
+    );
+    await sleep(1000);
+    kaminoObligations.push(
+      await initKaminoObligation(
+        true,
+        { ...kaminoObligationConfig, BANK: kaminoPythBank },
+        config.LIQUIDATOR_WALLET_PATH,
+      ),
+    );
+    await sleep(1000);
+    const fixedJuplendBank = await addJuplendBank(
+      true,
+      { ...juplendBankConfig, SEED: new BN(JUPLEND_BANKS) },
+      config.LIQUIDATOR_WALLET_PATH,
+    );
+    await sleep(1000);
+    await initJuplendPosition(
+      true,
+      { ...juplendPositionConfig, BANK: fixedJuplendBank },
+      config.LIQUIDATOR_WALLET_PATH,
+    );
+    await sleep(1000);
+    await setFixedOraclePrice(true, configCommon, config.LIQUIDATOR_WALLET_PATH, [
+      pkToBankOracleConfig(fixedJuplendBank),
+    ]);
+    await sleep(1000);
+    kaminoPythBanks.push(kaminoPythBank);
+    fixedJuplendBanks.push(fixedJuplendBank);
+    state.kaminoObligations = kaminoObligations.map(pkToString);
+    state.kaminoPythBanks = kaminoPythBanks.map(pkToString);
+    state.fixedJuplendBanks = fixedJuplendBanks.map(pkToString);
+    writeJsonFile("liquidation_e2e_state.json", state);
+  }
+
+  console.log("\n\n\n 16c. SANDWICH LIQUIDATEES: ONE COLLATERAL + PyUSD DEBT EACH");
+  // PT is left out: eva needs a collateral->PyUSD route for the in-tx swap.
+  const usdcKamino = {
+    BANK_MINT: config.KAMINO_COLLATERAL_MINT,
+    KAMINO_RESERVE: config.KAMINO_RESERVE,
+    KAMINO_MARKET: config.KAMINO_MARKET,
+    RESERVE_ORACLE: config.KAMINO_RESERVE_ORACLE,
+    FARM_STATE: config.KAMINO_FARM_STATE,
+  };
+  const msolKamino = {
+    BANK_MINT: config.MSOL_MINT,
+    KAMINO_RESERVE: config.MSOL_KAMINO_RESERVE,
+    KAMINO_MARKET: config.MSOL_KAMINO_MARKET,
+    RESERVE_ORACLE: config.MSOL_KAMINO_RESERVE_ORACLE,
+    FARM_STATE: config.MSOL_KAMINO_FARM_STATE,
+  };
+  const lstKamino = {
+    KAMINO_MARKET: config.JITOSOL_KAMINO_MARKET,
+    RESERVE_ORACLE: config.JITOSOL_KAMINO_RESERVE_ORACLE,
+  };
+  const sandwiches: {
+    setup: string;
+    bank: PublicKey;
+    amount: BN;
+    mint?: PublicKey; // regular deposit
+    kamino?: typeof lstKamino & Partial<typeof usdcKamino>;
+    reserve?: PublicKey;
+    juplend?: boolean;
+  }[] = [
+    { setup: "Fixed", bank: p0Banks[0], amount: SANDWICH_USD, mint: config.P0_COLLATERAL_MINT },
+    { setup: "Scope", bank: scopeBanks[0], amount: SANDWICH_USD, mint: config.P0_COLLATERAL_MINT },
+    { setup: "PythMSOL", bank: pythMsolBanks[0], amount: SANDWICH_LST, mint: config.MSOL_MINT },
+    { setup: "PythLST", bank: pythLstBanks[0], amount: SANDWICH_LST, mint: config.JITOSOL_MINT },
+    { setup: "KaminoPythPush", bank: kaminoPythBanks[0], amount: SANDWICH_USD, kamino: usdcKamino, reserve: config.KAMINO_RESERVE },
+    { setup: "KaminoMSOL", bank: kaminoMsolBanks[0], amount: SANDWICH_LST, kamino: msolKamino, reserve: config.MSOL_KAMINO_RESERVE },
+    { setup: "KaminoLST", bank: kaminoLstBanks[0], amount: SANDWICH_LST, kamino: lstKamino, reserve: config.JITOSOL_KAMINO_RESERVE },
+    { setup: "ScopeJuplend", bank: juplendBanks[0], amount: SANDWICH_USD, juplend: true },
+    { setup: "FixedJuplend", bank: fixedJuplendBanks[0], amount: SANDWICH_USD, juplend: true },
+  ];
+  const sandwichLiquidatees: PublicKey[] = [];
+  for (const s of sandwiches) {
+    const account = await initAccount(
+      true,
+      { PROGRAM_ID: config.PROGRAM_ID, GROUP: marginfiGroup, AUTHORITY: liquidateeWallet.publicKey },
+      config.LIQUIDATEE_WALLET_PATH,
+    );
+    await sleep(1000);
+    sandwichLiquidatees.push(account);
+    state.sandwichLiquidatees = sandwichLiquidatees.map(pkToString);
+    writeJsonFile("liquidation_e2e_state.json", state);
+
+    const deposit = { PROGRAM_ID: config.PROGRAM_ID, BANK: s.bank, ACCOUNT: account, AMOUNT: s.amount };
+    if (s.kamino) {
+      await depositKamino(true, { ...deposit, ...s.kamino }, config.LIQUIDATEE_WALLET_PATH);
+    } else if (s.juplend) {
+      await depositJuplend(true, deposit, config.LIQUIDATEE_WALLET_PATH);
+    } else {
+      await depositRegular(true, { ...deposit, MINT: s.mint }, config.LIQUIDATEE_WALLET_PATH);
+    }
+    await sleep(1000);
+
+    const [groups] = await getOraclesAndKaminoIxes(user.program, user.kaminoProgram, account);
+    await borrow(
+      true,
+      {
+        ...borrowConfig,
+        ACCOUNT: account,
+        AMOUNT: SANDWICH_BORROW,
+        KAMINO_RESERVES: s.reserve ? [s.reserve] : [],
+        JUPLEND_STATES: s.juplend ? [config.JUPLEND_LENDING] : [],
+        NEW_REMAINING: composeRemainingAccounts([...groups, [debtBank, config.DEBT_ORACLE]]),
+      },
+      config.LIQUIDATEE_WALLET_PATH,
+    );
+    await sleep(2000);
+    console.log(`${s.setup} sandwich liquidatee: ${account}`);
+  }
+
   console.log(
     "\n\n\n 17. SET ALL COLLATERAL BANKS' ASSET WEIGHT TO 0.1 TO RENDER LIQUIDATEE UNHEALTHY",
   );
@@ -1045,6 +1288,8 @@ async function main() {
         ...kaminoMsolBanks,
         ...kaminoLstBanks,
         ...juplendBanks,
+        ...kaminoPythBanks,
+        ...fixedJuplendBanks,
       ].map((bank) => ({
         bank,
         update: { assetWeightInit: 0.1, assetWeightMaint: 0.1 },
@@ -1054,23 +1299,25 @@ async function main() {
   );
   await sleep(1000);
 
-  console.log("\n\n\n 18. CONFIRM LIQUIDATEE IS LIQUIDATABLE NOW");
-  const pulseHealthConfig = {
-    PROGRAM_ID: config.PROGRAM_ID,
-    ACCOUNT: liquidatee,
-    LUT: config.LUT, // copied from health_pulse.ts
-  };
-  const cache = await pulseHealth(pulseHealthConfig, config.LIQUIDATEE_WALLET_PATH);
-  assertHealthCacheOk(cache);
-  const healthMaint = wrappedI80F48toBigNumber(cache.assetValueMaint)
-    .minus(wrappedI80F48toBigNumber(cache.liabilityValueMaint))
-    .toNumber();
-  if (healthMaint >= 0) {
-    throw new Error(`liquidatee is still healthy: maintenance health $${healthMaint}`);
+  console.log("\n\n\n 18. CONFIRM EVERY LIQUIDATEE IS LIQUIDATABLE NOW");
+  for (const account of [liquidatee, ...sandwichLiquidatees]) {
+    const pulseHealthConfig = {
+      PROGRAM_ID: config.PROGRAM_ID,
+      ACCOUNT: account,
+      LUT: config.LUT, // copied from health_pulse.ts
+    };
+    const cache = await pulseHealth(pulseHealthConfig, config.LIQUIDATEE_WALLET_PATH);
+    assertHealthCacheOk(cache);
+    const healthMaint = wrappedI80F48toBigNumber(cache.assetValueMaint)
+      .minus(wrappedI80F48toBigNumber(cache.liabilityValueMaint))
+      .toNumber();
+    if (healthMaint >= 0) {
+      throw new Error(`liquidatee ${account} is still healthy: maintenance health $${healthMaint}`);
+    }
+    console.log(
+      `Account ${account} is now liquidatable (maintenance health $${healthMaint.toFixed(6)})`,
+    );
   }
-  console.log(
-    `Account ${liquidatee} is now liquidatable (maintenance health $${healthMaint.toFixed(6)})`,
-  );
 }
 
 type BalanceRequirement = {
@@ -1081,7 +1328,7 @@ type BalanceRequirement = {
   needed: BN;
 };
 
-/** Warns (does not throw) if either wallet is short of what the deposit steps will spend. */
+/** Throws, before anything is sent, if either wallet is short of what the deposit steps will spend. */
 async function warnOnMissingBalances(
   config: Config,
   reqs: BalanceRequirement[],
@@ -1127,8 +1374,70 @@ async function warnOnMissingBalances(
     }
   }
   if (!allOk) {
-    console.warn("  ^ script will fail at the deposit steps until topped up");
+    throw new Error("wallets are short of the tokens listed above; top up and re-run");
   }
+}
+
+/** Throws, before anything is sent, if a wallet lacks the SOL its steps spend on rent and fees. */
+async function assertSolBalances(
+  config: Config,
+  reqs: { who: string; owner: PublicKey; needed: BN }[],
+) {
+  const { connection } = commonSetup(true, config.PROGRAM_ID, config.LIQUIDATOR_WALLET_PATH);
+  let allOk = true;
+  for (const r of reqs) {
+    const have = new BN(await connection.getBalance(r.owner));
+    console.log(`  ${r.who} SOL: has ${toUi(have, 9)}, needs ${toUi(r.needed, 9)}`);
+    if (have.lt(r.needed)) allOk = false;
+  }
+  if (!allOk) {
+    throw new Error("wallets are short of SOL (see above); top up and re-run");
+  }
+}
+
+/**
+ * A finished setup from an earlier run (group, banks, liquidator with its PyUSD deposit) to reuse,
+ * or undefined without a state file. Throws on a setup that stopped partway, lists accounts that are
+ * gone, or still has funded liquidatees: unwind, reset or delete the file first, as the error says.
+ */
+async function loadReusableState(config: Config): Promise<SerializedState | undefined> {
+  if (!existsSync(STATE_FILE)) return undefined;
+  const raw: SerializedState = JSON.parse(readFileSync(STATE_FILE, "utf8"));
+  const lists = SETUP_BANKS.map(([key, n]) => [raw[key] as string[] | undefined, n] as const);
+  if (!raw.liquidator || !raw.debtBank || lists.some(([list, n]) => list?.length !== n)) {
+    throw new Error(
+      `${STATE_FILE} is from a setup that stopped partway. Run unwind_liquidatable_user_e2e.ts ` +
+        "first (or delete the file to start over).",
+    );
+  }
+
+  const { connection, program } = commonSetup(
+    true,
+    config.PROGRAM_ID,
+    config.LIQUIDATOR_WALLET_PATH,
+  );
+  const keys = [raw.marginfiGroup, raw.liquidator, raw.debtBank, ...lists.flatMap(([l]) => l!)];
+  const infos = await connection.getMultipleAccountsInfo(keys.map((k) => new PublicKey(k)));
+  const gone = keys.filter((_, i) => !infos[i]?.owner.equals(program.programId));
+  if (gone.length > 0) {
+    throw new Error(
+      `${STATE_FILE} lists accounts that no longer exist (${gone.join(", ")}). Delete the file ` +
+        "to start over.",
+    );
+  }
+
+  // A reset empties the last run's liquidatees; their keys are about to be overwritten.
+  const liquidatees = [raw.liquidatee, ...(raw.sandwichLiquidatees ?? [])].filter(Boolean);
+  for (const key of liquidatees) {
+    const acc: any = await program.account.marginfiAccount.fetchNullable(new PublicKey(key!));
+    if (acc?.lendingAccount.balances.some((b: any) => b.active)) {
+      throw new Error(
+        `liquidatee ${key} from the last run still has open positions. Run ` +
+          "reset_liquidatable_user_e2e.ts first.",
+      );
+    }
+  }
+  return raw;
 }
 
 function toUi(amount: BN, decimals: number): string {

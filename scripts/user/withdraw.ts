@@ -184,7 +184,8 @@ export async function withdraw(
       }).compileToV0Message(luts),
     );
     v0Tx.sign([user.wallet.payer]);
-    const signature = await connection.sendTransaction(v0Tx, { maxRetries: 2 });
+    // No maxRetries: let the RPC keep rebroadcasting until the blockhash expires.
+    const signature = await connection.sendTransaction(v0Tx);
     await connection.confirmTransaction(
       { signature, blockhash, lastValidBlockHeight },
       "confirmed",

@@ -13,7 +13,7 @@ export type BalanceRequirement = {
   needed: BN;
 };
 
-/** Warns (does not throw) if either wallet is short of what the deposit steps will spend. */
+/** Throws, before anything is sent, if either wallet is short of what the deposit steps will spend. */
 export async function warnOnMissingBalances(
   programId: string,
   walletPath: string,
@@ -56,7 +56,7 @@ export async function warnOnMissingBalances(
     }
   }
   if (!allOk) {
-    console.warn("  ^ script will fail at the deposit steps until topped up");
+    throw new Error("wallets are short of the tokens listed above; top up and re-run");
   }
 }
 

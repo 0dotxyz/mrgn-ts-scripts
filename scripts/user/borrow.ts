@@ -272,9 +272,8 @@ export async function borrow(
       const v0Tx = new VersionedTransaction(v0Message);
 
       v0Tx.sign([user.wallet.payer]);
-      const signature = await connection.sendTransaction(v0Tx, {
-        maxRetries: 2,
-      });
+      // No maxRetries: let the RPC keep rebroadcasting until the blockhash expires.
+      const signature = await connection.sendTransaction(v0Tx);
       await connection.confirmTransaction(
         { signature, blockhash, lastValidBlockHeight },
         "confirmed",
