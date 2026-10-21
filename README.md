@@ -174,7 +174,8 @@ pnpm banks:get-accounts [options]
 Enables and configures the per-bank circuit breaker from
 [scripts/admin/circuit_breaker_config.json](scripts/admin/circuit_breaker_config.json). Each
 category in the JSON carries its own tiers, halt durations and window caps, and a list of banks;
-to move a bank between categories, move its entry from one `banks` array to the other. Every
+to move a bank between categories, move its entry from one `banks` array to the other. A category
+can also set `cbEmaAlphaBps`, which replaces the shared one for its banks. Every
 config is validated against the program's `validate_circuit_breaker` rules before anything is
 fetched.
 
