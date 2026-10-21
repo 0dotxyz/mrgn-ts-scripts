@@ -1,7 +1,7 @@
 /**
  * Web Scraper Utility
  *
- * Uses puppeteer-core to render JavaScript-heavy pages (like Switchboard, Kamino)
+ * Uses puppeteer-core to render JavaScript-heavy pages (like Kamino)
  * and extract content that would otherwise require a browser.
  *
  * Requires Chrome/Chromium to be installed on the system.
@@ -185,47 +185,4 @@ export async function scrapeRenderedPage(
       await page.close();
     }
   }
-}
-
-/**
- * Scrape Switchboard feed page and extract key information
- */
-export async function scrapeSwitchboardFeed(feedAddress: string): Promise<{
-  success: boolean;
-  authority?: string;
-  name?: string;
-  queue?: string;
-  value?: string;
-  error?: string;
-}> {
-  const url = `https://ondemand.switchboard.xyz/solana/mainnet/feed/${feedAddress}`;
-
-  const result = await scrapeRenderedPage(url, {
-    waitForSelector: "body",
-    timeout: 30000,
-  });
-
-  if (!result.success || !result.content) {
-    return {
-      success: false,
-      error: result.error || "Failed to scrape page",
-    };
-  }
-
-  const content = result.content;
-
-  // Parse the content to extract key fields
-  // These patterns may need adjustment based on actual page structure
-  const authorityMatch = content.match(/Authority[:\s]+([A-Za-z0-9]{32,44})/i);
-  const nameMatch = content.match(/Name[:\s]+([^\n]+)/i);
-  const queueMatch = content.match(/Queue[:\s]+([A-Za-z0-9]{32,44})/i);
-  const valueMatch = content.match(/(?:Value|Result|Price)[:\s]+\$?([\d.,]+)/i);
-
-  return {
-    success: true,
-    authority: authorityMatch?.[1]?.trim(),
-    name: nameMatch?.[1]?.trim(),
-    queue: queueMatch?.[1]?.trim(),
-    value: valueMatch?.[1]?.trim(),
-  };
 }

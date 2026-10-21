@@ -10,7 +10,7 @@ import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
 import { commonSetup } from "../../lib/common-setup";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
-import { BankAndOracles, composeRemainingAccounts } from "../lib/utils";
+import { BankAndOracles, composeRemainingAccounts } from "../../lib/utils";
 
 const sendTx = true;
 

@@ -19,7 +19,7 @@ import {
 } from "./lib/utils";
 import { deriveLiquidityVaultAuthority } from "../common/pdas";
 import { commonSetup } from "../../lib/common-setup";
-import { bs58 } from "@switchboard-xyz/common";
+import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { BankAndOracles } from "../../lib/utils";
 
 const sendTx = false;

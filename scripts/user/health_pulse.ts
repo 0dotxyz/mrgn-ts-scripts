@@ -7,10 +7,15 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { bytesToF64, getOraclesAndCrankSwb } from "../../lib/utils";
-import { commonSetup, registerKaminoProgram } from "../../lib/common-setup";
+import { bytesToF64, getOraclesAndKaminoIxes } from "../../lib/utils";
+import {
+  commonSetup,
+  registerJuplendProgram,
+  registerKaminoProgram,
+} from "../../lib/common-setup";
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { KLEND_PROGRAM_ID } from "../kamino/kamino-types";
+import { JUPLEND_LENDING_PROGRAM_ID } from "../juplend/lib/utils";
 
 export type Config = {
   PROGRAM_ID: string;
@@ -42,15 +47,15 @@ export async function pulseHealth(
     undefined,
   );
   registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
+  registerJuplendProgram(user, JUPLEND_LENDING_PROGRAM_ID.toString());
   const program = user.program;
   const connection = user.connection;
 
-  let [activeBalances, kaminoIxes] = await getOraclesAndCrankSwb(
+  let [activeBalances, kaminoIxes] = await getOraclesAndKaminoIxes(
     program,
     user.kaminoProgram,
     config.ACCOUNT,
-    connection,
-    user.wallet.payer,
+    user.juplendProgram,
   );
 
   const oracleMeta: AccountMeta[] = activeBalances.flat().map((pubkey) => {
@@ -135,6 +140,26 @@ export async function pulseHealth(
     if (price != 0) {
       console.log("price of balance " + i + ": " + price.toFixed(10));
     }
+  }
+  return cache;
+}
+
+/**
+ * Throws unless the pulse priced every balance. `pulse_health` itself never fails: an oracle
+ * problem is recorded in the cache and the values are left at zero, so a caller that reads health
+ * off the cache must check this first. The program's own flags are the test: `ENGINE_OK` is set
+ * whenever the risk engine ran (an unhealthy account still records `mrgn_err` 6009,
+ * RiskEngineInitRejected) and `ORACLE_OK` is cleared on any oracle or internal error.
+ */
+export function assertHealthCacheOk(cache: any) {
+  const ENGINE_OK = 2;
+  const ORACLE_OK = 4;
+  if ((cache.flags & ENGINE_OK) === 0 || (cache.flags & ORACLE_OK) === 0) {
+    throw new Error(
+      `health cache is not usable: flags ${cache.flags}, mrgn_err ${cache.mrgnErr}, ` +
+        `internal_err ${cache.internalErr} (balance index ${cache.errIndex}); ` +
+        `fix the oracle / venue refresh before going on`,
+    );
   }
 }
 

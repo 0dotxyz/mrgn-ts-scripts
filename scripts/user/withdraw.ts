@@ -1,9 +1,12 @@
 // Run deposit_single_pool first to convert to LST. In production, these will likely be atomic.
 import {
   AccountMeta,
+  AddressLookupTableAccount,
   ComputeBudgetProgram,
   PublicKey,
   Transaction,
+  TransactionMessage,
+  VersionedTransaction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
@@ -11,6 +14,7 @@ import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
 import { commonSetup } from "../../lib/common-setup";
 import { BankAndOracles } from "../../lib/utils";
 import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import { VenueRefresh, venueRefreshIxs } from "../../lib/venue_refresh";
 
 const sendTx = false;
 
@@ -27,6 +31,13 @@ type Config = {
 
   // Optional, omit if not using MS.
   MULTISIG?: PublicKey;
+
+  /**
+   * Optional. Set when the account still holds Kamino/JupLend positions: the health check
+   * prices them and needs them refreshed in the same tx. With these or a LUT the tx is sent as v0.
+   */
+  REFRESH?: VenueRefresh;
+  LUT?: PublicKey;
 };
 
 const withdrawLiquidatorUSDC: Config = {
@@ -138,10 +149,46 @@ export async function withdraw(
       config.BANK,
   );
 
+  const refreshIxs = config.REFRESH
+    ? await venueRefreshIxs(user, config.REFRESH)
+    : [];
+  if (refreshIxs.length === 0 && !config.LUT) {
+    try {
+      const signature = await sendAndConfirmTransaction(connection, transaction, [
+        user.wallet.payer,
+      ]);
+      console.log("Transaction signature:", signature);
+    } catch (error) {
+      console.error("Transaction failed:", error);
+    }
+    return;
+  }
+
+  let luts: AddressLookupTableAccount[] = [];
+  if (config.LUT) {
+    const lut = (await connection.getAddressLookupTable(config.LUT)).value;
+    if (lut) luts = [lut];
+    else console.warn(`Warning: LUT ${config.LUT.toBase58()} not found; sending without it.`);
+  }
   try {
-    const signature = await sendAndConfirmTransaction(connection, transaction, [
-      user.wallet.payer,
-    ]);
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+    const v0Tx = new VersionedTransaction(
+      new TransactionMessage({
+        payerKey: user.wallet.publicKey,
+        recentBlockhash: blockhash,
+        instructions: [
+          ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
+          ...refreshIxs,
+          ...transaction.instructions,
+        ],
+      }).compileToV0Message(luts),
+    );
+    v0Tx.sign([user.wallet.payer]);
+    const signature = await connection.sendTransaction(v0Tx, { maxRetries: 2 });
+    await connection.confirmTransaction(
+      { signature, blockhash, lastValidBlockHeight },
+      "confirmed",
+    );
     console.log("Transaction signature:", signature);
   } catch (error) {
     console.error("Transaction failed:", error);

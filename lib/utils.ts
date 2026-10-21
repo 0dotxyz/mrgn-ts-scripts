@@ -33,11 +33,21 @@ import {
 } from "./constants";
 import { Environment, MarginfiAccountRaw } from "@mrgnlabs/marginfi-client-v2";
 import { Program, Provider } from "@coral-xyz/anchor";
-import * as sb from "@switchboard-xyz/on-demand";
-import { CrossbarClient } from "@switchboard-xyz/common";
 import { KaminoLending } from "../idl/kamino_lending";
 import { simpleRefreshReserve } from "../scripts/kamino/ixes-common";
+import { Lending } from "../idl/juplend_earn";
+import { makeJuplendNativeUpdateRateIx } from "../scripts/juplend/lib/utils";
+import { deriveSinglePoolKeys } from "../scripts/common/pdas";
 import { Marginfi } from "../idl/marginfi";
+import {
+  ASSET_TAG_DEFAULT,
+  ASSET_TAG_DRIFT,
+  ASSET_TAG_JUPLEND,
+  ASSET_TAG_KAMINO,
+  ASSET_TAG_SOL,
+  ASSET_TAG_SOLEND,
+  ASSET_TAG_STAKED,
+} from "./constants";
 
 export const u32_MAX: number = 4294967295;
 
@@ -350,148 +360,108 @@ export async function getBankPrices(
   return priceMap;
 }
 
-export async function getOraclesAndCrankSwb(
+/**
+ * Accounts a bank takes in a health check, the bank itself included. Mirrors
+ * `get_remaining_accounts_per_bank`; `setup` is the Anchor enum key, matched case-insensitively.
+ */
+export function remainingAccountsPerBank(setup: string, assetTag: number): number {
+  const bySetup: Record<string, number> = {
+    fixed: 1,
+    fixedkamino: 2,
+    fixeddrift: 2,
+    fixedjuplend: 2,
+    pythmsol: 3,
+    kaminomsol: 4,
+    juplendmsol: 4,
+    pythlst: 3,
+    kaminolst: 4,
+    juplendlst: 4,
+    ptpyth: 3,
+    ptfixed: 2,
+    scopekamino: 3,
+    scopejuplend: 3,
+  };
+  const n = bySetup[setup.toLowerCase()];
+  if (n !== undefined) return n;
+  switch (assetTag) {
+    case ASSET_TAG_DEFAULT:
+    case ASSET_TAG_SOL:
+      return 2;
+    case ASSET_TAG_KAMINO:
+    case ASSET_TAG_DRIFT:
+    case ASSET_TAG_SOLEND:
+    case ASSET_TAG_JUPLEND:
+      return 3;
+    case ASSET_TAG_STAKED:
+      return 5;
+    default:
+      throw new Error(`unknown asset tag ${assetTag}`);
+  }
+}
+
+/**
+ * Remaining accounts for each active balance, plus the venue refresh ixes a live health check
+ * needs in the same tx: Kamino reserves always, JupLend lending rates when `juplendProgram` is
+ * given.
+ */
+export async function getOraclesAndKaminoIxes(
   program: Program<Marginfi>,
   kaminoProgram: Program<KaminoLending>,
   account: PublicKey,
-  connection: Connection,
-  payer: Keypair,
+  juplendProgram?: Program<Lending>,
 ): Promise<[BankAndOracles[], TransactionInstruction[]]> {
-  let swbPullFeeds: PublicKey[] = [];
   const ixs: TransactionInstruction[] = [];
   let activeBalances: BankAndOracles[] = [];
 
   let acc = await program.account.marginfiAccount.fetch(account);
-  dumpAccBalances(acc);
+  // The client-v2 raw type predates 0.1.12's Balance rename; the dump only reads shares.
+  dumpAccBalances(acc as any);
   let balances = acc.lendingAccount.balances;
   for (let i = 0; i < balances.length; i++) {
     const bal = balances[i];
     if (bal.active == 1) {
       const bankAcc = await program.account.bank.fetch(bal.bankPk);
-      const setup = bankAcc.config.oracleSetup;
-      const keys = bankAcc.config.oracleKeys;
+      const setup = Object.keys(bankAcc.config.oracleSetup)[0];
+      const keys: PublicKey[] = bankAcc.config.oracleKeys;
+      const count = remainingAccountsPerBank(setup, bankAcc.config.assetTag);
 
-      if ("switchboardPull" in setup) {
-        const oracle = keys[0];
-        console.log(`[${i}] swb oracle: ${oracle}`);
-        swbPullFeeds.push(oracle);
-        activeBalances.push([bal.bankPk, oracle]);
-      } else if ("kaminoSwitchboardPull" in setup) {
-        const oracle = keys[0];
-        console.log(`[${i}] kamino swb oracle: ${oracle}`);
-        console.log(`  extra key: ${keys[1]}`);
-        swbPullFeeds.push(oracle); // still a switchboard feed
-        activeBalances.push([bal.bankPk, oracle, keys[1]]);
-
-        const kaminoReservePk: PublicKey = bankAcc.integrationAcc1;
-        let reserve =
-          await kaminoProgram.account.reserve.fetch(kaminoReservePk);
-        const ix = await simpleRefreshReserve(
-          kaminoProgram,
-          kaminoReservePk,
-          reserve.lendingMarket,
-          reserve.config.tokenInfo.scopeConfiguration.priceFeed,
-        );
-        ixs.push(ix);
-      } else if ("pythPushOracle" in setup) {
-        const oracle = keys[0];
-        console.log(`[${i}] pyth oracle: ${oracle}`);
-        activeBalances.push([bal.bankPk, oracle]);
-      } else if ("kaminoPythPush" in setup) {
-        const oracle = keys[0];
-        console.log(`[${i}] kamino pyth oracle: ${oracle}`);
-        console.log(`  extra key: ${keys[1]}`);
-        activeBalances.push([bal.bankPk, oracle, keys[1]]);
-
-        const kaminoReservePk: PublicKey = bankAcc.integrationAcc1;
-        let reserve =
-          await kaminoProgram.account.reserve.fetch(kaminoReservePk);
-        const ix = await simpleRefreshReserve(
-          kaminoProgram,
-          kaminoReservePk,
-          reserve.lendingMarket,
-          reserve.config.tokenInfo.scopeConfiguration.priceFeed,
-        );
-        ixs.push(ix);
-      } else if ("stakedWithPythPush" in setup) {
-        const oracle = keys[0];
-        console.log(`[${i}] pyth oracle: ${oracle}`);
-        console.log(`  lst pool/mint: ${keys[1]} ${keys[2]}`);
-        activeBalances.push([bal.bankPk, oracle, keys[1], keys[2]]);
-      } else if ("fixed" in setup) {
-        // do nothing
+      let accounts: PublicKey[];
+      if (bankAcc.config.assetTag === ASSET_TAG_STAKED) {
+        // bank, oracle, lst mint, sol pool, on-ramp. `oracle_keys[3]` holds the on-ramp when set,
+        // otherwise the program derives it off the vote account in `integration_acc_1` (see
+        // `expected_staked_onramp`).
+        const onramp = keys[3].equals(PublicKey.default)
+          ? deriveSinglePoolKeys(bankAcc.integrationAcc1).onramp
+          : keys[3];
+        accounts = [keys[0], keys[1], keys[2], onramp];
+      } else if (setup.toLowerCase().startsWith("fixed")) {
+        // Fixed setups clear `oracle_keys[0]` and keep any venue account in `oracle_keys[1]`.
+        accounts = keys.slice(1, count);
       } else {
-        const oracle = keys[0];
-        console.log(`[${i}] other oracle: ${oracle}`);
-        activeBalances.push([bal.bankPk, oracle]);
+        accounts = keys.slice(0, count - 1);
       }
-      // TODO drift
-    }
-  }
+      console.log(`[${i}] ${setup}: ${accounts.map((k) => k.toBase58()).join(", ") || "(bank only)"}`);
+      activeBalances.push([bal.bankPk, ...accounts]);
 
-  if (swbPullFeeds.length > 0) {
-    try {
-      const swbProgram = await sb.AnchorUtils.loadProgramFromConnection(
-        // TODO fix when web3 is bumped in swb?
-        // @ts-ignore
-        connection,
-      );
-
-      const pullFeedInstances: string[] = swbPullFeeds.map((pubkey) =>
-        pubkey.toString(),
-      );
-
-      // TODO env var
-      const crossbarClient = new CrossbarClient(
-        "https://integrator-crossbar.prod.mrgn.app",
-      );
-
-      const [{ pullIxns, lookupTables }] =
-        await crossbarClient.fetchSolanaUpdates(
-          "mainnet",
-          pullFeedInstances,
-          payer.publicKey.toString(),
-          1,
+      // JupLend lendings are stale unless updated in the same second as the health check.
+      if (bankAcc.config.assetTag === ASSET_TAG_JUPLEND && juplendProgram) {
+        ixs.push(
+          await makeJuplendNativeUpdateRateIx(juplendProgram, bankAcc.integrationAcc1),
         );
-
-      let luts: AddressLookupTableAccount[] = [];
-      for (let i = 0; i < lookupTables.length; i++) {
-        const lut = await connection.getAddressLookupTable(
-          new PublicKey(lookupTables[i]),
-        );
-        if (!lut || !lut.value) {
-          console.warn(
-            `Warning: LUT ${lookupTables[i]} not found on-chain. Proceeding without it.`,
-          );
-        } else {
-          luts.push(lut.value);
-        }
       }
-
-      const { blockhash, lastValidBlockHeight } =
-        await connection.getLatestBlockhash();
-
-      const v0Message = new TransactionMessage({
-        payerKey: payer.publicKey,
-        recentBlockhash: blockhash,
-        instructions: pullIxns,
-      }).compileToV0Message(luts);
-
-      const v0Tx = new VersionedTransaction(v0Message);
-      v0Tx.sign([payer]);
-
-      const signature = await connection.sendTransaction(v0Tx, {
-        maxRetries: 5,
-      });
-      await connection.confirmTransaction(
-        { signature, blockhash, lastValidBlockHeight },
-        "confirmed",
-      );
-
-      console.log("Swb crank (v0) tx signature:", signature);
-    } catch (err) {
-      console.log("swb crank failed");
-      console.log(err);
+      // Kamino reserves must be refreshed in the same slot as the health check.
+      if (bankAcc.config.assetTag === ASSET_TAG_KAMINO) {
+        const kaminoReservePk: PublicKey = bankAcc.integrationAcc1;
+        let reserve =
+          await kaminoProgram.account.reserve.fetch(kaminoReservePk);
+        const ix = await simpleRefreshReserve(
+          kaminoProgram,
+          kaminoReservePk,
+          reserve.lendingMarket,
+          reserve.config.tokenInfo.scopeConfiguration.priceFeed,
+        );
+        ixs.push(ix);
+      }
     }
   }
 
@@ -537,3 +507,21 @@ export const u32ToApr = (aprAsU32: number): number => {
 export const u32ToUtil = (utilAsU32: number): number => {
   return utilAsU32 / u32_MAX;
 };
+
+/**
+ * One-line summary of an error for logging. A `SendTransactionError` (or anything wrapping an
+ * axios response) stringifies into hundreds of lines of request/response dump, which buries the
+ * one line that actually says what went wrong.
+ */
+export function briefError(error: unknown): string {
+  const e = error as any;
+  const message =
+    e?.response?.data?.error?.message ?? e?.message ?? String(error);
+  const brief = String(message).split("\n")[0].slice(0, 300);
+
+  const logs: string[] | undefined = e?.logs ?? e?.transactionLogs;
+  const programErr = logs?.find(
+    (l) => l.includes("Error Message:") || l.includes("failed:"),
+  );
+  return programErr ? `${brief} | ${programErr.trim()}` : brief;
+}

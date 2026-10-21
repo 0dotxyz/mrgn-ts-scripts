@@ -104,7 +104,7 @@ export async function setPtOracle(
     const ix = await program.methods
       .lendingPoolSetOraclePrice(bigNumberToWrappedI80F48(cfg.price), cfg.setup)
       .accountsPartial({
-        admin: configCommon.ADMIN,
+        governanceAdmin: configCommon.ADMIN,
         bank: cfg.bank,
       })
       .remainingAccounts(remainingFor(cfg))

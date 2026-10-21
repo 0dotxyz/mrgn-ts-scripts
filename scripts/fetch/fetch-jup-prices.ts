@@ -17,7 +17,6 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// The Swb Feeds file
 if (!process.argv[2]) {
   console.error("❌ Missing the required Tokens file argument.");
   process.exit(1);

@@ -70,21 +70,15 @@ function shortOracleSetup(oracleSetup: string | undefined): string {
   const map: Record<string, string> = {
     None: "None",
     PythLegacy: "PythLgcy",
-    SwitchboardV2: "SwbV2",
     PythPushOracle: "PythPush",
-    SwitchboardPull: "SwbPull",
     StakedWithPythPush: "StkPyth",
     KaminoPythPush: "KamPyth",
-    KaminoSwitchboardPull: "KamSwb",
     Fixed: "Fixed",
     DriftPythPull: "DriftPyth",
-    DriftSwitchboardPull: "DriftSwb",
     SolendPythPull: "SolendPyth",
-    SolendSwitchboardPull: "SolendSwb",
     FixedKamino: "FixKam",
     FixedDrift: "FixDrift",
     JuplendPythPull: "JupPyth",
-    JuplendSwitchboardPull: "JupSwb",
     FixedJuplend: "FixJup",
   };
 

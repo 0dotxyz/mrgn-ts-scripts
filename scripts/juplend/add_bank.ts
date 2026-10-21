@@ -20,7 +20,7 @@ import {
   deriveLiquidityVaultAuthority,
 } from "../common/pdas";
 import { commonSetup } from "../../lib/common-setup";
-import { bs58 } from "@switchboard-xyz/common";
+import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
 
 const DEFAULT_WALLET_PATH = "/keys/staging-deploy.json";
@@ -32,8 +32,8 @@ type Config = {
   JUPLEND_LENDING: PublicKey;
   F_TOKEN_MINT: PublicKey;
   ORACLE: PublicKey;
-  /** 15 (JuplendPythPull) or 16 (JuplendSwitchboardPull) */
-  ORACLE_SETUP: { juplendPythPull: {} } | { juplendSwitchboardPull: {} };
+  /** 15 (JuplendPythPull) */
+  ORACLE_SETUP: { juplendPythPull: {} };
   SEED: BN;
   ADMIN: PublicKey;
   /** Pays flat sol fee to init and rent (generally the MS on mainnet) */
@@ -342,13 +342,11 @@ export function parseConfig(
   const oracleSetup = requireField(json, "oracleSetup");
 
   let ORACLE_SETUP: Config["ORACLE_SETUP"];
-  if (oracleSetup === "juplendSwitchboardPull" || oracleSetup === "switchboardPull") {
-    ORACLE_SETUP = { juplendSwitchboardPull: {} };
-  } else if (oracleSetup === "juplendPythPull" || oracleSetup === "pythPull") {
+  if (oracleSetup === "juplendPythPull" || oracleSetup === "pythPull") {
     ORACLE_SETUP = { juplendPythPull: {} };
   } else {
     throw new Error(
-      `Invalid oracleSetup: ${oracleSetup}. Expected juplendSwitchboardPull/switchboardPull or juplendPythPull/pythPull`,
+      `Invalid oracleSetup: ${oracleSetup}. Expected juplendPythPull/pythPull`,
     );
   }
 
