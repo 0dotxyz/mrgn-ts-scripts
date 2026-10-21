@@ -6,6 +6,7 @@ import {
   PublicKey,
   Transaction,
   TransactionInstruction,
+  TransactionExpiredBlockheightExceededError,
   TransactionMessage,
   VersionedTransaction,
   sendAndConfirmTransaction,
@@ -263,24 +264,39 @@ export async function borrow(
     await connection.getLatestBlockhash();
 
   if (sendTx) {
-    try {
-      const v0Message = new TransactionMessage({
-        payerKey: user.wallet.publicKey,
-        recentBlockhash: blockhash,
-        instructions,
-      }).compileToV0Message(luts);
-      const v0Tx = new VersionedTransaction(v0Message);
+    // An expired blockhash means the tx never landed, so retrying with a fresh one cannot borrow twice.
+    for (let attempt = 1; ; attempt++) {
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+      if (config.ADD_COMPUTE_UNITS && attempt > 1) {
+        // The dropped tx may have been priced out of busy accounts; bid twice as much each retry.
+        instructions[0] = ComputeBudgetProgram.setComputeUnitPrice({
+          microLamports: 100_000 * 2 ** (attempt - 1),
+        });
+      }
+      try {
+        const v0Message = new TransactionMessage({
+          payerKey: user.wallet.publicKey,
+          recentBlockhash: blockhash,
+          instructions,
+        }).compileToV0Message(luts);
+        const v0Tx = new VersionedTransaction(v0Message);
 
-      v0Tx.sign([user.wallet.payer]);
-      // No maxRetries: let the RPC keep rebroadcasting until the blockhash expires.
-      const signature = await connection.sendTransaction(v0Tx);
-      await connection.confirmTransaction(
-        { signature, blockhash, lastValidBlockHeight },
-        "confirmed",
-      );
-      console.log("Transaction signature:", signature);
-    } catch (error) {
-      console.error("Transaction failed:", error);
+        v0Tx.sign([user.wallet.payer]);
+        // No maxRetries: let the RPC keep rebroadcasting until the blockhash expires.
+        const signature = await connection.sendTransaction(v0Tx);
+        await connection.confirmTransaction(
+          { signature, blockhash, lastValidBlockHeight },
+          "confirmed",
+        );
+        console.log("Transaction signature:", signature);
+      } catch (error) {
+        if (error instanceof TransactionExpiredBlockheightExceededError && attempt < 3) {
+          console.log(`borrow expired before landing, retrying (${attempt}/2)`);
+          continue;
+        }
+        console.error("Transaction failed:", error);
+      }
+      break;
     }
   } else {
     const v0Message = new TransactionMessage({

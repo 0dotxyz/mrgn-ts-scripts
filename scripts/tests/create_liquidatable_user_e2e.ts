@@ -1,4 +1,11 @@
-import { Connection, PublicKey, SendTransactionError } from "@solana/web3.js";
+import {
+  ComputeBudgetProgram,
+  Connection,
+  PublicKey,
+  SendTransactionError,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import { loadKeypairFromFile } from "../utils/utils";
 import { initGroup } from "../admin/init_group";
 import { initAccount } from "../user/init_account";
@@ -13,7 +20,12 @@ import {
   composeRemainingAccounts,
   getOraclesAndKaminoIxes,
 } from "../../lib/utils";
-import { commonSetup, registerKaminoProgram } from "../../lib/common-setup";
+import {
+  commonSetup,
+  registerJuplendProgram,
+  registerKaminoProgram,
+} from "../../lib/common-setup";
+import { JUPLEND_LENDING_PROGRAM_ID } from "../juplend/lib/utils";
 import { configBankGov } from "../admin/config_bank_gov";
 import { setGovernanceAdmin } from "../admin/set_governance_admin";
 import { configureScopeOracle } from "../admin/config_bank_oracle_scope";
@@ -23,7 +35,7 @@ import {
   sleep,
   wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
-import { assertHealthCacheOk, pulseHealth } from "../user/health_pulse";
+import { assertHealthCacheOk } from "../user/health_pulse";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { addJuplendBank } from "../juplend/add_bank";
 import { depositJuplend } from "../juplend/deposit";
@@ -184,8 +196,10 @@ const REUSED_WEIGHT_MAINT = 0.75;
 /** SOL for rent and fees. A fresh setup pays for the group and 21 banks; a reused one barely any. */
 const LIQUIDATOR_SOL_FRESH = new BN(1.2 * 10 ** 9);
 const LIQUIDATOR_SOL_REUSED = new BN(0.05 * 10 ** 9);
-/** 10 marginfi accounts (~0.017 SOL each), plus the two Kamino obligation seeds on a fresh setup. */
-const LIQUIDATEE_SOL = new BN(0.25 * 10 ** 9);
+/** 10 marginfi accounts (~0.017 SOL each); a fresh setup adds the Kamino obligations and JupLend
+ * positions, which the liquidatee opens because they are seeded from the signer's tokens. */
+const LIQUIDATEE_SOL_FRESH = new BN(0.35 * 10 ** 9);
+const LIQUIDATEE_SOL_REUSED = new BN(0.2 * 10 ** 9);
 
 // Run book (before every program release):
 // 1. Run this script. The first run creates the group and banks; later runs reuse the ones in
@@ -342,7 +356,8 @@ async function main() {
       needed: P0_DEPOSIT.muln(P0_BANKS)
         .add(twice(KAMINO_BANKS, KAMINO_DEPOSIT))
         .add(SCOPE_DEPOSIT.muln(SCOPE_BANKS))
-        .add(SANDWICH_USD.muln(3)) }, // Fixed, Scope, KaminoPythPush
+        .add(SANDWICH_USD.muln(3)) // Fixed, Scope, KaminoPythPush
+        .addn(reused ? 0 : 100 * (KAMINO_BANKS + 1)) }, // obligation seeds, incl. KaminoPythPush
     { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "PT",
       mint: config.PT_COLLATERAL_MINT, needed: PT_DEPOSIT.muln(PT_BANKS) },
     { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "mSOL",
@@ -359,14 +374,17 @@ async function main() {
         .addn(reused ? 0 : 100 * KAMINO_LST_BANKS) }, // obligation seeds
     { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "USDT",
       mint: config.JUPLEND_COLLATERAL_MINT,
-      needed: twice(JUPLEND_BANKS, JUPLEND_DEPOSIT).add(SANDWICH_USD.muln(2)) }, // ScopeJuplend, FixedJuplend
+      needed: twice(JUPLEND_BANKS, JUPLEND_DEPOSIT)
+        .add(SANDWICH_USD.muln(2)) // ScopeJuplend, FixedJuplend
+        .addn(reused ? 0 : 100 * (JUPLEND_BANKS + 1)) }, // position seeds, incl. FixedJuplend
     { who: "Liquidator", owner: liquidatorWallet.publicKey, label: "PyUSD",
       mint: config.DEBT_MINT, needed: reused ? new BN(0) : DEBT_DEPOSIT }, // stays in the bank
   ]);
   await assertSolBalances(config, [
     { who: "Liquidator", owner: liquidatorWallet.publicKey,
       needed: reused ? LIQUIDATOR_SOL_REUSED : LIQUIDATOR_SOL_FRESH },
-    { who: "Liquidatee", owner: liquidateeWallet.publicKey, needed: LIQUIDATEE_SOL },
+    { who: "Liquidatee", owner: liquidateeWallet.publicKey,
+      needed: reused ? LIQUIDATEE_SOL_REUSED : LIQUIDATEE_SOL_FRESH },
   ]);
 
   console.log("\n\n\n 1. INIT GROUP");
@@ -710,7 +728,7 @@ async function main() {
       await initKaminoObligation(
         true,
         kaminoObligationConfig,
-        config.LIQUIDATOR_WALLET_PATH,
+        config.LIQUIDATEE_WALLET_PATH, // seeds 100 native from the signer
       ),
     );
     await sleep(1000);
@@ -1007,7 +1025,7 @@ async function main() {
     await initJuplendPosition(
       true,
       juplendPositionConfig,
-      config.LIQUIDATOR_WALLET_PATH,
+      config.LIQUIDATEE_WALLET_PATH, // seeds 100 native from the signer
     );
     await sleep(1000);
   }
@@ -1145,6 +1163,11 @@ async function main() {
     await sleep(1000);
   }
 
+  // Addresses added to a LUT only resolve from a later slot; a tx sent sooner gets dropped.
+  const lut = (await user.connection.getAddressLookupTable(config.LUT)).value!;
+  while ((await user.connection.getSlot("confirmed")) <= Number(lut.state.lastExtendedSlot) + 1) {
+    await sleep(500);
+  }
   await borrow(true, borrowConfig, config.LIQUIDATEE_WALLET_PATH);
   await sleep(5000);
 
@@ -1164,7 +1187,7 @@ async function main() {
       await initKaminoObligation(
         true,
         { ...kaminoObligationConfig, BANK: kaminoPythBank },
-        config.LIQUIDATOR_WALLET_PATH,
+        config.LIQUIDATEE_WALLET_PATH, // seeds 100 native from the signer
       ),
     );
     await sleep(1000);
@@ -1177,7 +1200,7 @@ async function main() {
     await initJuplendPosition(
       true,
       { ...juplendPositionConfig, BANK: fixedJuplendBank },
-      config.LIQUIDATOR_WALLET_PATH,
+      config.LIQUIDATEE_WALLET_PATH, // seeds 100 native from the signer
     );
     await sleep(1000);
     await setFixedOraclePrice(true, configCommon, config.LIQUIDATOR_WALLET_PATH, [
@@ -1301,12 +1324,7 @@ async function main() {
 
   console.log("\n\n\n 18. CONFIRM EVERY LIQUIDATEE IS LIQUIDATABLE NOW");
   for (const account of [liquidatee, ...sandwichLiquidatees]) {
-    const pulseHealthConfig = {
-      PROGRAM_ID: config.PROGRAM_ID,
-      ACCOUNT: account,
-      LUT: config.LUT, // copied from health_pulse.ts
-    };
-    const cache = await pulseHealth(pulseHealthConfig, config.LIQUIDATEE_WALLET_PATH);
+    const cache = await simulatePulse(config, account);
     assertHealthCacheOk(cache);
     const healthMaint = wrappedI80F48toBigNumber(cache.assetValueMaint)
       .minus(wrappedI80F48toBigNumber(cache.liabilityValueMaint))
@@ -1438,6 +1456,50 @@ async function loadReusableState(config: Config): Promise<SerializedState | unde
     }
   }
   return raw;
+}
+
+/**
+ * The health cache `pulse_health` would write for `account`, from a simulation: nothing is sent, so
+ * neither a dropped tx nor reading the account back before the RPC has the new state can fail it.
+ */
+async function simulatePulse(config: Config, account: PublicKey): Promise<any> {
+  const user = commonSetup(true, config.PROGRAM_ID, config.LIQUIDATEE_WALLET_PATH);
+  registerKaminoProgram(user, KLEND_PROGRAM_ID.toString());
+  registerJuplendProgram(user, JUPLEND_LENDING_PROGRAM_ID.toString());
+  const [groups, refreshIxs] = await getOraclesAndKaminoIxes(
+    user.program,
+    user.kaminoProgram,
+    account,
+    user.juplendProgram,
+  );
+  const pulse = await user.program.methods
+    .lendingAccountPulseHealth()
+    .accounts({ marginfiAccount: account })
+    .remainingAccounts(
+      groups.flat().map((pubkey) => ({ pubkey, isSigner: false, isWritable: false })),
+    )
+    .instruction();
+  const lut = (await user.connection.getAddressLookupTable(config.LUT)).value;
+  const tx = new VersionedTransaction(
+    new TransactionMessage({
+      payerKey: user.wallet.publicKey,
+      recentBlockhash: (await user.connection.getLatestBlockhash()).blockhash,
+      instructions: [
+        ComputeBudgetProgram.setComputeUnitLimit({ units: 2_000_000 }),
+        ...refreshIxs,
+        pulse,
+      ],
+    }).compileToV0Message(lut ? [lut] : []),
+  );
+  const sim = await user.connection.simulateTransaction(tx, {
+    sigVerify: false,
+    accounts: { addresses: [account.toBase58()], encoding: "base64" },
+  });
+  if (sim.value.err) {
+    throw new Error(`pulse_health simulation failed for ${account}: ${JSON.stringify(sim.value.err)}`);
+  }
+  const data = Buffer.from(sim.value.accounts![0]!.data[0], "base64");
+  return (user.program.coder.accounts.decode("marginfiAccount", data) as any).healthCache;
 }
 
 function toUi(amount: BN, decimals: number): string {
