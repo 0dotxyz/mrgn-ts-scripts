@@ -94,8 +94,8 @@ const CB_FIELDS: (keyof CbSettings)[] = [
 ];
 
 /**
- * Applies the shared settings to every category and flattens to one target per bank.
- * Throws on a bank listed under more than one category.
+ * Applies the shared settings to every category and flattens to one target per bank. A
+ * category's own `cbEmaAlphaBps` replaces the shared one. Throws on a bank in two categories.
  */
 export function loadTargets(file: typeof cbConfigFile): Target[] {
   const seen = new Map<string, string>();
@@ -112,7 +112,7 @@ export function loadTargets(file: typeof cbConfigFile): Target[] {
       cbWindowMaxDownBps: category.cbWindowMaxDownBps,
       cbWindowSeconds: category.cbWindowSeconds,
       cbEscalationWindowMult: file.shared.cbEscalationWindowMult,
-      cbEmaAlphaBps: file.shared.cbEmaAlphaBps,
+      cbEmaAlphaBps: category.cbEmaAlphaBps ?? file.shared.cbEmaAlphaBps,
     };
 
     const errors = validateSettings(settings);

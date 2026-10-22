@@ -197,6 +197,7 @@
       "cbWindowMaxUpBps": 700,
       "cbWindowMaxDownBps": 700,
       "cbWindowSeconds": 86400,
+      "cbEmaAlphaBps": 2000,
       "banks": [
         {
           "symbol": "EURC",
@@ -213,9 +214,9 @@
     {
       "name": "SOL & SOL-BASED",
       "cbDeviationBpsTiers": [
-        200,
-        350,
-        600
+        600,
+        1050,
+        1800
       ],
       "cbTierDurationsSeconds": [
         600,
@@ -225,6 +226,7 @@
       "cbWindowMaxUpBps": 2000,
       "cbWindowMaxDownBps": 5000,
       "cbWindowSeconds": 14400,
+      "cbEmaAlphaBps": 2000,
       "banks": [
         {
           "symbol": "8PEP",
@@ -514,9 +516,9 @@
     {
       "name": "BTC & ETH",
       "cbDeviationBpsTiers": [
-        350,
-        600,
-        1000
+        500,
+        850,
+        1450
       ],
       "cbTierDurationsSeconds": [
         600,
@@ -526,6 +528,7 @@
       "cbWindowMaxUpBps": 1500,
       "cbWindowMaxDownBps": 3000,
       "cbWindowSeconds": 14400,
+      "cbEmaAlphaBps": 2000,
       "banks": [
         {
           "symbol": "cbBTC",
@@ -562,9 +565,9 @@
     {
       "name": "MAJOR ALTS",
       "cbDeviationBpsTiers": [
-        600,
-        1000,
-        1800
+        800,
+        1350,
+        2400
       ],
       "cbTierDurationsSeconds": [
         600,
@@ -574,16 +577,12 @@
       "cbWindowMaxUpBps": 3000,
       "cbWindowMaxDownBps": 5000,
       "cbWindowSeconds": 14400,
+      "cbEmaAlphaBps": 2000,
       "banks": [
         {
           "symbol": "AAVE",
           "venue": "Native",
           "address": "AMcZkXZynCgse4McLr4KwpnbNifUXP6dmXnH2HEbZdNu"
-        },
-        {
-          "symbol": "HNT",
-          "venue": "Native",
-          "address": "JBcir4DPRPYVUpks9hkS1jtHMXejfeBo4xJGv3AYYHg6"
         },
         {
           "symbol": "HYPE",
@@ -606,11 +605,6 @@
           "address": "EbuSnXdFz1R4VPdaJ96KQQQmeYgZTHSzpNW94Tw1PE3H"
         },
         {
-          "symbol": "W",
-          "venue": "Native",
-          "address": "EYp4j7oHV2SfEGSE3GJ4MjsCL33CzmqLTdvTCdacQ9uG"
-        },
-        {
           "symbol": "ZEC",
           "venue": "Native",
           "address": "7GbG8B1aHpV4Q271ozU9EDEGPTLXpekv7m2UgyCgFzr5"
@@ -620,9 +614,9 @@
     {
       "name": "HIGH VOLATILITY",
       "cbDeviationBpsTiers": [
-        1200,
-        2000,
-        3500
+        1500,
+        2500,
+        4400
       ],
       "cbTierDurationsSeconds": [
         600,
@@ -632,6 +626,7 @@
       "cbWindowMaxUpBps": 5000,
       "cbWindowMaxDownBps": 7000,
       "cbWindowSeconds": 14400,
+      "cbEmaAlphaBps": 2000,
       "banks": [
         {
           "symbol": "$WIF",
@@ -659,6 +654,11 @@
           "address": "4kNXetv8hSv9PzvzPZzEs1CTH6ARRRi2b8h6jk1ad1nP"
         },
         {
+          "symbol": "HNT",
+          "venue": "Native",
+          "address": "JBcir4DPRPYVUpks9hkS1jtHMXejfeBo4xJGv3AYYHg6"
+        },
+        {
           "symbol": "MET",
           "venue": "Native",
           "address": "EmMhorGDR3N9ecNWVQjJi2QpFLkeHEvjZFdW6TuVgXjU"
@@ -677,6 +677,11 @@
           "symbol": "TNSR",
           "venue": "Native",
           "address": "9KbkQsu4EGAeM7ZxvwsZcpxoekZyg5LTk1BF5SAMPXdY"
+        },
+        {
+          "symbol": "W",
+          "venue": "Native",
+          "address": "EYp4j7oHV2SfEGSE3GJ4MjsCL33CzmqLTdvTCdacQ9uG"
         },
         {
           "symbol": "YIELD",

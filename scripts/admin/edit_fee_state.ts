@@ -19,13 +19,18 @@ type Config = {
   /** Multisig if using a MS, otherwise any value */
   MULTISIG: PublicKey;
 
-  NEW_WALLET: PublicKey;
-  NEW_ADMIN: PublicKey;
-  NEW_POOL_FLAT_SOL_FEE: number;
-  LIQUIDATION_FLAT_SOL_FEE: number;
-  FIXED_FEE: number;
-  RATE_FEE: number;
-  LIQUIDATION_MAX_PREMIUM: number;
+  /** Fields set to null are left unchanged. */
+  NEW_ADMIN: PublicKey | null;
+  NEW_WALLET: PublicKey | null;
+  NEW_POOL_FLAT_SOL_FEE: number | null;
+  LIQUIDATION_FLAT_SOL_FEE: number | null;
+  ORDER_INIT_FLAT_SOL_FEE: number | null;
+  FIXED_FEE: number | null;
+  RATE_FEE: number | null;
+  LIQUIDATION_MAX_PREMIUM: number | null;
+  ORDER_EXECUTION_MAX_FEE: number | null;
+  PAUSE_DELEGATE_ADMIN: PublicKey | null;
+  ACCOUNT_TRANSFER_FEE: number | null;
 };
 
 const config: Config = {
@@ -34,14 +39,21 @@ const config: Config = {
 
   MULTISIG: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
-  NEW_WALLET: new PublicKey("CYcWgRxSCLXJKB6c8xGBddgZdFxPoksBL5DrJVqAtsQj"),
-  NEW_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  NEW_POOL_FLAT_SOL_FEE: 0,
-  LIQUIDATION_FLAT_SOL_FEE: 0.002 * 10 ** 9,
-  FIXED_FEE: 0,
-  RATE_FEE: 0.075,
-  LIQUIDATION_MAX_PREMIUM: 0.1,
+  NEW_ADMIN: null,
+  NEW_WALLET: null,
+  NEW_POOL_FLAT_SOL_FEE: null,
+  LIQUIDATION_FLAT_SOL_FEE: null,
+  ORDER_INIT_FLAT_SOL_FEE: null,
+  FIXED_FEE: null,
+  RATE_FEE: null,
+  LIQUIDATION_MAX_PREMIUM: null,
+  ORDER_EXECUTION_MAX_FEE: 0.04,
+  PAUSE_DELEGATE_ADMIN: null,
+  ACCOUNT_TRANSFER_FEE: null,
 };
+
+const wrapOptional = (value: number | null) =>
+  value === null ? null : bigNumberToWrappedI80F48(value);
 
 async function main() {
   const user = commonSetup(
@@ -60,9 +72,13 @@ async function main() {
         config.NEW_WALLET,
         config.NEW_POOL_FLAT_SOL_FEE,
         config.LIQUIDATION_FLAT_SOL_FEE,
-        bigNumberToWrappedI80F48(config.FIXED_FEE),
-        bigNumberToWrappedI80F48(config.RATE_FEE),
-        bigNumberToWrappedI80F48(config.LIQUIDATION_MAX_PREMIUM),
+        config.ORDER_INIT_FLAT_SOL_FEE,
+        wrapOptional(config.FIXED_FEE),
+        wrapOptional(config.RATE_FEE),
+        wrapOptional(config.LIQUIDATION_MAX_PREMIUM),
+        wrapOptional(config.ORDER_EXECUTION_MAX_FEE),
+        config.PAUSE_DELEGATE_ADMIN,
+        config.ACCOUNT_TRANSFER_FEE,
       )
       .accounts({})
       .accountsPartial({
