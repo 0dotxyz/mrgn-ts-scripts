@@ -65,15 +65,17 @@ export async function unwind(reset: boolean) {
       mint: config.JITOSOL_MINT,
     }),
   );
-  const juplend = new Set(
-    [...state.juplendBanks, ...state.fixedJuplendBanks].map((b) => b.toBase58()),
+  /** JupLend bank -> its lending. */
+  const juplend = new Map<string, PublicKey>(
+    [...state.juplendBanks, ...state.fixedJuplendBanks].map((b) => [b.toBase58(), config.JUPLEND_LENDING]),
   );
+  state.juplendExtraBanks.forEach((b, i) => juplend.set(b.toBase58(), config.JUPLEND_EXTRA[i].lending));
 
   // A create run that stopped early may not have opened them all.
   const liquidatees = [state.liquidatee, ...state.sandwichLiquidatees].filter(
     (k): k is PublicKey => k !== undefined,
   );
-  /** The liquidatee being unwound: the 14-position one, then each sandwich liquidatee. */
+  /** The liquidatee being unwound: the heavy one, then each sandwich liquidatee. */
   let liquidatee = liquidatees[0];
   /** The liquidatee's open balances, each as `[bank, oracle accounts...]`. */
   const openGroups = async () =>
@@ -91,9 +93,9 @@ export async function unwind(reset: boolean) {
       KAMINO_RESERVES: others
         .filter((b) => kaminoVenues.has(b.toBase58()))
         .map((b) => kaminoVenues.get(b.toBase58())!.reserve),
-      JUPLEND_STATES: others.some((b) => juplend.has(b.toBase58()))
-        ? [config.JUPLEND_LENDING]
-        : [],
+      JUPLEND_STATES: [
+        ...new Set(others.filter((b) => juplend.has(b.toBase58())).map((b) => juplend.get(b.toBase58())!)),
+      ],
     };
   };
 
@@ -269,6 +271,48 @@ export async function unwind(reset: boolean) {
   );
   await sleep(1000);
 
+  console.log("\n\n\n 5b. EMPTY AND CLOSE zeeper's KEEPER ACCOUNT");
+  // Signed by zeeper's wallet, which gets the USDC and the rent back. Left alone if zeeper's settle
+  // is still holding anything besides the USDC deposit.
+  const keeperAcc: any = state.keeperAccount
+    ? await user.program.account.marginfiAccount.fetchNullable(state.keeperAccount)
+    : null;
+  if (keeperAcc) {
+    const active = keeperAcc.lendingAccount.balances.filter((b: any) => b.active);
+    if (active.some((b: any) => !b.bankPk.equals(state.keeperBanks[0]))) {
+      console.log(`keeper ${state.keeperAccount} holds more than its USDC deposit; left open`);
+    } else {
+      if (active.length > 0) {
+        const [groups] = await getOraclesAndKaminoIxes(
+          user.program,
+          user.kaminoProgram,
+          state.keeperAccount!,
+        );
+        await withdraw(
+          true,
+          {
+            PROGRAM_ID: config.PROGRAM_ID,
+            ACCOUNT: state.keeperAccount!,
+            BANK: state.keeperBanks[0],
+            MINT: config.P0_COLLATERAL_MINT,
+            AMOUNT: new BN(0),
+            WITHDRAW_ALL: true,
+            REMAINING: composeRemainingAccounts(groups),
+            ADD_COMPUTE_UNITS: false,
+          },
+          config.KEEPER_WALLET_PATH,
+        );
+        await sleep(2000);
+      }
+      await closeAccount(
+        true,
+        { PROGRAM_ID: config.PROGRAM_ID, ACCOUNT: state.keeperAccount! },
+        config.KEEPER_WALLET_PATH,
+      );
+      await sleep(1000);
+    }
+  }
+
   console.log("\n\n\n 6. CLOSE ALL BANKS");
   const allBanks = [
     ...state.p0Banks,
@@ -282,6 +326,10 @@ export async function unwind(reset: boolean) {
     ...state.juplendBanks,
     ...state.kaminoPythBanks,
     ...state.fixedJuplendBanks,
+    ...state.p0ExtraBanks,
+    ...state.pythBanks,
+    ...state.juplendExtraBanks,
+    ...state.keeperBanks,
     state.debtBank,
   ];
   // Skip banks a stopped create run never got to create (its failed adds are still in the state).
@@ -349,6 +397,15 @@ function parseConfig(rawConfig: string): Config {
     SCOPE_USDC_ENTRY: json.SCOPE_USDC_ENTRY,
     SCOPE_USDT_ENTRY: json.SCOPE_USDT_ENTRY,
     LUT: pkFromString(json.LUT),
+    PYTH_COLLATERAL_ORACLE: pkFromString(json.PYTH_COLLATERAL_ORACLE ?? PublicKey.default),
+    JUPLEND_EXTRA: (json.JUPLEND_EXTRA ?? []).map((v) => ({
+      ...v,
+      mint: pkFromString(v.mint),
+      lending: pkFromString(v.lending),
+      fTokenMint: pkFromString(v.fTokenMint),
+      oracle: pkFromString(v.oracle),
+    })),
+    KEEPER_WALLET_PATH: json.KEEPER_WALLET_PATH,
   };
 }
 
@@ -374,6 +431,11 @@ export function parseState(raw: string): State {
     juplendBanks: (json.juplendBanks ?? []).map(pkFromString),
     kaminoPythBanks: (json.kaminoPythBanks ?? []).map(pkFromString),
     fixedJuplendBanks: (json.fixedJuplendBanks ?? []).map(pkFromString),
+    p0ExtraBanks: (json.p0ExtraBanks ?? []).map(pkFromString),
+    pythBanks: (json.pythBanks ?? []).map(pkFromString),
+    juplendExtraBanks: (json.juplendExtraBanks ?? []).map(pkFromString),
+    keeperBanks: (json.keeperBanks ?? []).map(pkFromString),
+    keeperAccount: json.keeperAccount ? pkFromString(json.keeperAccount) : undefined,
     sandwichLiquidatees: (json.sandwichLiquidatees ?? []).map(pkFromString),
   };
 }

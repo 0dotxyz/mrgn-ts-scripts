@@ -97,6 +97,24 @@ export type Config = {
   SCOPE_USDC_ENTRY: number;
   SCOPE_USDT_ENTRY: number;
   LUT: PublicKey;
+  /** A push-Pyth USDC feed for the plain PythPushOracle collateral bank. */
+  PYTH_COLLATERAL_ORACLE: PublicKey;
+  /** JupLend lendings besides USDT's, so a liquidatee can hold four on different underlyings. */
+  JUPLEND_EXTRA: JuplendVenue[];
+  /** zeeper's wallet: owns the classic keeper account (CLASSIC_KEEPER). */
+  KEEPER_WALLET_PATH: string;
+};
+
+type JuplendVenue = {
+  symbol: string;
+  mint: PublicKey;
+  lending: PublicKey;
+  fTokenMint: PublicKey;
+  oracle: PublicKey;
+  /** Overrides the JupLend banks' 300s for a feed that updates less often. */
+  oracleMaxAge?: number;
+  /** Switched to FixedJuplend at $1 after creation instead of pricing off `oracle`. */
+  fixed?: boolean;
 };
 
 export type State = {
@@ -118,6 +136,11 @@ export type State = {
   juplendBanks: PublicKey[];
   kaminoPythBanks: PublicKey[];
   fixedJuplendBanks: PublicKey[];
+  p0ExtraBanks: PublicKey[];
+  pythBanks: PublicKey[];
+  juplendExtraBanks: PublicKey[];
+  keeperBanks: PublicKey[];
+  keeperAccount?: PublicKey;
   sandwichLiquidatees: PublicKey[];
 };
 
@@ -140,8 +163,30 @@ type SerializedState = {
   juplendBanks?: string[];
   kaminoPythBanks?: string[];
   fixedJuplendBanks?: string[];
+  p0ExtraBanks?: string[];
+  pythBanks?: string[];
+  juplendExtraBanks?: string[];
+  keeperBanks?: string[];
+  keeperAccount?: string;
   sandwichLiquidatees?: string[];
 };
+
+// Which liquidator the run stages for:
+// - eva:    SANDWICHES = true,  VENUES = "2kamino2jup", CLASSIC_KEEPER = false
+// - zeeper: SANDWICHES = false, VENUES = "4jup",        CLASSIC_KEEPER = true
+// Every bank exists regardless (one setup serves both); the flags only pick what the liquidatees
+// hold and whether the keeper account is opened.
+/** One single-collateral liquidatee per oracle setup (eva's one-tx sandwich path). */
+const SANDWICHES = false;
+/**
+ * The heavy liquidatee's venue positions (at most 4: the costly-position cap).
+ * - "4jup": 4 JupLend on four different lendings + 11 natives + the debt: 16 balances, the most
+ *   accounts a liquidation can carry (classic liquidators must fit it in one tx).
+ * - "2kamino2jup": 2 Kamino + 2 JupLend + 7 natives, every position on a different oracle setup.
+ */
+const VENUES = "4jup" as "4jup" | "2kamino2jup";
+/** Open zeeper's keeper account with a USDC deposit in the keeper bank (classic flow). */
+const CLASSIC_KEEPER = true;
 
 // 16 balances per account, and since 0.1.12 at most 4 "costly" ones (Kamino, Solend, JupLend
 // and staked positions together). The layout covers every oracle setup added in 0.1.11/0.1.12 that
@@ -167,44 +212,54 @@ const SCOPE_ORACLE_MAX_AGE = 300;
 
 const P0_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDC
 const PT_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 PT, ~$0.10
-const KAMINO_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDC
-const KAMINO_MSOL_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 mSOL
 const PYTH_MSOL_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 mSOL
 const PYTH_LST_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 JitoSOL
 const KAMINO_LST_DEPOSIT = new BN(1 * 10 ** 6); // 0.001 JitoSOL
 const SCOPE_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDC
-const JUPLEND_DEPOSIT = new BN(1 * 10 ** 5); // 0.1 USDT
-const DEBT_DEPOSIT = new BN(6 * 10 ** 6); // 6 PyUSD, by the liquidator: covers every borrow below
+/** By the liquidator on a fresh setup; topped up when this run borrows more than the bank holds. */
+const DEBT_DEPOSIT = new BN(6 * 10 ** 6); // 6 PyUSD
 /** PyUSD's push feed only updates every ~19 min while its price is flat; prod allows 1200s too. */
 const DEBT_ORACLE_MAX_AGE = 1200;
 
-// Besides the 14-position liquidatee (too big for eva's one-tx sandwich at 64 locked accounts, so it
+// Besides the heavy liquidatee (too big for eva's one-tx sandwich at 64 locked accounts, so it
 // exercises the [buy][liquidate] fallback), one "sandwich" liquidatee per oracle setup holds a single
 // collateral against a PyUSD debt. Each is small enough for the one-tx liquidation.
 const SANDWICH_USD = new BN(15 * 10 ** 5); // 1.5 USDC / USDT
 const SANDWICH_LST = new BN(11 * 10 ** 6); // 0.011 mSOL / JitoSOL
 const SANDWICH_BORROW = new BN(6 * 10 ** 5); // 0.6 PyUSD each
 
-// Note: current setup assumes you have ~6 USDC, ~4 USDT, plus a little PT-bulkSOL and ~0.025 mSOL
-// and JitoSOL on your liquidatee's balances,
-// and at least 6 PyUSD on your liquidator's balances. Plus significant amount of SOL
-// for transactions and for rent (>1 SOL in liquidator's case).
+/** Heavy liquidatee: venue legs and its debt. zeeper's settle sells what it seizes, so its venue
+ * legs (the largest, hence the ones it seizes) stay above $1 to route. */
+const EVA_VENUE_USD = new BN(2 * 10 ** 5); // 0.2 USDC / USDT
+const ZEEPER_VENUE_USD = new BN(15 * 10 ** 5); // 1.5 per stablecoin
+const HEAVY_BORROW = VENUES === "4jup" ? new BN(25 * 10 ** 5) : new BN(5 * 10 ** 5); // PyUSD
+/** zeeper's keeper deposit in the keeper bank; it backs the debt the classic flow borrows. */
+const KEEPER_DEPOSIT = new BN(10 * 10 ** 6); // 10 USDC
+const KEEPER_WEIGHT_INIT = 0.9;
+const KEEPER_WEIGHT_MAINT = 0.95;
+
+// Step 0 lists the tokens and SOL each wallet needs for the chosen flags and fails if any is short.
 
 /** Collateral weights a reused setup restores before borrowing: the lowest of the bank defaults. */
 const REUSED_WEIGHT_INIT = 0.6;
 const REUSED_WEIGHT_MAINT = 0.75;
-/** SOL for rent and fees. A fresh setup pays for the group and 21 banks; a reused one barely any. */
-const LIQUIDATOR_SOL_FRESH = new BN(1.2 * 10 ** 9);
+/** SOL for rent and fees. A fresh setup pays for the group and 29 banks; a reused one only for the
+ * ADDED_BANKS it still lacks. */
+const LIQUIDATOR_SOL_FRESH = new BN(1.4 * 10 ** 9);
 const LIQUIDATOR_SOL_REUSED = new BN(0.05 * 10 ** 9);
-/** 10 marginfi accounts (~0.017 SOL each); a fresh setup adds the Kamino obligations and JupLend
+const SOL_PER_BANK = new BN(0.025 * 10 ** 9);
+/** 12 marginfi accounts (~0.017 SOL each); a fresh setup adds the Kamino obligations and JupLend
  * positions, which the liquidatee opens because they are seeded from the signer's tokens. */
-const LIQUIDATEE_SOL_FRESH = new BN(0.35 * 10 ** 9);
-const LIQUIDATEE_SOL_REUSED = new BN(0.2 * 10 ** 9);
+const LIQUIDATEE_SOL_FRESH = new BN(0.4 * 10 ** 9);
+const LIQUIDATEE_SOL_REUSED = new BN(0.25 * 10 ** 9);
+/** zeeper's wallet: its keeper account and the deposit's fees. */
+const KEEPER_SOL = new BN(0.05 * 10 ** 9);
 
 // Run book (before every program release):
 // 1. Run this script. The first run creates the group and banks; later runs reuse the ones in
 //    liquidation_e2e_state.json and only open fresh liquidatees.
-// 2. Point eva's MARGINFI_GROUP_KEY at the group it prints and let eva liquidate every liquidatee.
+// 2. Point eva's MARGINFI_GROUP_KEY (or zeeper's staging p0-monitor MARGINFI_GROUP) at the group it
+//    prints and let the liquidator liquidate every liquidatee.
 // 3. Run reset_liquidatable_user_e2e.ts: it empties the liquidatees and keeps the group and banks.
 // unwind_liquidatable_user_e2e.ts tears everything down instead (bank rent back, the group's lost).
 const STATE_FILE = "liquidation_e2e_state.json";
@@ -221,6 +276,13 @@ const SETUP_BANKS: [keyof SerializedState, number][] = [
   ["juplendBanks", JUPLEND_BANKS],
   ["kaminoPythBanks", 1],
   ["fixedJuplendBanks", 1],
+];
+/** Lists added after setups already existed: step 14b creates what a setup lacks of them. */
+const ADDED_BANKS: [keyof SerializedState, number][] = [
+  ["p0ExtraBanks", 3], // more Fixed USDC: zeeper's 16-balance liquidatee needs 11 natives
+  ["pythBanks", 1], // plain PythPushOracle collateral (USDC)
+  ["juplendExtraBanks", 3], // config.JUPLEND_EXTRA, in order
+  ["keeperBanks", 1], // Fixed USDC that no liquidatee holds and no weight change touches
 ];
 
 const config: Config = {
@@ -306,7 +368,127 @@ const config: Config = {
   SCOPE_USDC_ENTRY: 13, // the entry Kamino's USDC reserve prices from
   SCOPE_USDT_ENTRY: 16, // the entry Kamino's USDT reserves price from
   LUT: new PublicKey("3S5KoqRRSEhWSsmfszFnKHaEAE9Yxt5dEMNHm65xqpX8"), // deleverager
+  PYTH_COLLATERAL_ORACLE: new PublicKey("6HAuqASbHEh4w4REJEUUUCginTLfj1kwCh215ZLtMkrT"), // usdc push
+  JUPLEND_EXTRA: [
+    {
+      symbol: "USDC",
+      mint: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
+      lending: new PublicKey("2vVYHYM8VYnvZqQWpTJSj8o8DBf1wM8pVs3bsTgYZiqJ"),
+      fTokenMint: new PublicKey("9BEcn9aPEmhSPbPQeFGjidRiEKki46fVQDyPpSQXPA2D"),
+      oracle: new PublicKey("6HAuqASbHEh4w4REJEUUUCginTLfj1kwCh215ZLtMkrT"), // usdc push
+    },
+    {
+      symbol: "USDS",
+      mint: new PublicKey("USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA"),
+      lending: new PublicKey("Ey9UTFK5KDMZJuHqndU8kYrSrWHQb5uQqNEaTk57Toc"),
+      fTokenMint: new PublicKey("j14XLJZSVMcUYpAfajdZRpnfHUpJieZHS4aPektLWvh"),
+      oracle: new PublicKey("BC1J4HFFraWf5dnp1wPJWNXkkoMDoHn7v18gzcbh6aGf"), // usds push
+      oracleMaxAge: 1200, // seen publishing every ~4 min
+    },
+    {
+      symbol: "JupUSD",
+      mint: new PublicKey("JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD"),
+      lending: new PublicKey("papYEgeG5uPE4niUWZhihUUzVVotJn1mAWbYo2UBSHi"),
+      fTokenMint: new PublicKey("7GxATsNMnaC88vdwd2t3mwrFuQwwGvmYPrUQ4D6FotXk"),
+      oracle: new PublicKey("HKQmnfKCnXeJg5DhUnZXjFHDxrex6mPdrT9E29bcbfK2"), // jupusd push
+      fixed: true,
+    },
+  ],
+  KEEPER_WALLET_PATH: "/.config/zeeper/id.json",
 };
+
+/** A deposit a liquidatee makes: into bank `index` of state list `list`. */
+type Position = {
+  setup: string;
+  list: keyof SerializedState;
+  index?: number;
+  mint: PublicKey;
+  amount: BN;
+  kamino?: { KAMINO_MARKET: PublicKey; RESERVE_ORACLE: PublicKey } & Record<string, PublicKey>;
+  reserve?: PublicKey; // Kamino: refreshed by the borrow
+  lending?: PublicKey; // JupLend: refreshed by the borrow
+};
+const USDC_KAMINO = {
+  BANK_MINT: config.KAMINO_COLLATERAL_MINT,
+  KAMINO_RESERVE: config.KAMINO_RESERVE,
+  KAMINO_MARKET: config.KAMINO_MARKET,
+  RESERVE_ORACLE: config.KAMINO_RESERVE_ORACLE,
+  FARM_STATE: config.KAMINO_FARM_STATE,
+};
+const MSOL_KAMINO = {
+  BANK_MINT: config.MSOL_MINT,
+  KAMINO_RESERVE: config.MSOL_KAMINO_RESERVE,
+  KAMINO_MARKET: config.MSOL_KAMINO_MARKET,
+  RESERVE_ORACLE: config.MSOL_KAMINO_RESERVE_ORACLE,
+  FARM_STATE: config.MSOL_KAMINO_FARM_STATE,
+};
+const LST_KAMINO = {
+  KAMINO_MARKET: config.JITOSOL_KAMINO_MARKET,
+  RESERVE_ORACLE: config.JITOSOL_KAMINO_RESERVE_ORACLE,
+};
+const USDC = config.P0_COLLATERAL_MINT;
+const [JUP_USDC, JUP_USDS, JUP_USD] = config.JUPLEND_EXTRA;
+
+/** Every native setup once. */
+const NATIVES: Position[] = [
+  { setup: "Fixed", list: "p0Banks", mint: USDC, amount: P0_DEPOSIT },
+  { setup: "PTPyth", list: "ptBanks", mint: config.PT_COLLATERAL_MINT, amount: PT_DEPOSIT },
+  { setup: "PTFixed", list: "ptBanks", index: 1, mint: config.PT_COLLATERAL_MINT, amount: PT_DEPOSIT },
+  { setup: "PythMSOL", list: "pythMsolBanks", mint: config.MSOL_MINT, amount: PYTH_MSOL_DEPOSIT },
+  { setup: "PythLST", list: "pythLstBanks", mint: config.JITOSOL_MINT, amount: PYTH_LST_DEPOSIT },
+  { setup: "Scope", list: "scopeBanks", mint: USDC, amount: SCOPE_DEPOSIT },
+  { setup: "PythPush", list: "pythBanks", mint: USDC, amount: P0_DEPOSIT },
+];
+const juplend = (v: JuplendVenue, list: keyof SerializedState, index: number, amount: BN): Position => ({
+  setup: v.fixed ? "FixedJuplend" : "JuplendPythPull",
+  list,
+  index,
+  mint: v.mint,
+  amount,
+  lending: v.lending,
+});
+/** The heavy liquidatee: debt plus the collateral VENUES picks. */
+const HEAVY: Position[] =
+  VENUES === "4jup"
+    ? [
+        ...NATIVES,
+        { setup: "Fixed", list: "p0Banks", index: 1, mint: USDC, amount: P0_DEPOSIT },
+        ...[0, 1, 2].map((index): Position =>
+          ({ setup: "Fixed", list: "p0ExtraBanks", index, mint: USDC, amount: P0_DEPOSIT })),
+        { setup: "ScopeJuplend", list: "juplendBanks", mint: config.JUPLEND_COLLATERAL_MINT,
+          amount: ZEEPER_VENUE_USD, lending: config.JUPLEND_LENDING },
+        ...config.JUPLEND_EXTRA.map((v, i) => juplend(v, "juplendExtraBanks", i, ZEEPER_VENUE_USD)),
+      ]
+    : [
+        ...NATIVES,
+        { setup: "ScopeKamino", list: "kaminoBanks", mint: USDC, amount: EVA_VENUE_USD,
+          kamino: USDC_KAMINO, reserve: config.KAMINO_RESERVE },
+        { setup: "KaminoLST", list: "kaminoLstBanks", mint: config.JITOSOL_MINT,
+          amount: KAMINO_LST_DEPOSIT, kamino: LST_KAMINO, reserve: config.JITOSOL_KAMINO_RESERVE },
+        { setup: "ScopeJuplend", list: "juplendBanks", mint: config.JUPLEND_COLLATERAL_MINT,
+          amount: EVA_VENUE_USD, lending: config.JUPLEND_LENDING },
+        juplend(JUP_USDC, "juplendExtraBanks", 0, EVA_VENUE_USD),
+      ];
+/** One single-collateral liquidatee per setup (SANDWICHES). PT is left out: eva needs a
+ * collateral->PyUSD route for the in-tx swap. */
+const SANDWICH_POSITIONS: Position[] = [
+  { setup: "Fixed", list: "p0Banks", mint: USDC, amount: SANDWICH_USD },
+  { setup: "Scope", list: "scopeBanks", mint: USDC, amount: SANDWICH_USD },
+  { setup: "PythPush", list: "pythBanks", mint: USDC, amount: SANDWICH_USD },
+  { setup: "PythMSOL", list: "pythMsolBanks", mint: config.MSOL_MINT, amount: SANDWICH_LST },
+  { setup: "PythLST", list: "pythLstBanks", mint: config.JITOSOL_MINT, amount: SANDWICH_LST },
+  { setup: "KaminoPythPush", list: "kaminoPythBanks", mint: USDC, amount: SANDWICH_USD,
+    kamino: USDC_KAMINO, reserve: config.KAMINO_RESERVE },
+  { setup: "KaminoMSOL", list: "kaminoMsolBanks", mint: config.MSOL_MINT, amount: SANDWICH_LST,
+    kamino: MSOL_KAMINO, reserve: config.MSOL_KAMINO_RESERVE },
+  { setup: "KaminoLST", list: "kaminoLstBanks", mint: config.JITOSOL_MINT, amount: SANDWICH_LST,
+    kamino: LST_KAMINO, reserve: config.JITOSOL_KAMINO_RESERVE },
+  { setup: "ScopeJuplend", list: "juplendBanks", mint: config.JUPLEND_COLLATERAL_MINT,
+    amount: SANDWICH_USD, lending: config.JUPLEND_LENDING },
+  { setup: "FixedJuplend", list: "fixedJuplendBanks", mint: config.JUPLEND_COLLATERAL_MINT,
+    amount: SANDWICH_USD, lending: config.JUPLEND_LENDING },
+  juplend(JUP_USDC, "juplendExtraBanks", 0, SANDWICH_USD),
+];
 
 async function main() {
   const liquidatorWallet = loadKeypairFromFile(
@@ -348,43 +530,68 @@ async function main() {
   }
 
   console.log("\n\n\n 0. CHECK WALLET BALANCES");
-  // Banks that give the last one 2x use (n + 1) deposits in total.
-  const twice = (n: number, amt: BN) => (n > 0 ? amt.muln(n + 1) : new BN(0));
+  const { program, connection } = commonSetup(true, config.PROGRAM_ID, config.LIQUIDATOR_WALLET_PATH);
+  const sandwiches = SANDWICHES ? SANDWICH_POSITIONS : [];
+  const liquidateeNeeds = new Map<string, BN>();
+  const need = (mint: PublicKey, amount: BN | number) =>
+    liquidateeNeeds.set(mint.toBase58(), (liquidateeNeeds.get(mint.toBase58()) ?? new BN(0)).add(new BN(amount)));
+  for (const p of [...HEAVY, ...sandwiches]) need(p.mint, p.amount);
+  // Kamino obligations and JupLend positions are seeded with 100 native from the liquidatee.
+  if (!reused) {
+    need(USDC, 100 * (KAMINO_BANKS + 1)); // incl. KaminoPythPush
+    need(config.MSOL_MINT, 100 * KAMINO_MSOL_BANKS);
+    need(config.JITOSOL_MINT, 100 * KAMINO_LST_BANKS);
+    need(config.JUPLEND_COLLATERAL_MINT, 100 * (JUPLEND_BANKS + 1)); // incl. FixedJuplend
+  }
+  // ...and so are the extra JupLend positions step 14b has yet to open.
+  const extraJuplends = reused?.juplendExtraBanks?.length ?? 0;
+  for (const v of config.JUPLEND_EXTRA.slice(extraJuplends)) need(v.mint, 100);
+  const symbols = new Map(
+    [
+      ...config.JUPLEND_EXTRA.map((v) => [v.mint, v.symbol] as const),
+      [USDC, "USDC"] as const,
+      [config.PT_COLLATERAL_MINT, "PT"] as const,
+      [config.MSOL_MINT, "mSOL"] as const,
+      [config.JITOSOL_MINT, "JitoSOL"] as const,
+      [config.JUPLEND_COLLATERAL_MINT, "USDT"] as const,
+    ].map(([mint, symbol]) => [mint.toBase58(), symbol]),
+  );
+
+  // The liquidator's deposit is what the liquidatees borrow; top it up to this run's borrows.
+  const totalBorrow = HEAVY_BORROW.add(SANDWICH_BORROW.muln(sandwiches.length));
+  let debtLiquidity = new BN(0);
+  if (reused) {
+    const bank: any = await program.account.bank.fetch(new PublicKey(reused.debtBank!));
+    debtLiquidity = new BN((await connection.getTokenAccountBalance(bank.liquidityVault)).value.amount);
+  }
+  const debtDeposit = BN.max(
+    reused ? new BN(0) : DEBT_DEPOSIT,
+    totalBorrow.muln(105).divn(100).sub(debtLiquidity),
+  );
+
+  const keeperWallet = CLASSIC_KEEPER
+    ? loadKeypairFromFile(process.env.HOME + config.KEEPER_WALLET_PATH)
+    : undefined;
+  const opensKeeper = CLASSIC_KEEPER && !reused?.keeperAccount;
   await warnOnMissingBalances(config, [
-    { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "USDC",
-      mint: config.P0_COLLATERAL_MINT,
-      needed: P0_DEPOSIT.muln(P0_BANKS)
-        .add(twice(KAMINO_BANKS, KAMINO_DEPOSIT))
-        .add(SCOPE_DEPOSIT.muln(SCOPE_BANKS))
-        .add(SANDWICH_USD.muln(3)) // Fixed, Scope, KaminoPythPush
-        .addn(reused ? 0 : 100 * (KAMINO_BANKS + 1)) }, // obligation seeds, incl. KaminoPythPush
-    { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "PT",
-      mint: config.PT_COLLATERAL_MINT, needed: PT_DEPOSIT.muln(PT_BANKS) },
-    { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "mSOL",
-      mint: config.MSOL_MINT,
-      needed: KAMINO_MSOL_DEPOSIT.muln(KAMINO_MSOL_BANKS)
-        .add(PYTH_MSOL_DEPOSIT.muln(PYTH_MSOL_BANKS))
-        .add(SANDWICH_LST.muln(2)) // PythMSOL, KaminoMSOL
-        .addn(reused ? 0 : 100 * KAMINO_MSOL_BANKS) }, // obligation seeds
-    { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "JitoSOL",
-      mint: config.JITOSOL_MINT,
-      needed: KAMINO_LST_DEPOSIT.muln(KAMINO_LST_BANKS)
-        .add(PYTH_LST_DEPOSIT.muln(PYTH_LST_BANKS))
-        .add(SANDWICH_LST.muln(2)) // PythLST, KaminoLST
-        .addn(reused ? 0 : 100 * KAMINO_LST_BANKS) }, // obligation seeds
-    { who: "Liquidatee", owner: liquidateeWallet.publicKey, label: "USDT",
-      mint: config.JUPLEND_COLLATERAL_MINT,
-      needed: twice(JUPLEND_BANKS, JUPLEND_DEPOSIT)
-        .add(SANDWICH_USD.muln(2)) // ScopeJuplend, FixedJuplend
-        .addn(reused ? 0 : 100 * (JUPLEND_BANKS + 1)) }, // position seeds, incl. FixedJuplend
+    ...[...liquidateeNeeds].map(([mint, needed]) => ({
+      who: "Liquidatee", owner: liquidateeWallet.publicKey, label: symbols.get(mint)!,
+      mint: new PublicKey(mint), needed })),
     { who: "Liquidator", owner: liquidatorWallet.publicKey, label: "PyUSD",
-      mint: config.DEBT_MINT, needed: reused ? new BN(0) : DEBT_DEPOSIT }, // stays in the bank
+      mint: config.DEBT_MINT, needed: debtDeposit }, // stays in the bank
+    ...(opensKeeper
+      ? [{ who: "Keeper", owner: keeperWallet!.publicKey, label: "USDC", mint: USDC,
+          needed: KEEPER_DEPOSIT }]
+      : []),
   ]);
+  const newBanks = ADDED_BANKS.reduce(
+    (n, [key, count]) => n + count - ((reused?.[key] as string[] | undefined)?.length ?? 0), 0);
   await assertSolBalances(config, [
     { who: "Liquidator", owner: liquidatorWallet.publicKey,
-      needed: reused ? LIQUIDATOR_SOL_REUSED : LIQUIDATOR_SOL_FRESH },
+      needed: reused ? LIQUIDATOR_SOL_REUSED.add(SOL_PER_BANK.muln(newBanks)) : LIQUIDATOR_SOL_FRESH },
     { who: "Liquidatee", owner: liquidateeWallet.publicKey,
       needed: reused ? LIQUIDATEE_SOL_REUSED : LIQUIDATEE_SOL_FRESH },
+    ...(opensKeeper ? [{ who: "Keeper", owner: keeperWallet!.publicKey, needed: KEEPER_SOL }] : []),
   ]);
 
   console.log("\n\n\n 1. INIT GROUP");
@@ -500,22 +707,6 @@ async function main() {
   );
   await sleep(1000);
 
-  console.log("\n\n\n 5. DEPOSIT TO ALL P0 BANKS BY LIQUIDATEE");
-  let depositConfig = {
-    PROGRAM_ID: config.PROGRAM_ID,
-    BANK: p0Banks[0],
-    ACCOUNT: liquidatee,
-    AMOUNT: P0_DEPOSIT,
-    MINT: config.P0_COLLATERAL_MINT,
-  };
-
-  // 0.1 USDC to each
-  for (let i = 0; i < p0Banks.length; i++) {
-    depositConfig.BANK = p0Banks[i];
-    await depositRegular(true, depositConfig, config.LIQUIDATEE_WALLET_PATH);
-    await sleep(1000);
-  }
-
   console.log("\n\n\n 5b. ADD PT (PTPyth) BANKS");
   let ptBankConfig = {
     PROGRAM_ID: config.PROGRAM_ID,
@@ -566,20 +757,6 @@ async function main() {
     ),
   );
   await sleep(1000);
-
-  console.log("\n\n\n 5d. DEPOSIT TO ALL PT BANKS BY LIQUIDATEE");
-  let ptDepositConfig = {
-    PROGRAM_ID: config.PROGRAM_ID,
-    BANK: ptBanks[0],
-    ACCOUNT: liquidatee,
-    AMOUNT: PT_DEPOSIT,
-    MINT: config.PT_COLLATERAL_MINT,
-  };
-  for (let i = 0; i < ptBanks.length; i++) {
-    ptDepositConfig.BANK = ptBanks[i];
-    await depositRegular(true, ptDepositConfig, config.LIQUIDATEE_WALLET_PATH);
-    await sleep(1000);
-  }
 
   console.log("\n\n\n 5e. ADD PythMSOL / PythLST / Scope BANKS");
   // Created with a plain Pyth feed (SOL/USD, or USDC for Scope) and switched right after.
@@ -647,22 +824,6 @@ async function main() {
     })),
   );
   await sleep(1000);
-
-  console.log("\n\n\n 5g. DEPOSIT TO PythMSOL / PythLST / Scope BANKS BY LIQUIDATEE");
-  for (const [banks, mint, amount] of [
-    [pythMsolBanks, config.MSOL_MINT, PYTH_MSOL_DEPOSIT],
-    [pythLstBanks, config.JITOSOL_MINT, PYTH_LST_DEPOSIT],
-    [scopeBanks, config.P0_COLLATERAL_MINT, SCOPE_DEPOSIT],
-  ] as [PublicKey[], PublicKey, BN][]) {
-    for (const bank of banks) {
-      await depositRegular(
-        true,
-        { PROGRAM_ID: config.PROGRAM_ID, BANK: bank, ACCOUNT: liquidatee, AMOUNT: amount, MINT: mint },
-        config.LIQUIDATEE_WALLET_PATH,
-      );
-      await sleep(1000);
-    }
-  }
 
   console.log("\n\n\n 6. ADD KAMINO (USDC) BANKS");
   let kaminoBankConfig = {
@@ -740,34 +901,6 @@ async function main() {
   state.kaminoObligations = kaminoObligations.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
 
-  console.log("\n\n\n 8. DEPOSIT TO ALL KAMINO BANKS BY LIQUIDATEE");
-  let kaminoDepositConfig = {
-    PROGRAM_ID: config.PROGRAM_ID,
-    BANK: kaminoBanks[0],
-    ACCOUNT: liquidatee,
-    AMOUNT: KAMINO_DEPOSIT,
-    BANK_MINT: config.KAMINO_COLLATERAL_MINT,
-    KAMINO_RESERVE: config.KAMINO_RESERVE,
-    KAMINO_MARKET: config.KAMINO_MARKET,
-    RESERVE_ORACLE: config.KAMINO_RESERVE_ORACLE,
-    FARM_STATE: config.KAMINO_FARM_STATE,
-  };
-
-  // The last bank gets 2x more. This is needed to test that the profit-oriented liquidator
-  // will choose exactly it for as the liquidation "target".
-  for (let i = 0; i < kaminoBanks.length; i++) {
-    if (i == kaminoBanks.length - 1) {
-      kaminoDepositConfig.AMOUNT = kaminoDepositConfig.AMOUNT.mul(new BN(2));
-    }
-    kaminoDepositConfig.BANK = kaminoBanks[i];
-    await depositKamino(
-      true,
-      kaminoDepositConfig,
-      config.LIQUIDATEE_WALLET_PATH,
-    );
-    await sleep(1000);
-  }
-
   console.log("\n\n\n 8b. ADD KAMINO mSOL BANKS (KaminoMSOL)");
   let kaminoMsolBankConfig = {
     PROGRAM_ID: config.PROGRAM_ID,
@@ -844,28 +977,6 @@ async function main() {
   state.kaminoMsolObligations = kaminoMsolObligations.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
 
-  console.log("\n\n\n 8e. DEPOSIT TO ALL KAMINO mSOL BANKS BY LIQUIDATEE");
-  let kaminoMsolDepositConfig = {
-    PROGRAM_ID: config.PROGRAM_ID,
-    BANK: kaminoMsolBanks[0],
-    ACCOUNT: liquidatee,
-    AMOUNT: KAMINO_MSOL_DEPOSIT,
-    BANK_MINT: config.MSOL_MINT,
-    KAMINO_RESERVE: config.MSOL_KAMINO_RESERVE,
-    KAMINO_MARKET: config.MSOL_KAMINO_MARKET,
-    RESERVE_ORACLE: config.MSOL_KAMINO_RESERVE_ORACLE,
-    FARM_STATE: config.MSOL_KAMINO_FARM_STATE,
-  };
-  for (let i = 0; i < kaminoMsolBanks.length; i++) {
-    kaminoMsolDepositConfig.BANK = kaminoMsolBanks[i];
-    await depositKamino(
-      true,
-      kaminoMsolDepositConfig,
-      config.LIQUIDATEE_WALLET_PATH,
-    );
-    await sleep(1000);
-  }
-
   console.log("\n\n\n 8f. ADD KAMINO JitoSOL BANKS (KaminoLST)");
   const kaminoLstBanks: PublicKey[] = banksOf("kaminoLstBanks");
   for (let i = 0; !reused && i < KAMINO_LST_BANKS; i++) {
@@ -928,23 +1039,6 @@ async function main() {
   }
   state.kaminoLstObligations = kaminoLstObligations.map(pkToString);
   writeJsonFile("liquidation_e2e_state.json", state);
-
-  console.log("\n\n\n 8i. DEPOSIT TO ALL KAMINO JitoSOL BANKS BY LIQUIDATEE");
-  for (const bank of kaminoLstBanks) {
-    await depositKamino(
-      true,
-      {
-        PROGRAM_ID: config.PROGRAM_ID,
-        BANK: bank,
-        ACCOUNT: liquidatee,
-        AMOUNT: KAMINO_LST_DEPOSIT,
-        KAMINO_MARKET: config.JITOSOL_KAMINO_MARKET,
-        RESERVE_ORACLE: config.JITOSOL_KAMINO_RESERVE_ORACLE,
-      },
-      config.LIQUIDATEE_WALLET_PATH,
-    );
-    await sleep(1000);
-  }
 
   console.log("\n\n\n 11. ADD JUPLEND (USDT) BANKS");
   let juplendBankConfig = {
@@ -1030,29 +1124,6 @@ async function main() {
     await sleep(1000);
   }
 
-  console.log("\n\n\n 13. DEPOSIT TO ALL JUPLEND BANKS BY LIQUIDATEE");
-  let juplendDepositConfig = {
-    PROGRAM_ID: config.PROGRAM_ID,
-    BANK: juplendBanks[0],
-    ACCOUNT: liquidatee,
-    AMOUNT: JUPLEND_DEPOSIT,
-  };
-
-  // The last bank gets 2x more. This is needed to test that the profit-oriented liquidator
-  // will choose exactly it for as the liquidation "target".
-  for (let i = 0; i < juplendBanks.length; i++) {
-    if (i == juplendBanks.length - 1) {
-      juplendDepositConfig.AMOUNT = juplendDepositConfig.AMOUNT.mul(new BN(2));
-    }
-    juplendDepositConfig.BANK = juplendBanks[i];
-    await depositJuplend(
-      true,
-      juplendDepositConfig,
-      config.LIQUIDATEE_WALLET_PATH,
-    );
-    await sleep(1000);
-  }
-
   console.log("\n\n\n 14. ADD 1 (REGULAR) DEBT BANK");
   let bankConfig = {
     PROGRAM_ID: config.PROGRAM_ID,
@@ -1080,16 +1151,135 @@ async function main() {
   );
   await sleep(1000);
 
+  console.log("\n\n\n 14b. ADD MORE Fixed USDC, PythPush USDC, JupLend USDC/USDS/JupUSD, KEEPER BANKS");
+  // Created up to their count, so a reused setup from before these lists gets them too.
+  // USDC seeds: p0 1-2, Scope 3, these 4-8 (Kamino's start at 42).
+  const fixedUsdcBank = async (seed: number) => {
+    const bank = await addRegularBank(USDC, config.KAMINO_COLLATERAL_ORACLE, seed);
+    await setFixedOraclePrice(true, configCommon, config.LIQUIDATOR_WALLET_PATH, [
+      pkToBankOracleConfig(bank),
+    ]);
+    await sleep(1000);
+    return bank;
+  };
+  const p0ExtraBanks: PublicKey[] = banksOf("p0ExtraBanks");
+  const pythBanks: PublicKey[] = banksOf("pythBanks");
+  const juplendExtraBanks: PublicKey[] = banksOf("juplendExtraBanks");
+  const keeperBanks: PublicKey[] = banksOf("keeperBanks");
+  const record = () => {
+    state.p0ExtraBanks = p0ExtraBanks.map(pkToString);
+    state.pythBanks = pythBanks.map(pkToString);
+    state.juplendExtraBanks = juplendExtraBanks.map(pkToString);
+    state.keeperBanks = keeperBanks.map(pkToString);
+    writeJsonFile("liquidation_e2e_state.json", state);
+  };
+  record();
+  for (let i = p0ExtraBanks.length; i < 3; i++) {
+    p0ExtraBanks.push(await fixedUsdcBank(4 + i));
+    record();
+  }
+  for (let i = pythBanks.length; i < 1; i++) {
+    pythBanks.push(await addRegularBank(USDC, config.PYTH_COLLATERAL_ORACLE, 7 + i));
+    record();
+  }
+  for (let i = juplendExtraBanks.length; i < config.JUPLEND_EXTRA.length; i++) {
+    const v = config.JUPLEND_EXTRA[i];
+    const bank = await addJuplendBank(
+      true,
+      {
+        ...juplendBankConfig,
+        BANK_MINT: v.mint,
+        JUPLEND_LENDING: v.lending,
+        F_TOKEN_MINT: v.fTokenMint,
+        ORACLE: v.oracle,
+        ORACLE_MAX_AGE: v.oracleMaxAge ?? juplendBankConfig.ORACLE_MAX_AGE,
+        SEED: new BN(100 + i),
+      },
+      config.LIQUIDATOR_WALLET_PATH,
+    );
+    await sleep(1000);
+    await initJuplendPosition(
+      true,
+      { PROGRAM_ID: config.PROGRAM_ID, BANK: bank, BANK_MINT: v.mint },
+      config.LIQUIDATEE_WALLET_PATH, // seeds 100 native from the signer
+    );
+    await sleep(1000);
+    if (v.fixed) {
+      await setFixedOraclePrice(true, configCommon, config.LIQUIDATOR_WALLET_PATH, [
+        pkToBankOracleConfig(bank),
+      ]);
+      await sleep(1000);
+    }
+    juplendExtraBanks.push(bank);
+    record();
+  }
+  for (let i = keeperBanks.length; i < 1; i++) {
+    // Normal weights, and left out of the weight changes in 15b and 17: the keeper's headroom.
+    const bank = await fixedUsdcBank(8 + i);
+    await configBankGov(
+      true,
+      {
+        PROGRAM_ID: config.PROGRAM_ID,
+        BANKS: [{
+          bank,
+          update: { assetWeightInit: KEEPER_WEIGHT_INIT, assetWeightMaint: KEEPER_WEIGHT_MAINT },
+        }],
+      },
+      config.LIQUIDATOR_WALLET_PATH,
+    );
+    await sleep(1000);
+    keeperBanks.push(bank);
+    record();
+  }
+
+  console.log("\n\n\n 14c. OPEN zeeper's KEEPER ACCOUNT WITH A USDC DEPOSIT (CLASSIC_KEEPER)");
+  // Only USDC in the keeper bank: a deposit in the debt bank would pay the liquidated debt itself
+  // and skip zeeper's settle. A reused keeper account is left as zeeper keeps it.
+  if (opensKeeper) {
+    const keeper = await initAccount(
+      true,
+      { PROGRAM_ID: config.PROGRAM_ID, GROUP: marginfiGroup, AUTHORITY: keeperWallet!.publicKey },
+      config.KEEPER_WALLET_PATH,
+    );
+    await sleep(1000);
+    state.keeperAccount = pkToString(keeper);
+    writeJsonFile("liquidation_e2e_state.json", state);
+    await depositRegular(
+      true,
+      { PROGRAM_ID: config.PROGRAM_ID, BANK: keeperBanks[0], ACCOUNT: keeper, AMOUNT: KEEPER_DEPOSIT, MINT: USDC },
+      config.KEEPER_WALLET_PATH,
+    );
+    await sleep(1000);
+  }
+
+  console.log(`\n\n\n 14d. DEPOSIT THE "${VENUES}" LAYOUT BY LIQUIDATEE`);
+  const bankOf = (p: Position) => new PublicKey((state[p.list] as string[])[p.index ?? 0]);
+  const depositPosition = async (account: PublicKey, p: Position) => {
+    const deposit = { PROGRAM_ID: config.PROGRAM_ID, BANK: bankOf(p), ACCOUNT: account, AMOUNT: p.amount };
+    if (p.kamino) {
+      await depositKamino(true, { ...deposit, ...p.kamino }, config.LIQUIDATEE_WALLET_PATH);
+    } else if (p.lending) {
+      await depositJuplend(true, deposit, config.LIQUIDATEE_WALLET_PATH);
+    } else {
+      await depositRegular(true, { ...deposit, MINT: p.mint }, config.LIQUIDATEE_WALLET_PATH);
+    }
+    await sleep(1000);
+  };
+  for (const p of HEAVY) {
+    await depositPosition(liquidatee, p);
+  }
+
   console.log("\n\n\n 15. DEPOSIT TO DEBT BANK BY LIQUIDATOR");
   let regularDepositConfig = {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: debtBank,
     ACCOUNT: liquidator,
-    AMOUNT: DEBT_DEPOSIT,
+    AMOUNT: debtDeposit,
     MINT: config.DEBT_MINT,
   };
-  // A reused setup keeps the liquidator's deposit; the reset repaid every borrow back into it.
-  if (!reused) await depositRegular(
+  // A reused setup keeps the liquidator's deposit (the reset repaid every borrow back into it) and
+  // only tops it up when this run borrows more.
+  if (!debtDeposit.isZero()) await depositRegular(
     true,
     regularDepositConfig,
     config.LIQUIDATOR_WALLET_PATH,
@@ -1103,10 +1293,13 @@ async function main() {
       true,
       {
         PROGRAM_ID: config.PROGRAM_ID,
-        BANKS: SETUP_BANKS.flatMap(([key]) => banksOf(key)).map((bank) => ({
-          bank,
-          update: { assetWeightInit: REUSED_WEIGHT_INIT, assetWeightMaint: REUSED_WEIGHT_MAINT },
-        })),
+        BANKS: [...SETUP_BANKS, ...ADDED_BANKS]
+          .filter(([key]) => key !== "keeperBanks")
+          .flatMap(([key]) => banksOf(key))
+          .map((bank) => ({
+            bank,
+            update: { assetWeightInit: REUSED_WEIGHT_INIT, assetWeightMaint: REUSED_WEIGHT_MAINT },
+          })),
       },
       config.LIQUIDATOR_WALLET_PATH,
     );
@@ -1133,15 +1326,11 @@ async function main() {
     PROGRAM_ID: config.PROGRAM_ID,
     BANK: debtBank,
     ACCOUNT: liquidatee,
-    AMOUNT: new BN(5 * 10 ** 5), // 0.5 PyUSD
+    AMOUNT: HEAVY_BORROW,
     MINT: config.DEBT_MINT,
     ADD_COMPUTE_UNITS: true,
-    KAMINO_RESERVES: [
-      ...(KAMINO_BANKS > 0 ? [config.KAMINO_RESERVE] : []),
-      ...(KAMINO_MSOL_BANKS > 0 ? [config.MSOL_KAMINO_RESERVE] : []),
-      ...(KAMINO_LST_BANKS > 0 ? [config.JITOSOL_KAMINO_RESERVE] : []),
-    ],
-    JUPLEND_STATES: JUPLEND_BANKS > 0 ? [config.JUPLEND_LENDING] : [],
+    KAMINO_RESERVES: HEAVY.flatMap((p) => (p.reserve ? [p.reserve] : [])),
+    JUPLEND_STATES: HEAVY.flatMap((p) => (p.lending ? [p.lending] : [])),
     NEW_REMAINING: composeRemainingAccounts(remainingAccounts),
     LUT: config.LUT,
   };
@@ -1172,7 +1361,7 @@ async function main() {
   await sleep(5000);
 
   console.log("\n\n\n 16b. ADD KaminoPythPush / FixedJuplend BANKS (SANDWICH LIQUIDATEES ONLY)");
-  // The 14-position liquidatee already holds 4 costly positions, so these two only back sandwiches.
+  // No heavy layout uses them (it has 4 costly positions already), so these two only back sandwiches.
   const kaminoPythBanks: PublicKey[] = banksOf("kaminoPythBanks");
   const fixedJuplendBanks: PublicKey[] = banksOf("fixedJuplendBanks");
   if (!reused) {
@@ -1216,44 +1405,6 @@ async function main() {
   }
 
   console.log("\n\n\n 16c. SANDWICH LIQUIDATEES: ONE COLLATERAL + PyUSD DEBT EACH");
-  // PT is left out: eva needs a collateral->PyUSD route for the in-tx swap.
-  const usdcKamino = {
-    BANK_MINT: config.KAMINO_COLLATERAL_MINT,
-    KAMINO_RESERVE: config.KAMINO_RESERVE,
-    KAMINO_MARKET: config.KAMINO_MARKET,
-    RESERVE_ORACLE: config.KAMINO_RESERVE_ORACLE,
-    FARM_STATE: config.KAMINO_FARM_STATE,
-  };
-  const msolKamino = {
-    BANK_MINT: config.MSOL_MINT,
-    KAMINO_RESERVE: config.MSOL_KAMINO_RESERVE,
-    KAMINO_MARKET: config.MSOL_KAMINO_MARKET,
-    RESERVE_ORACLE: config.MSOL_KAMINO_RESERVE_ORACLE,
-    FARM_STATE: config.MSOL_KAMINO_FARM_STATE,
-  };
-  const lstKamino = {
-    KAMINO_MARKET: config.JITOSOL_KAMINO_MARKET,
-    RESERVE_ORACLE: config.JITOSOL_KAMINO_RESERVE_ORACLE,
-  };
-  const sandwiches: {
-    setup: string;
-    bank: PublicKey;
-    amount: BN;
-    mint?: PublicKey; // regular deposit
-    kamino?: typeof lstKamino & Partial<typeof usdcKamino>;
-    reserve?: PublicKey;
-    juplend?: boolean;
-  }[] = [
-    { setup: "Fixed", bank: p0Banks[0], amount: SANDWICH_USD, mint: config.P0_COLLATERAL_MINT },
-    { setup: "Scope", bank: scopeBanks[0], amount: SANDWICH_USD, mint: config.P0_COLLATERAL_MINT },
-    { setup: "PythMSOL", bank: pythMsolBanks[0], amount: SANDWICH_LST, mint: config.MSOL_MINT },
-    { setup: "PythLST", bank: pythLstBanks[0], amount: SANDWICH_LST, mint: config.JITOSOL_MINT },
-    { setup: "KaminoPythPush", bank: kaminoPythBanks[0], amount: SANDWICH_USD, kamino: usdcKamino, reserve: config.KAMINO_RESERVE },
-    { setup: "KaminoMSOL", bank: kaminoMsolBanks[0], amount: SANDWICH_LST, kamino: msolKamino, reserve: config.MSOL_KAMINO_RESERVE },
-    { setup: "KaminoLST", bank: kaminoLstBanks[0], amount: SANDWICH_LST, kamino: lstKamino, reserve: config.JITOSOL_KAMINO_RESERVE },
-    { setup: "ScopeJuplend", bank: juplendBanks[0], amount: SANDWICH_USD, juplend: true },
-    { setup: "FixedJuplend", bank: fixedJuplendBanks[0], amount: SANDWICH_USD, juplend: true },
-  ];
   const sandwichLiquidatees: PublicKey[] = [];
   for (const s of sandwiches) {
     const account = await initAccount(
@@ -1266,15 +1417,7 @@ async function main() {
     state.sandwichLiquidatees = sandwichLiquidatees.map(pkToString);
     writeJsonFile("liquidation_e2e_state.json", state);
 
-    const deposit = { PROGRAM_ID: config.PROGRAM_ID, BANK: s.bank, ACCOUNT: account, AMOUNT: s.amount };
-    if (s.kamino) {
-      await depositKamino(true, { ...deposit, ...s.kamino }, config.LIQUIDATEE_WALLET_PATH);
-    } else if (s.juplend) {
-      await depositJuplend(true, deposit, config.LIQUIDATEE_WALLET_PATH);
-    } else {
-      await depositRegular(true, { ...deposit, MINT: s.mint }, config.LIQUIDATEE_WALLET_PATH);
-    }
-    await sleep(1000);
+    await depositPosition(account, s);
 
     const [groups] = await getOraclesAndKaminoIxes(user.program, user.kaminoProgram, account);
     await borrow(
@@ -1284,7 +1427,7 @@ async function main() {
         ACCOUNT: account,
         AMOUNT: SANDWICH_BORROW,
         KAMINO_RESERVES: s.reserve ? [s.reserve] : [],
-        JUPLEND_STATES: s.juplend ? [config.JUPLEND_LENDING] : [],
+        JUPLEND_STATES: s.lending ? [s.lending] : [],
         NEW_REMAINING: composeRemainingAccounts([...groups, [debtBank, config.DEBT_ORACLE]]),
       },
       config.LIQUIDATEE_WALLET_PATH,
@@ -1313,6 +1456,9 @@ async function main() {
         ...juplendBanks,
         ...kaminoPythBanks,
         ...fixedJuplendBanks,
+        ...p0ExtraBanks,
+        ...pythBanks,
+        ...juplendExtraBanks,
       ].map((bank) => ({
         bank,
         update: { assetWeightInit: 0.1, assetWeightMaint: 0.1 },
@@ -1334,6 +1480,12 @@ async function main() {
     }
     console.log(
       `Account ${account} is now liquidatable (maintenance health $${healthMaint.toFixed(6)})`,
+    );
+  }
+  if (state.keeperAccount) {
+    console.log(
+      `\nzeeper (classic): LIQUIDATOR_ACCOUNT=${state.keeperAccount} ` +
+        `LIQUIDATOR_SWAP_BANK=${keeperBanks[0]} MARGINFI_GROUP=${marginfiGroup}`,
     );
   }
 }
@@ -1421,8 +1573,15 @@ async function assertSolBalances(
 async function loadReusableState(config: Config): Promise<SerializedState | undefined> {
   if (!existsSync(STATE_FILE)) return undefined;
   const raw: SerializedState = JSON.parse(readFileSync(STATE_FILE, "utf8"));
-  const lists = SETUP_BANKS.map(([key, n]) => [raw[key] as string[] | undefined, n] as const);
-  if (!raw.liquidator || !raw.debtBank || lists.some(([list, n]) => list?.length !== n)) {
+  const lists = [
+    ...SETUP_BANKS.map(([key, n]) => [raw[key] as string[] | undefined, n, n] as const),
+    ...ADDED_BANKS.map(([key, n]) => [raw[key] as string[] | undefined, 0, n] as const),
+  ];
+  if (
+    !raw.liquidator ||
+    !raw.debtBank ||
+    lists.some(([list, min, max]) => (list?.length ?? 0) < min || (list?.length ?? 0) > max)
+  ) {
     throw new Error(
       `${STATE_FILE} is from a setup that stopped partway. Run unwind_liquidatable_user_e2e.ts ` +
         "first (or delete the file to start over).",
@@ -1434,7 +1593,13 @@ async function loadReusableState(config: Config): Promise<SerializedState | unde
     config.PROGRAM_ID,
     config.LIQUIDATOR_WALLET_PATH,
   );
-  const keys = [raw.marginfiGroup, raw.liquidator, raw.debtBank, ...lists.flatMap(([l]) => l!)];
+  const keys = [
+    raw.marginfiGroup,
+    raw.liquidator,
+    raw.debtBank,
+    ...(raw.keeperAccount ? [raw.keeperAccount] : []),
+    ...lists.flatMap(([l]) => l ?? []),
+  ];
   const infos = await connection.getMultipleAccountsInfo(keys.map((k) => new PublicKey(k)));
   const gone = keys.filter((_, i) => !infos[i]?.owner.equals(program.programId));
   if (gone.length > 0) {
@@ -1552,6 +1717,15 @@ function serializeConfig(config: Config): any {
     SCOPE_USDC_ENTRY: config.SCOPE_USDC_ENTRY,
     SCOPE_USDT_ENTRY: config.SCOPE_USDT_ENTRY,
     LUT: pkToString(config.LUT),
+    PYTH_COLLATERAL_ORACLE: pkToString(config.PYTH_COLLATERAL_ORACLE),
+    JUPLEND_EXTRA: config.JUPLEND_EXTRA.map((v) => ({
+      ...v,
+      mint: pkToString(v.mint),
+      lending: pkToString(v.lending),
+      fTokenMint: pkToString(v.fTokenMint),
+      oracle: pkToString(v.oracle),
+    })),
+    KEEPER_WALLET_PATH: config.KEEPER_WALLET_PATH,
   };
 }
 
