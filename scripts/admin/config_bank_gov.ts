@@ -24,6 +24,7 @@ export type BankConfigGovUpdate = {
   liabilityWeightInit?: number;
   liabilityWeightMaint?: number;
   oracleMaxAge?: number;
+  tokenlessRepaymentsAllowed?: boolean;
 };
 
 export type BankGovEntry = {
@@ -34,17 +35,24 @@ export type BankGovEntry = {
 type Config = {
   PROGRAM_ID: string;
   BANKS: BankGovEntry[];
+  /**
+   * Groups start without a governance admin. If set and the group has none yet, the first tx
+   * bootstraps it (signed by the group admin) before the updates, which it then signs.
+   */
+  BOOTSTRAP_GOVERNANCE_ADMIN?: PublicKey;
   MULTISIG?: PublicKey; // May be omitted if not using squads
 };
 
 const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   BANKS: [
     {
-      bank: new PublicKey("11111111111111111111111111111111"),
-      update: { assetWeightInit: 0.5, assetWeightMaint: 0.6 },
+      bank: new PublicKey("FWZbU8TSPyjyrWQASzujo7FjgF9f3GEkjaFAtbKWqjMH"), // sUSD
+      update: { tokenlessRepaymentsAllowed: true },
     },
   ],
+  BOOTSTRAP_GOVERNANCE_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  MULTISIG: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
 /** Banks per transaction; each instruction is small, this just keeps long lists under 1232 bytes. */
@@ -70,8 +78,23 @@ export async function configBankGov(
   const wrap = (v?: number) =>
     v === undefined ? null : bigNumberToWrappedI80F48(v);
 
+  const groupKey = (await program.account.bank.fetch(config.BANKS[0].bank)).group;
+  const group = await program.account.marginfiGroup.fetch(groupKey);
+  const bootstrap =
+    config.BOOTSTRAP_GOVERNANCE_ADMIN && group.governanceAdmin.equals(PublicKey.default);
+  const governanceAdmin = bootstrap ? config.BOOTSTRAP_GOVERNANCE_ADMIN : group.governanceAdmin;
+  console.log(`governance admin: ${governanceAdmin}${bootstrap ? " (bootstrapped in the first tx)" : ""}`);
+
   for (let start = 0; start < config.BANKS.length; start += BANKS_PER_TX) {
     const transaction = new Transaction();
+    if (bootstrap && start === 0) {
+      transaction.add(
+        await program.methods
+          .marginfiGroupSetGovernanceAdmin(governanceAdmin)
+          .accounts({ marginfiGroup: groupKey, signer: group.admin })
+          .instruction(),
+      );
+    }
     for (const { bank, update } of config.BANKS.slice(start, start + BANKS_PER_TX)) {
       transaction.add(
         await program.methods
@@ -85,10 +108,10 @@ export async function configBankGov(
             assetTag: null,
             oracleMaxConfidence: null,
             oracleMaxAge: update.oracleMaxAge ?? null,
-            tokenlessRepaymentsAllowed: null,
+            tokenlessRepaymentsAllowed: update.tokenlessRepaymentsAllowed ?? null,
             freezeSettings: null,
           } as any)
-          .accounts({ bank })
+          .accountsPartial({ bank, governanceAdmin })
           .instruction(),
       );
     }
