@@ -21,11 +21,15 @@ import { getMint, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
 const sendTx = false;
-const cloneEmode = true;
+const cloneEmode = false;
+// Always output a separate unsigned transaction to execute after bank creation.
+const cloneBreaker = true;
 
 const ASSET_TAG_DEFAULT = 0;
+const CIRCUIT_BREAKER_ENABLED_BIT = 11;
 
 export const ORACLE_TYPE_PYTH = 3;
+export const ORACLE_TYPE_SCOPE = 18;
 
 type Config = {
   PROGRAM_ID: string;
@@ -37,6 +41,8 @@ type Config = {
   ORACLE: PublicKey;
   /** See `OracleSetup::from_u8`, e.g. 3 (PythPushOracle) */
   ORACLE_TYPE: number;
+  /** Required for Scope: entry within the OraclePrices account (0–511). */
+  SCOPE_ENTRY_INDEX?: number;
   /** Group governance admin (generally the timelocked MS on mainnet) */
   ADMIN: PublicKey;
   /** Pays flat sol fee to init and rent (generally the MS on mainnet) */
@@ -46,20 +52,27 @@ type Config = {
   /** Defaults to ASSET_TAG_DEFAULT (0). Set to 1 for a SOL bank, etc. */
   ASSET_TAG?: number;
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
-  CLONE_FROM?: PublicKey; // Required when cloneEmode = true
+  CLONE_EMODE_FROM?: PublicKey; // Required when cloneEmode = true
+  CLONE_BREAKER_FROM?: PublicKey; // Required when cloneBreaker = true
 };
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE: new PublicKey("HxZN9wAUXHpkUpLeH3x3UtCPhdsJP2EkVN4umvny4hBw"),
-  ORACLE_TYPE: ORACLE_TYPE_PYTH,
+  ORACLE: new PublicKey("AMjqm5S4QaAHWLv52jJiRpFNW1qo23F6ZM5ChCF5tYgc"),
+  ORACLE_TYPE: ORACLE_TYPE_SCOPE,
+  SCOPE_ENTRY_INDEX: 60,
   ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-  BANK_MINT: new PublicKey("rkubjTrZYioRSeXwDnhwGQzvW3qkcin72JSxUt3WMVp"),
+  BANK_MINT: new PublicKey("USDvUSpnhCr9yBgj3UyVrD239HRUv4RsHwH2FxsWuMk"),
   SEED: 0,
   MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
-  CLONE_FROM: new PublicKey("9p1TiAeTc6FSiNHhnR6BgmwRq49zywczAY4m77BbKGer"),
+  CLONE_EMODE_FROM: new PublicKey(
+    "Dj2CwMF3GM7mMT5hcyGXKuYSQ2kQ5zaVCkA1zX1qaTva",
+  ),
+  CLONE_BREAKER_FROM: new PublicKey(
+    "Dj2CwMF3GM7mMT5hcyGXKuYSQ2kQ5zaVCkA1zX1qaTva",
+  ),
 };
 
 const rate: InterestRateConfig1_7 = {
@@ -69,14 +82,14 @@ const rate: InterestRateConfig1_7 = {
   protocolIrFee: bigNumberToWrappedI80F48(0.06),
   protocolOriginationFee: bigNumberToWrappedI80F48(0),
 
-  zeroUtilRate: 0,
-  hundredUtilRate: aprToU32(0.56),
+  zeroUtilRate: aprToU32(0),
+  hundredUtilRate: aprToU32(0.2),
   points: [
-    { util: utilToU32(0.8), rate: aprToU32(0.1) },
-    { util: 0, rate: 0 },
-    { util: 0, rate: 0 },
-    { util: 0, rate: 0 },
-    { util: 0, rate: 0 },
+    { util: utilToU32(0.5), rate: aprToU32(0.02) },
+    { util: utilToU32(0.8), rate: aprToU32(0.04) },
+    { util: utilToU32(0.9), rate: aprToU32(0.05) },
+    { util: utilToU32(0.95), rate: aprToU32(0.075) },
+    { util: utilToU32(0.98), rate: aprToU32(0.15) },
   ],
   curveType: 1,
 };
@@ -86,12 +99,12 @@ const bankConfig: BankConfig = {
   assetWeightMaint: bigNumberToWrappedI80F48(0.8),
   liabilityWeightInit: bigNumberToWrappedI80F48(1.3),
   liabilityWeightMaint: bigNumberToWrappedI80F48(1.2),
-  depositLimit: new BN(20000000000000),
+  depositLimit: new BN(5000000 * 10 ** 6),
   interestRateConfig: rate,
   operationalState: { operational: {} },
-  borrowLimit: new BN(2500000000000),
+  borrowLimit: new BN(2500000 * 10 ** 6),
   riskTier: { collateral: {} },
-  totalAssetValueInitLimit: new BN(10000000),
+  totalAssetValueInitLimit: new BN(5000000),
   oracleMaxAge: 70,
   assetTag: 0,
   oracleMaxConfidence: 0,
@@ -99,7 +112,13 @@ const bankConfig: BankConfig = {
 };
 
 async function main() {
-  await addBank(sendTx, config, "/.keys/staging-deploy.json", cloneEmode);
+  await addBank(
+    sendTx,
+    config,
+    "/.keys/staging-deploy.json",
+    cloneEmode,
+    cloneBreaker,
+  );
 }
 
 export async function addBank(
@@ -107,7 +126,12 @@ export async function addBank(
   config: Config,
   walletPath: string,
   cloneEmode = false,
+  cloneBreaker = false,
 ): Promise<PublicKey> {
+  if (cloneBreaker && !config.CLONE_BREAKER_FROM) {
+    throw new Error("CLONE_BREAKER_FROM must be set when cloneBreaker = true");
+  }
+
   console.log("adding bank to group: " + config.GROUP_KEY);
   const user = commonSetup(
     sendTx,
@@ -140,7 +164,7 @@ export async function addBank(
     console.log("Detected SPL Token mint");
   }
 
-  if (cloneEmode && !config.CLONE_FROM) {
+  if (cloneEmode && !config.CLONE_EMODE_FROM) {
     throw new Error("CLONE_FROM must be set when cloneEmode = true");
   }
 
@@ -150,6 +174,24 @@ export async function addBank(
     isSigner: false,
     isWritable: false,
   };
+
+  if (
+    config.ORACLE_TYPE === ORACLE_TYPE_SCOPE &&
+    config.SCOPE_ENTRY_INDEX == null
+  ) {
+    throw new Error("SCOPE_ENTRY_INDEX must be set for Scope oracles");
+  }
+
+  const configureOracle =
+    config.ORACLE_TYPE === ORACLE_TYPE_SCOPE
+      ? program.methods.lendingPoolConfigureBankOracleScope(
+          config.ORACLE,
+          config.SCOPE_ENTRY_INDEX!,
+        )
+      : program.methods.lendingPoolConfigureBankOracle(
+          config.ORACLE_TYPE,
+          config.ORACLE,
+        );
 
   const tx = new Transaction();
 
@@ -183,8 +225,7 @@ export async function addBank(
         tokenProgram,
       })
       .instruction(),
-    await program.methods
-      .lendingPoolConfigureBankOracle(config.ORACLE_TYPE, config.ORACLE)
+    await configureOracle
       .accountsPartial({
         group: config.GROUP_KEY,
         governanceAdmin: config.ADMIN,
@@ -199,11 +240,58 @@ export async function addBank(
       await program.methods
         .lendingPoolCloneEmode()
         .accounts({
-          copyFromBank: config.CLONE_FROM!,
+          copyFromBank: config.CLONE_EMODE_FROM!,
           copyToBank: bankKey,
         })
         .accountsPartial({
           governanceAdmin: config.ADMIN,
+        })
+        .instruction(),
+    );
+  }
+
+  // Keep the breaker instructions out of the bank-creation transaction.
+  let breakerTx: Transaction | undefined;
+  if (cloneBreaker) {
+    const source = await program.account.bank.fetch(config.CLONE_BREAKER_FROM!);
+    const enabled = source.flags.testn(CIRCUIT_BREAKER_ENABLED_BIT);
+    breakerTx = new Transaction();
+
+    // Enabling requires a warm price cache on the newly created bank.
+    if (enabled) {
+      breakerTx.add(
+        await program.methods
+          .lendingPoolPulseBankPriceCache()
+          .accountsPartial({ group: config.GROUP_KEY, bank: bankKey })
+          .remainingAccounts([oracleMeta])
+          .instruction(),
+      );
+    }
+
+    breakerTx.add(
+      await program.methods
+        .lendingPoolConfigureBank({
+          depositLimit: null,
+          borrowLimit: null,
+          operationalState: null,
+          interestRateConfig: null,
+          totalAssetValueInitLimit: null,
+          permissionlessBadDebtSettlement: null,
+          liquidationLiquidatorFee: null,
+          liquidationInsuranceFee: null,
+          circuitBreakerEnabled: enabled,
+          cbDeviationBpsTiers: source.config.cbDeviationBpsTiers,
+          cbTierDurationsSeconds: source.config.cbTierDurationsSeconds,
+          cbEscalationWindowMult: source.config.cbEscalationWindowMult,
+          cbEmaAlphaBps: source.config.cbEmaAlphaBps,
+          cbWindowSeconds: source.config.cbWindowSeconds,
+          cbWindowMaxUpBps: source.config.cbWindowMaxUpBps,
+          cbWindowMaxDownBps: source.config.cbWindowMaxDownBps,
+        })
+        .accountsPartial({
+          group: config.GROUP_KEY,
+          admin: config.ADMIN,
+          bank: bankKey,
         })
         .instruction(),
     );
@@ -236,6 +324,23 @@ export async function addBank(
         console.log(`    new PublicKey("${account.pubkey.toString()}"),`);
       }
     }
+  }
+
+  if (breakerTx) {
+    breakerTx.feePayer = config.MULTISIG_PAYER ?? config.ADMIN;
+    breakerTx.recentBlockhash = (
+      await connection.getLatestBlockhash()
+    ).blockhash;
+    console.log("Execute the circuit breaker transaction after bank creation.");
+    console.log(
+      "Base58-encoded circuit breaker transaction:",
+      bs58.encode(
+        breakerTx.serialize({
+          requireAllSignatures: false,
+          verifySignatures: false,
+        }),
+      ),
+    );
   }
 
   return bankKey;
