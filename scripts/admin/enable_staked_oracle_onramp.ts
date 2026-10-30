@@ -57,7 +57,7 @@ async function main() {
     .enableStakedOracleOnramp()
     .accountsPartial({
       group: config.GROUP,
-      admin: user.wallet.publicKey,
+      governanceAdmin: user.wallet.publicKey,
       stakedSettings,
     })
     .instruction();

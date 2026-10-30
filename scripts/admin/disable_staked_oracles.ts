@@ -57,7 +57,7 @@ async function main() {
     .disableStakedOracles()
     .accountsPartial({
       group: config.GROUP,
-      admin: user.wallet.publicKey,
+      governanceAdmin: user.wallet.publicKey,
       stakedSettings,
     })
     .instruction();
