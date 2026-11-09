@@ -6,6 +6,7 @@ import {
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { commonSetup } from "../../lib/common-setup";
 import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
+import { ASSET_TAG_DRIFT, ASSET_TAG_JUPLEND, ASSET_TAG_KAMINO } from "../../lib/constants";
 
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
@@ -71,6 +72,14 @@ export async function setFixedOraclePrice(
   const transaction = new Transaction();
 
   for (const cfg of configs) {
+    // Kamino/Drift/JupLend banks become FixedKamino/FixedDrift/FixedJuplend, which still
+    // validate their venue account (`oracle_keys[1]`).
+    const bank = await program.account.bank.fetch(cfg.bank);
+    const remaining = [ASSET_TAG_KAMINO, ASSET_TAG_DRIFT, ASSET_TAG_JUPLEND].includes(
+      bank.config.assetTag,
+    )
+      ? [{ pubkey: bank.config.oracleKeys[1], isSigner: false, isWritable: false }]
+      : [];
     const ix = await program.methods
       .lendingPoolSetOraclePrice(
         bigNumberToWrappedI80F48(cfg.price),
@@ -79,7 +88,7 @@ export async function setFixedOraclePrice(
       .accounts({
         bank: cfg.bank,
       })
-      .remainingAccounts([])
+      .remainingAccounts(remaining)
       .instruction();
 
     transaction.add(ix);

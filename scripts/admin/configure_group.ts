@@ -43,7 +43,7 @@ const config: Config = {
   // FLOW_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // EMISS_ADMIN: new PublicKey("BACjgGYJYwVRRpnHJfcjykfkp2Xu118ghx5fYL1wgY7p"),
   // META_ADMIN: new PublicKey("B2QBNiT857wyU56jffuy5i7YPpLC9eUwJ99CzJt52RN9"),
-  // RISK_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  RISK_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
   // EMODE_MAX_INIT_LEVERAGE: bigNumberToWrappedI80F48(20),
   // EMODE_MAX_MAINT_LEVERAGE: bigNumberToWrappedI80F48(40),
 
@@ -87,29 +87,60 @@ async function main() {
   let groupBefore = await program.account.marginfiGroup.fetch(config.GROUP);
   // console.log("Current risk admin:", groupBefore.riskAdmin.toString());
 
+  // 0.1.12: the e-mode/risk admins and leverage caps moved to `marginfi_group_configure_gov`,
+  // signed by the governance admin. Unset fields are left unchanged.
   const transaction = new Transaction();
-  transaction.add(
-    await program.methods
-      .marginfiGroupConfigure(
-        config.ADMIN_GENERAL ?? groupBefore.admin,
-        config.EMODE_ADMIN ?? groupBefore.emodeAdmin,
-        config.CURVE_ADMIN ?? groupBefore.delegateCurveAdmin,
-        config.LIMIT_ADMIN ?? groupBefore.delegateLimitAdmin,
-        config.FLOW_ADMIN ?? groupBefore.delegateFlowAdmin,
-        config.EMISS_ADMIN ?? groupBefore.delegateEmissionsAdmin,
-        config.META_ADMIN ?? groupBefore.metadataAdmin,
-        config.RISK_ADMIN ?? groupBefore.riskAdmin,
-        config.EMODE_MAX_INIT_LEVERAGE ?? null,
-        config.EMODE_MAX_MAINT_LEVERAGE ?? null,
-        config.SAME_ASSET_EMODE_INIT_LEVERAGE ?? null,
-        config.SAME_ASSET_EMODE_MAINT_LEVERAGE ?? null,
-      )
-      .accountsPartial({
-        marginfiGroup: config.GROUP,
-        admin: config.MULTISIG ?? user.wallet.publicKey,
-      })
-      .instruction(),
-  );
+  if (
+    config.ADMIN_GENERAL ||
+    config.CURVE_ADMIN ||
+    config.LIMIT_ADMIN ||
+    config.FLOW_ADMIN ||
+    config.EMISS_ADMIN ||
+    config.META_ADMIN
+  ) {
+    transaction.add(
+      await program.methods
+        .marginfiGroupConfigure(
+          config.ADMIN_GENERAL ?? null,
+          config.CURVE_ADMIN ?? null,
+          config.LIMIT_ADMIN ?? null,
+          config.FLOW_ADMIN ?? null,
+          config.EMISS_ADMIN ?? null,
+          config.META_ADMIN ?? null,
+        )
+        .accountsPartial({
+          marginfiGroup: config.GROUP,
+          admin: config.MULTISIG ?? user.wallet.publicKey,
+        })
+        .instruction(),
+    );
+  }
+  if (
+    config.EMODE_ADMIN ||
+    config.RISK_ADMIN ||
+    config.EMODE_MAX_INIT_LEVERAGE ||
+    config.EMODE_MAX_MAINT_LEVERAGE ||
+    config.SAME_ASSET_EMODE_INIT_LEVERAGE ||
+    config.SAME_ASSET_EMODE_MAINT_LEVERAGE
+  ) {
+    transaction.add(
+      await program.methods
+        .marginfiGroupConfigureGov(
+          null,
+          config.EMODE_ADMIN ?? null,
+          config.RISK_ADMIN ?? null,
+          config.EMODE_MAX_INIT_LEVERAGE ?? null,
+          config.EMODE_MAX_MAINT_LEVERAGE ?? null,
+          config.SAME_ASSET_EMODE_INIT_LEVERAGE ?? null,
+          config.SAME_ASSET_EMODE_MAINT_LEVERAGE ?? null,
+        )
+        .accountsPartial({
+          marginfiGroup: config.GROUP,
+          governanceAdmin: groupBefore.governanceAdmin,
+        })
+        .instruction(),
+    );
+  }
 
   if (sendTx) {
     try {
