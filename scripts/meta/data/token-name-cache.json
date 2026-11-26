@@ -970,5 +970,11 @@
     "symbol": "PT-hyUSD",
     "source": "jupiter",
     "cachedAt": 1786520404939
+  },
+  "USDvUSpnhCr9yBgj3UyVrD239HRUv4RsHwH2FxsWuMk": {
+    "name": "Solomon USDv",
+    "symbol": "USDv",
+    "source": "jupiter",
+    "cachedAt": 1795682089649
   }
 }

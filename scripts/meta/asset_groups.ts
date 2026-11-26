@@ -25,6 +25,7 @@ export const assetGroups = {
     USD1: "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
     JupUSD: "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
     USDE: "DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT",
+    USDv: "USDvUSpnhCr9yBgj3UyVrD239HRUv4RsHwH2FxsWuMk",
   },
   "sol-lst": {
     SOL: "So11111111111111111111111111111111111111112",
