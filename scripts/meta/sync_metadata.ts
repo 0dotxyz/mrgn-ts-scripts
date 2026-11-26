@@ -5,15 +5,10 @@ import { getTokenMetadata } from "@solana/spl-token";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import {
-  commonSetup,
-  registerDriftProgram,
-  registerKaminoProgram,
-} from "../../lib/common-setup";
+import { commonSetup, registerKaminoProgram } from "../../lib/common-setup";
 import { configs } from "../../lib/config";
 import { Environment } from "../../lib/types";
 import { loadEnvFile } from "../utils/utils";
-import { DRIFT_PROGRAM_ID } from "../drift/lib/utils";
 import { KLEND_PROGRAM_ID } from "../kamino/kamino-types";
 import { buildMintToGroupMap } from "./asset_groups";
 import {
@@ -43,8 +38,9 @@ import {
   * Venue is derived from the on-chain assetTag:
   *   3 Kamino, 4 Drift, 5 Solend, 6 JupLend, everything else P0.
  * The venue identifier (description[4]) names the market inside the venue: "Main Market" for
- * P0, JupLend and Drift pool 0, the lending market's on-chain name for Kamino, a known lending
- * market for Solend. A bank whose market cannot be resolved is left untouched.
+ * P0 and JupLend, the lending market's on-chain name for Kamino, a known lending market for
+ * Solend. A bank whose market cannot be resolved is left untouched; this includes any Drift bank,
+ * since Drift support was removed from this repo.
  *
  * Asset group is the mint's bucket in asset_groups.ts; Isolated risk-tier
  * banks force W/E (matches the convention in write_bank_metadata.ts).
@@ -74,11 +70,6 @@ const MAIN_MARKET = "Main Market";
 // Kamino's main market is named "SOL/BTC Market" on chain; the others keep their on-chain name.
 const KAMINO_MARKET_NAME_OVERRIDES: Record<string, string> = {
   "7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF": MAIN_MARKET,
-};
-
-// Drift spot markets carry a pool id, not a pool name.
-const DRIFT_POOL_NAMES: Record<number, string> = {
-  0: MAIN_MARKET,
 };
 
 // Solend lending markets carry no name on chain.
@@ -351,27 +342,6 @@ async function resolveKaminoMarkets(
 }
 
 /**
- * Pool name per Drift bank, keyed by bank address, given each bank's spot market.
- */
-async function resolveDriftMarkets(
-  user: ReturnType<typeof commonSetup>,
-  spotMarketsByBank: Map<string, PublicKey>,
-): Promise<Map<string, string>> {
-  const banks = [...spotMarketsByBank.keys()];
-  registerDriftProgram(user, DRIFT_PROGRAM_ID.toBase58());
-  const spotMarkets = await user.driftProgram.account.spotMarket.fetchMultiple(
-    banks.map((b) => spotMarketsByBank.get(b)!),
-  );
-  const names = new Map<string, string>();
-  banks.forEach((b, i) => {
-    const poolId = spotMarkets[i]?.poolId;
-    const name = poolId !== undefined && DRIFT_POOL_NAMES[poolId];
-    if (name) names.set(b, name);
-  });
-  return names;
-}
-
-/**
  * Market name per Solend bank, keyed by bank address, given each bank's reserve.
  */
 async function resolveSolendMarkets(
@@ -399,9 +369,10 @@ async function resolveSolendMarkets(
 }
 
 /**
- * Venue identifier per bank, keyed by bank address. Kamino, Drift and Solend banks are resolved
- * through their integration account 1 (reserve or spot market) and are absent from the result
- * when the market is unknown; every other bank is on its venue's main market.
+ * Venue identifier per bank, keyed by bank address. Kamino and Solend banks are resolved through
+ * their integration account 1 (reserve) and are absent from the result when the market is
+ * unknown. Drift banks have no resolver and are always absent. Every other bank is on its venue's
+ * main market.
  */
 async function resolveVenueIdentifiers(
   user: ReturnType<typeof commonSetup>,
@@ -434,7 +405,6 @@ async function resolveVenueIdentifiers(
 
   const resolvers: [number, (m: Map<string, PublicKey>) => Promise<Map<string, string>>][] = [
     [ASSET_TAG_KAMINO, (m) => resolveKaminoMarkets(user, m)],
-    [ASSET_TAG_DRIFT, (m) => resolveDriftMarkets(user, m)],
     [ASSET_TAG_SOLEND, (m) => resolveSolendMarkets(user, m)],
   ];
   for (const [tag, resolve] of resolvers) {
